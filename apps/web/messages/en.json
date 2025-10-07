@@ -1,0 +1,48 @@
+{
+  "Header": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "todos": "Todos",
+    "language": "Language"
+  },
+  "HomePage": {
+    "title": "Better T-Stack",
+    "apiStatus": "API Status",
+    "connected": "Connected",
+    "checking": "Checking...",
+    "error": "Error",
+    "description": "A modern tech stack with Next.js, Convex, and Better Auth"
+  },
+  "Dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome to your dashboard",
+    "overview": "Overview",
+    "analytics": "Analytics",
+    "settings": "Settings",
+    "recentActivity": "Recent Activity",
+    "quickStats": "Quick Stats",
+    "systemPerformance": "System performance overview",
+    "newUserRegistered": "New user registered",
+    "taskCompleted": "Task completed",
+    "settingsUpdated": "Settings updated",
+    "cpuUsage": "CPU Usage",
+    "memoryUsage": "Memory Usage",
+    "diskUsage": "Disk Usage",
+    "progress": "Completion Progress"
+  },
+  "Todos": {
+    "title": "Todo List",
+    "addTodo": "Add Todo",
+    "noTodos": "No todos yet",
+    "completed": "Completed",
+    "pending": "Pending",
+    "addNewTask": "Add a new task to your list",
+    "enterNewTask": "Enter new task...",
+    "completionProgress": "Completion Progress"
+  },
+  "Languages": {
+    "vi": "Tiếng Việt",
+    "en": "English",
+    "language": "Language"
+  }
+}

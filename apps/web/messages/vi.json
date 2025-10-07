@@ -1,0 +1,48 @@
+{
+  "Header": {
+    "home": "Trang chủ",
+    "dashboard": "Bảng điều khiển",
+    "todos": "Công việc",
+    "language": "Ngôn ngữ"
+  },
+  "HomePage": {
+    "title": "Tốt hơn T-Stack",
+    "apiStatus": "Trạng thái API",
+    "connected": "Đã kết nối",
+    "checking": "Đang kiểm tra...",
+    "error": "Lỗi",
+    "description": "Một stack công nghệ hiện đại với Next.js, Convex, và Better Auth"
+  },
+  "Dashboard": {
+    "title": "Bảng điều khiển",
+    "welcome": "Chào mừng đến với bảng điều khiển",
+    "overview": "Tổng quan",
+    "analytics": "Phân tích",
+    "settings": "Cài đặt",
+    "recentActivity": "Hoạt động gần đây",
+    "quickStats": "Thống kê nhanh",
+    "systemPerformance": "Tổng quan về hiệu suất hệ thống",
+    "newUserRegistered": "Người dùng mới đăng ký",
+    "taskCompleted": "Nhiệm vụ được hoàn thành",
+    "settingsUpdated": "Cài đặt được cập nhật",
+    "cpuUsage": "Sử dụng CPU",
+    "memoryUsage": "Sử dụng bộ nhớ",
+    "diskUsage": "Sử dụng ổ đĩa",
+    "progress": "Tiến độ hoàn thành"
+  },
+  "Todos": {
+    "title": "Danh sách công việc",
+    "addTodo": "Thêm công việc",
+    "noTodos": "Không có công việc nào",
+    "completed": "Đã hoàn thành",
+    "pending": "Đang chờ",
+    "addNewTask": "Thêm nhiệm vụ mới vào danh sách của bạn",
+    "enterNewTask": "Nhập nhiệm vụ mới...",
+    "completionProgress": "Tiến độ hoàn thành"
+  },
+  "Languages": {
+    "vi": "Tiếng Việt",
+    "en": "English",
+    "language": "Ngôn ngữ"
+  }
+}

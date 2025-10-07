@@ -16,10 +16,12 @@
     "dev:server": "turbo -F @edura/backend dev",
     "dev:setup": "turbo -F @edura/backend dev:setup"
   },
-  "dependencies": {},
+  "dependencies": {
+    "next-intl": "^4.3.9"
+  },
   "devDependencies": {
-    "turbo": "^2.5.4",
     "@biomejs/biome": "2.2.4",
+    "turbo": "^2.5.4",
     "ultracite": "5.4.7"
   },
   "packageManager": "pnpm@10.18.0"
