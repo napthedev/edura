@@ -2,7 +2,6 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import LanguageSwitcher from "./language-switcher";
-import { ModeToggle } from "./mode-toggle";
 
 export default function Header() {
   const t = useTranslations("Header");
@@ -25,7 +24,6 @@ export default function Header() {
         </nav>
         <div className="flex items-center gap-2">
           <LanguageSwitcher />
-          <ModeToggle />
         </div>
       </div>
       <hr />
