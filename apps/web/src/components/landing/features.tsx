@@ -13,50 +13,52 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 export default function DemoVideoSection() {
   const [isPlaying, setIsPlaying] = useState(false);
+  const t = useTranslations("Features");
 
   const features = [
     {
       icon: Users,
-      title: "Student Management",
-      description: "Track progress, attendance, and student profiles",
+      title: t("studentManagement.title"),
+      description: t("studentManagement.description"),
       colorClasses:
         "bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-indigo-50",
     },
     {
       icon: ClipboardList,
-      title: "Assignment Creation",
-      description: "Create and distribute assignments effortlessly",
+      title: t("assignmentCreation.title"),
+      description: t("assignmentCreation.description"),
       colorClasses:
         "bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-emerald-50",
     },
     {
       icon: MessageSquare,
-      title: "Parent Communication",
-      description: "Keep parents informed with automated updates",
+      title: t("parentCommunication.title"),
+      description: t("parentCommunication.description"),
       colorClasses:
         "bg-rose-50 text-rose-600 group-hover:bg-rose-600 group-hover:text-rose-50",
     },
     {
       icon: Calendar,
-      title: "Schedule Management",
-      description: "Automated booking and calendar sync",
+      title: t("scheduleManagement.title"),
+      description: t("scheduleManagement.description"),
       colorClasses:
         "bg-sky-50 text-sky-600 group-hover:bg-sky-600 group-hover:text-sky-50",
     },
     {
       icon: BarChart3,
-      title: "Performance Analytics",
-      description: "Insights and reports on student progress",
+      title: t("performanceAnalytics.title"),
+      description: t("performanceAnalytics.description"),
       colorClasses:
         "bg-amber-50 text-amber-600 group-hover:bg-amber-600 group-hover:text-amber-50",
     },
     {
       icon: FolderOpen,
-      title: "Resource Library",
-      description: "Organize and share teaching materials",
+      title: t("resourceLibrary.title"),
+      description: t("resourceLibrary.description"),
       colorClasses:
         "bg-violet-50 text-violet-600 group-hover:bg-violet-600 group-hover:text-violet-50",
     },
@@ -70,11 +72,9 @@ export default function DemoVideoSection() {
       <div className="relative max-w-7xl mx-auto">
         {/* Title and description */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl sm:text-4xl font-extrabold">
-            Check out all the amazing features
-          </h2>
+          <h2 className="text-3xl sm:text-4xl font-extrabold">{t("title")}</h2>
           <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-            Powerful tools designed specifically for private tutors
+            {t("subtitle")}
           </p>
         </div>
         {/* Features Grid */}

@@ -2,13 +2,15 @@
 
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
-import { mockData } from "@/lib/mock";
 import { Button } from "@/components/ui/button";
 import UserMenu from "../user-menu";
+import { useTranslations } from "next-intl";
+import LanguageSwitcher from "../language-switcher";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const currentUser = null; // Replace with actual user authentication logic
+  const t = useTranslations("Header");
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
@@ -18,9 +20,7 @@ const Header = () => {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <div className="flex items-center">
-            <div className="font-bold text-2xl text-black">
-              {mockData.siteName}
-            </div>
+            <div className="font-bold text-2xl text-black">Edura</div>
           </div>
 
           {/* Desktop Navigation */}
@@ -29,48 +29,41 @@ const Header = () => {
               className="font-medium text-gray-700 transition-colors hover:text-black"
               href="#demo"
             >
-              Demo
+              {t("demo")}
             </a>
             <a
               className="font-medium text-gray-700 transition-colors hover:text-black"
               href="#features"
             >
-              Features
+              {t("features")}
             </a>
             <a
               className="font-medium text-gray-700 transition-colors hover:text-black"
               href="#testimonials"
             >
-              Testimonials
+              {t("testimonials")}
             </a>
             <a
               className="font-medium text-gray-700 transition-colors hover:text-black"
               href="#pricing"
             >
-              Pricing
+              {t("pricing")}
             </a>
           </nav>
 
           {/* Desktop CTA Buttons */}
           <div className="hidden items-center space-x-4 md:flex">
-            {!currentUser ? (
-              <>
-                <Button
-                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
-                  variant="outline"
-                  onClick={() => (window.location.href = "/landing")}
-                >
-                  Sign In
-                </Button>
-                <Button className="bg-black text-white hover:bg-gray-800">
-                  Start Free Trial
-                </Button>
-              </>
-            ) : (
-              <>
-                <UserMenu />
-              </>
-            )}
+            <Button
+              className="border-gray-300 text-gray-700 hover:bg-gray-50"
+              variant="outline"
+              onClick={() => (window.location.href = "/landing")}
+            >
+              {t("signin")}
+            </Button>
+            <Button className="bg-black text-white hover:bg-gray-800">
+              {t("startFreeTrial")}
+            </Button>
+            <LanguageSwitcher />
           </div>
 
           {/* Mobile Menu Button */}
@@ -99,25 +92,25 @@ const Header = () => {
               className="block font-medium text-gray-700 transition-colors hover:text-black"
               href="#home"
             >
-              Home
+              {t("home")}
             </a>
             <a
               className="block font-medium text-gray-700 transition-colors hover:text-black"
               href="#instructors"
             >
-              Teachers
+              {t("teachers")}
             </a>
             <a
               className="block font-medium text-gray-700 transition-colors hover:text-black"
               href="#pricing"
             >
-              Pricing
+              {t("pricing")}
             </a>
             <a
               className="block font-medium text-gray-700 transition-colors hover:text-black"
               href="#about"
             >
-              About
+              {t("about")}
             </a>
 
             <div className="space-y-3 border-gray-100 border-t pt-4">
@@ -128,10 +121,10 @@ const Header = () => {
                     variant="outline"
                     onClick={() => (window.location.href = "/landing")}
                   >
-                    Sign In
+                    {t("signin")}
                   </Button>
                   <Button className="w-full bg-black text-white hover:bg-gray-800">
-                    Start Free Trial
+                    {t("startFreeTrial")}
                   </Button>
                 </>
               ) : (

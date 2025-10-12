@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Play } from "lucide-react";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 export default function DemoVideoSection() {
   const [isPlaying, setIsPlaying] = useState(false);
+  const t = useTranslations("DemoVideo");
 
   return (
     <section
@@ -20,18 +22,18 @@ export default function DemoVideoSection() {
             variant="secondary"
             className="text-sm font-medium px-4 py-1.5"
           >
-            See it in action
+            {t("seeInAction")}
           </Badge>
 
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-balance">
-            Everything you need to run your
-            <span className="block text-primary mt-2">tutoring business</span>
+            {t("mainTitle")}
+            <span className="block text-primary mt-2">
+              {t("highlightText")}
+            </span>
           </h2>
 
           <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto text-pretty leading-relaxed">
-            Watch how Edura streamlines scheduling, payments, and student
-            management—all in one powerful platform built specifically for
-            private tutors.
+            {t("description")}
           </p>
         </div>
 
@@ -65,7 +67,7 @@ export default function DemoVideoSection() {
                       <div className="inline-flex items-center gap-2 text-muted-foreground">
                         <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
                         <span className="text-sm font-medium">
-                          Demo video would play here
+                          {t("demoPlaying")}
                         </span>
                       </div>
                     </div>
@@ -79,13 +81,13 @@ export default function DemoVideoSection() {
                       variant="secondary"
                       className="bg-background/80 backdrop-blur-sm"
                     >
-                      2:30 min
+                      {t("duration")}
                     </Badge>
                     <Badge
                       variant="secondary"
                       className="bg-background/80 backdrop-blur-sm"
                     >
-                      Product Demo
+                      {t("productDemo")}
                     </Badge>
                   </div>
                 )}

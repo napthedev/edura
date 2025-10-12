@@ -1,0 +1,206 @@
+{
+  "Languages": {
+    "language": "Ngôn ngữ",
+    "en": "English",
+    "vi": "Tiếng Việt"
+  },
+  "Header": {
+    "demo": "Demo",
+    "features": "Tính năng",
+    "testimonials": "Đánh giá",
+    "pricing": "Bảng giá",
+    "signin": "Đăng nhập",
+    "startFreeTrial": "Dùng thử miễn phí",
+    "home": "Trang chủ",
+    "teachers": "Giáo viên",
+    "about": "Giới thiệu"
+  },
+  "Hero": {
+    "title": "Nền tảng toàn diện cho gia sư riêng",
+    "subtitle": "Tạo khóa học tương tác, quản lý học sinh và theo dõi tiến trình tất cả trong một nơi",
+    "ctaText": "Dùng thử miễn phí",
+    "watchDemo": "Xem Demo",
+    "trustedBadge": "Được tin tưởng bởi hơn 50,000 gia sư riêng trên toàn thế giới",
+    "trustedBy": "Được tin tưởng bởi các trường hàng đầu:",
+    "whyChoose": "Tại sao các tổ chức chọn Edura",
+    "completeManagement": "Hệ thống quản lý hoàn chỉnh",
+    "aiContentBuilder": "Trình tạo nội dung tích hợp AI",
+    "personalizedTracking": "Theo dõi tiến trình cá nhân hóa",
+    "stats": {
+      "students": "Học sinh đang học",
+      "teachers": "Giáo viên chuyên nghiệp",
+      "satisfaction": "Sự hài lòng của phụ huynh"
+    }
+  },
+  "DemoVideo": {
+    "seeInAction": "Xem hoạt động thực tế",
+    "mainTitle": "Mọi thứ bạn cần để điều hành",
+    "highlightText": "doanh nghiệp gia sư của bạn",
+    "description": "Xem cách Edura đơn giản hóa việc lập lịch, thanh toán và quản lý học sinh—tất cả trong một nền tảng mạnh mẽ được xây dựng dành riêng cho gia sư riêng.",
+    "duration": "2:30 phút",
+    "productDemo": "Demo sản phẩm",
+    "demoPlaying": "Video demo sẽ phát tại đây"
+  },
+  "Features": {
+    "title": "Khám phá tất cả các tính năng tuyệt vời",
+    "subtitle": "Công cụ mạnh mẽ được thiết kế dành riêng cho gia sư riêng",
+    "studentManagement": {
+      "title": "Quản lý học sinh",
+      "description": "Theo dõi tiến trình, điểm danh và hồ sơ học sinh"
+    },
+    "assignmentCreation": {
+      "title": "Tạo bài tập",
+      "description": "Tạo và phân phối bài tập một cách dễ dàng"
+    },
+    "parentCommunication": {
+      "title": "Giao tiếp với phụ huynh",
+      "description": "Giữ phụ huynh được thông báo với cập nhật tự động"
+    },
+    "scheduleManagement": {
+      "title": "Quản lý lịch trình",
+      "description": "Đặt lịch tự động và đồng bộ lịch"
+    },
+    "performanceAnalytics": {
+      "title": "Phân tích hiệu suất",
+      "description": "Thông tin chi tiết và báo cáo về tiến trình học sinh"
+    },
+    "resourceLibrary": {
+      "title": "Thư viện tài liệu",
+      "description": "Tổ chức và chia sẻ tài liệu giảng dạy"
+    }
+  },
+  "Pricing": {
+    "title": "Chọn gói học của bạn",
+    "subtitle": "Các lựa chọn giá linh hoạt được thiết kế để phù hợp với ngân sách và nhu cầu học tập của mọi gia đình",
+    "monthly": "Hàng tháng",
+    "yearly": "Hàng năm",
+    "save": "Tiết kiệm 20%",
+    "mostPopular": "Phổ biến nhất",
+    "plans": {
+      "basic": {
+        "name": "Cơ bản",
+        "description": "Hoàn hảo để bắt đầu",
+        "cta": "Bắt đầu gói Cơ bản",
+        "features": [
+          "Truy cập 5 khóa học mỗi tháng",
+          "Theo dõi tiến trình cơ bản",
+          "Hỗ trợ qua email",
+          "Truy cập ứng dụng di động",
+          "Bảng điều khiển phụ huynh"
+        ]
+      },
+      "standard": {
+        "name": "Tiêu chuẩn",
+        "description": "Lựa chọn phổ biến nhất cho gia đình",
+        "cta": "Chọn Tiêu chuẩn",
+        "features": [
+          "Truy cập khóa học không giới hạn",
+          "Phân tích tiến trình nâng cao",
+          "Hỗ trợ ưu tiên",
+          "Tải khóa học offline",
+          "Hội nghị phụ huynh-giáo viên",
+          "Phiên hỗ trợ bài tập"
+        ]
+      },
+      "premium": {
+        "name": "Cao cấp",
+        "description": "Giải pháp học tập hoàn chỉnh",
+        "cta": "Chọn Cao cấp",
+        "features": [
+          "Mọi thứ trong gói Tiêu chuẩn",
+          "Phiên dạy kèm 1-1",
+          "Lộ trình học cá nhân hóa",
+          "Đánh giá nâng cao",
+          "Hướng dẫn chuẩn bị đại học",
+          "Đường dây hỗ trợ 24/7"
+        ]
+      }
+    },
+    "perMonth": "mỗi tháng",
+    "perYear": "mỗi năm",
+    "savePerYear": "Tiết kiệm {amount}/năm",
+    "guarantee": {
+      "title": "Đảm bảo hoàn tiền trong 30 ngày",
+      "description": "Dùng thử Edura không rủi ro! Nếu bạn không hoàn toàn hài lòng với trải nghiệm học tập của con trong 30 ngày đầu, chúng tôi sẽ hoàn lại toàn bộ tiền của bạn, không hỏi lý do."
+    },
+    "faq": {
+      "question": "Có câu hỏi về các gói của chúng tôi?",
+      "cta": "Xem câu hỏi thường gặp"
+    }
+  },
+  "Testimonials": {
+    "title": "Học sinh & Phụ huynh nói gì",
+    "subtitle": "Phản hồi thực từ cộng đồng học tập của chúng tôi về trải nghiệm với Edura",
+    "studentVoices": "Tiếng nói học sinh",
+    "parentFeedback": "Phản hồi phụ huynh",
+    "students": {
+      "emma": {
+        "name": "Emma Thompson",
+        "grade": "Lớp 8",
+        "text": "Edura đã làm cho toán học trở nên dễ hiểu hơn rất nhiều! Các bài học tương tác và trò chơi làm cho việc học trở nên thú vị."
+      },
+      "michael": {
+        "name": "Michael Davis",
+        "grade": "Lớp 10",
+        "text": "Khóa học lập trình thật tuyệt vời! Tôi đã xây dựng trang web đầu tiên và giờ tôi muốn trở thành lập trình viên."
+      },
+      "sophia": {
+        "name": "Sophia Wilson",
+        "grade": "Lớp 6",
+        "text": "Tôi thích các thí nghiệm khoa học mà chúng ta có thể làm ở nhà. Giống như có một phòng thí nghiệm trong bếp của tôi!"
+      }
+    },
+    "parents": {
+      "jennifer": {
+        "name": "Jennifer Martinez",
+        "relation": "Phụ huynh của Alex (Lớp 7)",
+        "text": "Điểm số của con trai tôi đã cải thiện đáng kể sau khi tham gia Edura. Phương pháp học cá nhân hóa thực sự hiệu quả!"
+      },
+      "robert": {
+        "name": "Robert Johnson",
+        "relation": "Phụ huynh của cặp song sinh (Lớp 5)",
+        "text": "Cả hai con gái tôi đều hứng thú và háo hức học tập. Nền tảng này an toàn, giáo dục và thú vị."
+      }
+    },
+    "trustBadge": "Đánh giá trung bình 4.9/5 từ hơn 10,000 đánh giá"
+  },
+  "Footer": {
+    "newsletter": {
+      "title": "Cập nhật thông tin với Edura",
+      "subtitle": "Nhận những mẹo giáo dục mới nhất, cập nhật khóa học và tài liệu học tập được gửi đến hộp thư của bạn",
+      "placeholder": "Nhập địa chỉ email của bạn",
+      "subscribe": "Đăng ký",
+      "subscribing": "Đang đăng ký..."
+    },
+    "description": "Trao quyền cho học sinh K-12 trên toàn thế giới với trải nghiệm học tập tương tác, hướng dẫn chuyên nghiệp và lộ trình giáo dục cá nhân hóa để thành công trong học tập.",
+    "contact": {
+      "phone": "1-800-EDURA",
+      "email": "support@edura.com",
+      "address": "San Francisco, CA"
+    },
+    "links": {
+      "company": {
+        "title": "Công ty",
+        "aboutUs": "Về chúng tôi",
+        "ourMission": "Sứ mệnh của chúng tôi",
+        "careers": "Tuyển dụng",
+        "press": "Báo chí"
+      },
+      "support": {
+        "title": "Hỗ trợ",
+        "helpCenter": "Trung tâm trợ giúp",
+        "contactUs": "Liên hệ chúng tôi",
+        "parentResources": "Tài liệu cho phụ huynh",
+        "technicalSupport": "Hỗ trợ kỹ thuật"
+      },
+      "legal": {
+        "title": "Pháp lý",
+        "privacyPolicy": "Chính sách bảo mật",
+        "termsOfService": "Điều khoản dịch vụ",
+        "cookiePolicy": "Chính sách cookie",
+        "safetyGuidelines": "Hướng dẫn an toàn"
+      }
+    },
+    "copyright": "© 2024 Edura. Tất cả quyền được bảo lưu."
+  }
+}

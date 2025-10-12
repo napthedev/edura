@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,11 +12,44 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Check, X, Star, Zap } from "lucide-react";
-import { mockData } from "@/lib/mock";
+import { useTranslations } from "next-intl";
 
 export default function Pricing() {
-  const { pricingPlans } = mockData;
   const [billingCycle, setBillingCycle] = useState("monthly");
+  const t = useTranslations("Pricing");
+
+  const PRICING_PLANS = [
+    {
+      id: 1,
+      name: t("plans.basic.name"),
+      price: "$19",
+      period: t("perMonth"),
+      description: t("plans.basic.description"),
+      features: t.raw("plans.basic.features"),
+      popular: false,
+      ctaText: t("plans.basic.cta"),
+    },
+    {
+      id: 2,
+      name: t("plans.standard.name"),
+      price: "$39",
+      period: t("perMonth"),
+      description: t("plans.standard.description"),
+      features: t.raw("plans.standard.features"),
+      popular: true,
+      ctaText: t("plans.standard.cta"),
+    },
+    {
+      id: 3,
+      name: t("plans.premium.name"),
+      price: "$69",
+      period: t("perMonth"),
+      description: t("plans.premium.description"),
+      features: t.raw("plans.premium.features"),
+      popular: false,
+      ctaText: t("plans.premium.cta"),
+    },
+  ];
 
   return (
     <section id="pricing" className="py-20 bg-white">
@@ -22,11 +57,10 @@ export default function Pricing() {
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Choose Your Learning Plan
+            {t("title")}
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-            Flexible pricing options designed to fit every family's budget and
-            learning needs
+            {t("subtitle")}
           </p>
 
           {/* Billing Toggle */}
@@ -39,7 +73,7 @@ export default function Pricing() {
                   : "text-gray-600 hover:text-gray-900"
               }`}
             >
-              Monthly
+              {t("monthly")}
             </button>
             <button
               onClick={() => setBillingCycle("yearly")}
@@ -49,9 +83,9 @@ export default function Pricing() {
                   : "text-gray-600 hover:text-gray-900"
               }`}
             >
-              Yearly
+              {t("yearly")}
               <Badge className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1">
-                Save 20%
+                {t("save")}
               </Badge>
             </button>
           </div>
@@ -59,7 +93,7 @@ export default function Pricing() {
 
         {/* Pricing Cards */}
         <div className="grid md:grid-cols-3 gap-8 mb-16">
-          {pricingPlans.map((plan) => {
+          {PRICING_PLANS.map((plan) => {
             const yearlyPrice = Math.round(
               parseInt(plan.price.replace("$", "")) * 0.8
             );
@@ -80,7 +114,7 @@ export default function Pricing() {
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                     <Badge className="bg-black text-white px-6 py-2 text-sm font-semibold">
                       <Star className="w-4 h-4 mr-1 fill-current" />
-                      Most Popular
+                      {t("mostPopular")}
                     </Badge>
                   </div>
                 )}
@@ -100,15 +134,20 @@ export default function Pricing() {
                         {displayPrice}
                       </span>
                       <span className="text-gray-500 ml-2">
-                        /{billingCycle === "yearly" ? "year" : "month"}
+                        /
+                        {billingCycle === "yearly"
+                          ? t("perYear")
+                          : t("perMonth")}
                       </span>
                     </div>
                     {billingCycle === "yearly" && (
                       <div className="text-sm text-green-600 font-medium mt-2">
-                        Save $
-                        {parseInt(plan.price.replace("$", "")) * 12 -
-                          yearlyPrice * 12}
-                        /year
+                        {t("savePerYear", {
+                          amount: (
+                            parseInt(plan.price.replace("$", "")) * 12 -
+                            yearlyPrice * 12
+                          ).toString(),
+                        })}
                       </div>
                     )}
                   </div>
@@ -116,7 +155,7 @@ export default function Pricing() {
 
                 <CardContent className="pb-8">
                   <ul className="space-y-4">
-                    {plan.features.map((feature, index) => (
+                    {plan.features.map((feature: string, index: number) => (
                       <li key={index} className="flex items-start space-x-3">
                         <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
                         <span className="text-gray-700">{feature}</span>
@@ -150,21 +189,19 @@ export default function Pricing() {
               </div>
             </div>
             <h3 className="text-2xl font-bold text-gray-900 mb-4">
-              30-Day Money-Back Guarantee
+              {t("guarantee.title")}
             </h3>
             <p className="text-gray-600 text-lg leading-relaxed">
-              Try Edura risk-free! If you're not completely satisfied with your
-              child's learning experience within the first 30 days, we'll refund
-              your payment in full, no questions asked.
+              {t("guarantee.description")}
             </p>
           </div>
         </div>
 
         {/* FAQ Teaser */}
         <div className="text-center mt-12">
-          <p className="text-gray-600 mb-4">Have questions about our plans?</p>
+          <p className="text-gray-600 mb-4">{t("faq.question")}</p>
           <Button variant="outline" className="border-gray-300">
-            View Frequently Asked Questions
+            {t("faq.cta")}
           </Button>
         </div>
       </div>

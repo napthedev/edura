@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,27 +13,34 @@ import {
   MapPin,
   Send,
 } from "lucide-react";
-import { mockData } from "@/lib/mock";
-import type { FC } from "react";
-
-type NewsletterResult = {
-  message?: string;
-  success?: boolean;
-};
-
-type FooterLink = { name: string; href: string };
-type FooterLinks = {
-  company: FooterLink[];
-  support: FooterLink[];
-  legal: FooterLink[];
-};
-type MockFooter = { siteName: string; footerLinks: FooterLinks };
+import { useTranslations } from "next-intl";
 
 export default function Footer() {
-  const { siteName, footerLinks } = mockData as MockFooter;
   const [email, setEmail] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [message, setMessage] = useState<string>("");
+  const t = useTranslations("Footer");
+
+  const FOOTER_LINKS = {
+    company: [
+      { name: t("links.company.aboutUs"), href: "/about" },
+      { name: t("links.company.ourMission"), href: "/mission" },
+      { name: t("links.company.careers"), href: "/careers" },
+      { name: t("links.company.press"), href: "/press" },
+    ],
+    support: [
+      { name: t("links.support.helpCenter"), href: "/help" },
+      { name: t("links.support.contactUs"), href: "/contact" },
+      { name: t("links.support.parentResources"), href: "/parents" },
+      { name: t("links.support.technicalSupport"), href: "/support" },
+    ],
+    legal: [
+      { name: t("links.legal.privacyPolicy"), href: "/privacy" },
+      { name: t("links.legal.termsOfService"), href: "/terms" },
+      { name: t("links.legal.cookiePolicy"), href: "/cookies" },
+      { name: t("links.legal.safetyGuidelines"), href: "/safety" },
+    ],
+  };
 
   return (
     <footer className="bg-gray-900 text-white">
@@ -39,17 +48,16 @@ export default function Footer() {
       <div className="bg-black py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h3 className="text-3xl font-bold mb-4">Stay Updated with Edura</h3>
+            <h3 className="text-3xl font-bold mb-4">{t("newsletter.title")}</h3>
             <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
-              Get the latest educational tips, course updates, and learning
-              resources delivered to your inbox
+              {t("newsletter.subtitle")}
             </p>
 
             <form className="max-w-md mx-auto">
               <div className="flex gap-3">
                 <Input
                   type="email"
-                  placeholder="Enter your email address"
+                  placeholder={t("newsletter.placeholder")}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="flex-1 bg-white text-gray-900 border-0"
@@ -61,11 +69,11 @@ export default function Footer() {
                   className="bg-white text-black hover:bg-gray-100 px-6"
                 >
                   {isSubmitting ? (
-                    "Subscribing..."
+                    t("newsletter.subscribing")
                   ) : (
                     <>
                       <Send className="w-4 h-4 mr-2" />
-                      Subscribe
+                      {t("newsletter.subscribe")}
                     </>
                   )}
                 </Button>
@@ -92,35 +100,35 @@ export default function Footer() {
           <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-8">
             {/* Company Info */}
             <div className="lg:col-span-2">
-              <div className="text-2xl font-bold mb-4">{siteName}</div>
+              <div className="text-2xl font-bold mb-4">Edura</div>
               <p className="text-gray-400 leading-relaxed mb-6">
-                Empowering K-12 students worldwide with interactive learning
-                experiences, expert instruction, and personalized educational
-                pathways for academic success.
+                {t("description")}
               </p>
 
               {/* Contact Info */}
               <div className="space-y-3 text-sm">
                 <div className="flex items-center space-x-3">
                   <Phone className="w-4 h-4 text-gray-400" />
-                  <span className="text-gray-300">1-800-EDURA</span>
+                  <span className="text-gray-300">{t("contact.phone")}</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <Mail className="w-4 h-4 text-gray-400" />
-                  <span className="text-gray-300">support@edura.com</span>
+                  <span className="text-gray-300">{t("contact.email")}</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <MapPin className="w-4 h-4 text-gray-400" />
-                  <span className="text-gray-300">San Francisco, CA</span>
+                  <span className="text-gray-300">{t("contact.address")}</span>
                 </div>
               </div>
             </div>
 
             {/* Company Links */}
             <div>
-              <h4 className="font-semibold text-lg mb-6">Company</h4>
+              <h4 className="font-semibold text-lg mb-6">
+                {t("links.company.title")}
+              </h4>
               <ul className="space-y-3">
-                {footerLinks.company.map((link) => (
+                {FOOTER_LINKS.company.map((link) => (
                   <li key={link.name}>
                     <a
                       href={link.href}
@@ -135,9 +143,11 @@ export default function Footer() {
 
             {/* Support Links */}
             <div>
-              <h4 className="font-semibold text-lg mb-6">Support</h4>
+              <h4 className="font-semibold text-lg mb-6">
+                {t("links.support.title")}
+              </h4>
               <ul className="space-y-3">
-                {footerLinks.support.map((link) => (
+                {FOOTER_LINKS.support.map((link) => (
                   <li key={link.name}>
                     <a
                       href={link.href}
@@ -152,9 +162,11 @@ export default function Footer() {
 
             {/* Legal Links */}
             <div>
-              <h4 className="font-semibold text-lg mb-6">Legal</h4>
+              <h4 className="font-semibold text-lg mb-6">
+                {t("links.legal.title")}
+              </h4>
               <ul className="space-y-3">
-                {footerLinks.legal.map((link) => (
+                {FOOTER_LINKS.legal.map((link) => (
                   <li key={link.name}>
                     <a
                       href={link.href}
@@ -175,9 +187,7 @@ export default function Footer() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             {/* Copyright */}
-            <div className="text-gray-400 text-sm">
-              © 2024 {siteName}. All rights reserved.
-            </div>
+            <div className="text-gray-400 text-sm">{t("copyright")}</div>
 
             {/* Social Links */}
             <div className="flex items-center space-x-6">

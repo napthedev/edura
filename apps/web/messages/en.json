@@ -1,0 +1,206 @@
+{
+  "Languages": {
+    "language": "Language",
+    "en": "English",
+    "vi": "Vietnamese"
+  },
+  "Header": {
+    "demo": "Demo",
+    "features": "Features",
+    "testimonials": "Testimonials",
+    "pricing": "Pricing",
+    "signin": "Sign In",
+    "startFreeTrial": "Start Free Trial",
+    "home": "Home",
+    "teachers": "Teachers",
+    "about": "About"
+  },
+  "Hero": {
+    "title": "The all-in-one platform for private tutoring",
+    "subtitle": "Create interactive courses, manage students, and track progress all in one place",
+    "ctaText": "Start Free Trial",
+    "watchDemo": "Watch Demo",
+    "trustedBadge": "Trusted by 50,000+ private tutors worldwide",
+    "trustedBy": "Trusted by leading schools:",
+    "whyChoose": "Why institutions Choose Edura",
+    "completeManagement": "Complete management system",
+    "aiContentBuilder": "AI powered content builder",
+    "personalizedTracking": "Personalized progress tracking",
+    "stats": {
+      "students": "Students Learning",
+      "teachers": "Expert Teachers",
+      "satisfaction": "Parent Satisfaction"
+    }
+  },
+  "DemoVideo": {
+    "seeInAction": "See it in action",
+    "mainTitle": "Everything you need to run your",
+    "highlightText": "tutoring business",
+    "description": "Watch how Edura streamlines scheduling, payments, and student management—all in one powerful platform built specifically for private tutors.",
+    "duration": "2:30 min",
+    "productDemo": "Product Demo",
+    "demoPlaying": "Demo video would play here"
+  },
+  "Features": {
+    "title": "Check out all the amazing features",
+    "subtitle": "Powerful tools designed specifically for private tutors",
+    "studentManagement": {
+      "title": "Student Management",
+      "description": "Track progress, attendance, and student profiles"
+    },
+    "assignmentCreation": {
+      "title": "Assignment Creation",
+      "description": "Create and distribute assignments effortlessly"
+    },
+    "parentCommunication": {
+      "title": "Parent Communication",
+      "description": "Keep parents informed with automated updates"
+    },
+    "scheduleManagement": {
+      "title": "Schedule Management",
+      "description": "Automated booking and calendar sync"
+    },
+    "performanceAnalytics": {
+      "title": "Performance Analytics",
+      "description": "Insights and reports on student progress"
+    },
+    "resourceLibrary": {
+      "title": "Resource Library",
+      "description": "Organize and share teaching materials"
+    }
+  },
+  "Pricing": {
+    "title": "Choose Your Learning Plan",
+    "subtitle": "Flexible pricing options designed to fit every family's budget and learning needs",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "save": "Save 20%",
+    "mostPopular": "Most Popular",
+    "plans": {
+      "basic": {
+        "name": "Basic",
+        "description": "Perfect for getting started",
+        "cta": "Start Basic Plan",
+        "features": [
+          "Access to 5 courses per month",
+          "Basic progress tracking",
+          "Email support",
+          "Mobile app access",
+          "Parent dashboard"
+        ]
+      },
+      "standard": {
+        "name": "Standard",
+        "description": "Most popular choice for families",
+        "cta": "Choose Standard",
+        "features": [
+          "Unlimited course access",
+          "Advanced progress analytics",
+          "Priority support",
+          "Offline course downloads",
+          "Parent-teacher conferences",
+          "Homework help sessions"
+        ]
+      },
+      "premium": {
+        "name": "Premium",
+        "description": "Complete learning solution",
+        "cta": "Go Premium",
+        "features": [
+          "Everything in Standard",
+          "1-on-1 tutoring sessions",
+          "Personalized learning paths",
+          "Advanced assessments",
+          "College prep guidance",
+          "24/7 support hotline"
+        ]
+      }
+    },
+    "perMonth": "per month",
+    "perYear": "per year",
+    "savePerYear": "Save ${amount}/year",
+    "guarantee": {
+      "title": "30-Day Money-Back Guarantee",
+      "description": "Try Edura risk-free! If you're not completely satisfied with your child's learning experience within the first 30 days, we'll refund your payment in full, no questions asked."
+    },
+    "faq": {
+      "question": "Have questions about our plans?",
+      "cta": "View Frequently Asked Questions"
+    }
+  },
+  "Testimonials": {
+    "title": "What Students & Parents Say",
+    "subtitle": "Real feedback from our learning community about their experience with Edura",
+    "studentVoices": "Student Voices",
+    "parentFeedback": "Parent Feedback",
+    "students": {
+      "emma": {
+        "name": "Emma Thompson",
+        "grade": "Grade 8",
+        "text": "Edura made math so much easier to understand! The interactive lessons and games make learning fun."
+      },
+      "michael": {
+        "name": "Michael Davis",
+        "grade": "Grade 10",
+        "text": "The coding course was amazing! I built my first website and now I want to become a programmer."
+      },
+      "sophia": {
+        "name": "Sophia Wilson",
+        "grade": "Grade 6",
+        "text": "I love the science experiments we can do at home. It's like having a lab in my kitchen!"
+      }
+    },
+    "parents": {
+      "jennifer": {
+        "name": "Jennifer Martinez",
+        "relation": "Parent of Alex (Grade 7)",
+        "text": "My son's grades improved dramatically after joining Edura. The personalized learning approach really works!"
+      },
+      "robert": {
+        "name": "Robert Johnson",
+        "relation": "Parent of twins (Grade 5)",
+        "text": "Both my daughters are engaged and excited about learning. The platform is safe, educational, and fun."
+      }
+    },
+    "trustBadge": "4.9/5 Average Rating from 10,000+ Reviews"
+  },
+  "Footer": {
+    "newsletter": {
+      "title": "Stay Updated with Edura",
+      "subtitle": "Get the latest educational tips, course updates, and learning resources delivered to your inbox",
+      "placeholder": "Enter your email address",
+      "subscribe": "Subscribe",
+      "subscribing": "Subscribing..."
+    },
+    "description": "Empowering K-12 students worldwide with interactive learning experiences, expert instruction, and personalized educational pathways for academic success.",
+    "contact": {
+      "phone": "1-800-EDURA",
+      "email": "support@edura.com",
+      "address": "San Francisco, CA"
+    },
+    "links": {
+      "company": {
+        "title": "Company",
+        "aboutUs": "About Us",
+        "ourMission": "Our Mission",
+        "careers": "Careers",
+        "press": "Press"
+      },
+      "support": {
+        "title": "Support",
+        "helpCenter": "Help Center",
+        "contactUs": "Contact Us",
+        "parentResources": "Parent Resources",
+        "technicalSupport": "Technical Support"
+      },
+      "legal": {
+        "title": "Legal",
+        "privacyPolicy": "Privacy Policy",
+        "termsOfService": "Terms of Service",
+        "cookiePolicy": "Cookie Policy",
+        "safetyGuidelines": "Safety Guidelines"
+      }
+    },
+    "copyright": "© 2024 Edura. All rights reserved."
+  }
+}
