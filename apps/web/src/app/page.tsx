@@ -10,7 +10,7 @@ import Testimonials from "@/components/landing/testimonials";
 
 export default function Home() {
   return (
-    <div className="min-h-screen">
+    <>
       <Header />
       <Hero />
       <DemoVideoSection />
@@ -18,6 +18,6 @@ export default function Home() {
       <Testimonials />
       <Pricing />
       <Footer />
-    </div>
+    </>
   );
 }

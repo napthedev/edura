@@ -15,6 +15,7 @@ body {
   @media (prefers-color-scheme: dark) {
     color-scheme: dark;
   }
+  scroll-padding-top: 64px;
 }
 
 :root {

@@ -63,7 +63,10 @@ export default function DemoVideoSection() {
   ];
 
   return (
-    <section className="relative bg-background py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
+    <section
+      id="features"
+      className="relative bg-background py-12 px-4 sm:px-6 lg:px-8 overflow-hidden"
+    >
       <div className="relative max-w-7xl mx-auto">
         {/* Title and description */}
         <div className="text-center mb-12">

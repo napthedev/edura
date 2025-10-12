@@ -9,7 +9,10 @@ export default function DemoVideoSection() {
   const [isPlaying, setIsPlaying] = useState(false);
 
   return (
-    <section className="relative bg-white py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
+    <section
+      id="demo"
+      className="relative bg-white py-12 px-4 sm:px-6 lg:px-8 overflow-hidden"
+    >
       <div className="relative max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16 space-y-6">

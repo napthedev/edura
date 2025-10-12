@@ -1,5 +1,5 @@
 import { BookOpen, Play, Star, TrendingUp, Users } from "lucide-react";
-import { mockData } from "../../lib/mock";
+import { mockData } from "@/lib/mock";
 import { Button } from "../ui/button";
 
 const Hero = () => {
