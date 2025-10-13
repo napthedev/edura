@@ -1,6 +1,6 @@
 "use client";
 
-import AuthHeader from "@/components/auth/auth-header";
+import AuthHeader from "@/components/auth/header";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { useForm } from "@tanstack/react-form";

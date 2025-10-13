@@ -1,5 +1,5 @@
 import Link from "next/link";
-import LanguageSwitcher from "../language-switcher";
+import LanguageSwitcher from "@/components/language-switcher";
 
 export default function AuthHeader() {
   return (

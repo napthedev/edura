@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 import Dashboard from "./dashboard";
+import TeacherDashboard from "./teacher";
+import StudentDashboard from "./student";
 import { headers } from "next/headers";
 import { auth } from "@edura/auth";
 import { authClient } from "@/lib/auth-client";
@@ -13,12 +15,17 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
+  const role = (session.user as any)?.role!;
+
   return (
-    <div>
-      <h1>Dashboard</h1>
-      <p>Welcome {session.user.name}</p>
-      <p>Account type: {(session.user as any)?.role ?? "teacher"}</p>
-      <Dashboard session={session} />
-    </div>
+    <>
+      {role === "teacher" ? (
+        <TeacherDashboard session={session} />
+      ) : role === "student" ? (
+        <StudentDashboard session={session} />
+      ) : (
+        <></>
+      )}
+    </>
   );
 }
