@@ -202,5 +202,27 @@
       }
     },
     "copyright": "© 2024 Edura. All rights reserved."
+  },
+  "Auth": {
+    "welcomeBack": "Welcome Back",
+    "createAccount": "Create Account",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "accountType": "Account type",
+    "teacher": "Teacher",
+    "student": "Student",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "needAccount": "Need an account? Sign Up",
+    "haveAccount": "Already have an account? Sign In",
+    "submitting": "Submitting...",
+    "signInSuccess": "Sign in successful",
+    "signUpSuccess": "Sign up successful",
+    "validation": {
+      "invalidEmail": "Invalid email address",
+      "passwordMin": "Password must be at least 8 characters",
+      "nameMin": "Name must be at least 2 characters"
+    }
   }
 }

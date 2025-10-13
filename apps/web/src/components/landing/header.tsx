@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import UserMenu from "../user-menu";
 import { useTranslations } from "next-intl";
 import LanguageSwitcher from "../language-switcher";
+import Link from "next/link";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -53,16 +54,19 @@ const Header = () => {
 
           {/* Desktop CTA Buttons */}
           <div className="hidden items-center space-x-4 md:flex">
-            <Button
-              className="border-gray-300 text-gray-700 hover:bg-gray-50"
-              variant="outline"
-              onClick={() => (window.location.href = "/landing")}
-            >
-              {t("signin")}
-            </Button>
-            <Button className="bg-black text-white hover:bg-gray-800">
-              {t("startFreeTrial")}
-            </Button>
+            <Link href="/login">
+              <Button
+                className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                variant="outline"
+              >
+                {t("signin")}
+              </Button>
+            </Link>
+            <Link href="/register">
+              <Button className="bg-black text-white hover:bg-gray-800">
+                {t("startFreeTrial")}
+              </Button>
+            </Link>
             <LanguageSwitcher />
           </div>
 
@@ -90,15 +94,21 @@ const Header = () => {
           <div className="space-y-4 px-4 py-6">
             <a
               className="block font-medium text-gray-700 transition-colors hover:text-black"
-              href="#home"
+              href="#demo"
             >
-              {t("home")}
+              {t("demo")}
             </a>
             <a
               className="block font-medium text-gray-700 transition-colors hover:text-black"
-              href="#instructors"
+              href="#features"
             >
-              {t("teachers")}
+              {t("features")}
+            </a>
+            <a
+              className="block font-medium text-gray-700 transition-colors hover:text-black"
+              href="#testimonials"
+            >
+              {t("testimonials")}
             </a>
             <a
               className="block font-medium text-gray-700 transition-colors hover:text-black"
@@ -106,30 +116,19 @@ const Header = () => {
             >
               {t("pricing")}
             </a>
-            <a
-              className="block font-medium text-gray-700 transition-colors hover:text-black"
-              href="#about"
-            >
-              {t("about")}
-            </a>
 
             <div className="space-y-3 border-gray-100 border-t pt-4">
-              {!currentUser ? (
-                <>
-                  <Button
-                    className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
-                    variant="outline"
-                    onClick={() => (window.location.href = "/landing")}
-                  >
-                    {t("signin")}
-                  </Button>
-                  <Button className="w-full bg-black text-white hover:bg-gray-800">
-                    {t("startFreeTrial")}
-                  </Button>
-                </>
-              ) : (
-                <UserMenu />
-              )}
+              <Button
+                className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
+                variant="outline"
+                onClick={() => (window.location.href = "/landing")}
+              >
+                {t("signin")}
+              </Button>
+              <Button className="w-full bg-black text-white hover:bg-gray-800">
+                {t("startFreeTrial")}
+              </Button>
+              <LanguageSwitcher />
             </div>
           </div>
         </div>

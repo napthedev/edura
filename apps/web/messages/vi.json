@@ -202,5 +202,27 @@
       }
     },
     "copyright": "© 2024 Edura. Tất cả quyền được bảo lưu."
+  },
+  "Auth": {
+    "welcomeBack": "Chào mừng trở lại",
+    "createAccount": "Tạo tài khoản",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "name": "Họ tên",
+    "accountType": "Loại tài khoản",
+    "teacher": "Giáo viên",
+    "student": "Học sinh",
+    "signIn": "Đăng nhập",
+    "signUp": "Đăng ký",
+    "needAccount": "Cần tài khoản? Đăng ký",
+    "haveAccount": "Đã có tài khoản? Đăng nhập",
+    "submitting": "Đang gửi...",
+    "signInSuccess": "Đăng nhập thành công",
+    "signUpSuccess": "Đăng ký thành công",
+    "validation": {
+      "invalidEmail": "Địa chỉ email không hợp lệ",
+      "passwordMin": "Mật khẩu phải tối thiểu 8 ký tự",
+      "nameMin": "Tên phải tối thiểu 2 ký tự"
+    }
   }
 }
