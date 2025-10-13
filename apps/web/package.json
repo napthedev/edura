@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@bprogress/next": "^3.2.12",
     "@edura/api": "workspace:*",
     "@edura/auth": "workspace:*",
     "@hookform/resolvers": "^5.2.2",

@@ -5,6 +5,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { queryClient } from "@/utils/trpc";
 import { ThemeProvider } from "./theme-provider";
 import { Toaster } from "./ui/sonner";
+import { AppProgressProvider as ProgressProvider } from "@bprogress/next";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -15,7 +16,14 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       disableTransitionOnChange
     >
       <QueryClientProvider client={queryClient}>
-        {children}
+        <ProgressProvider
+          height="4px"
+          color="#000000"
+          options={{ showSpinner: false }}
+          shallowRouting
+        >
+          {children}
+        </ProgressProvider>
         <ReactQueryDevtools />
       </QueryClientProvider>
       <Toaster richColors />
