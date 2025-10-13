@@ -4,6 +4,7 @@ import { JoinClassForm } from "@/components/join-class-form";
 import { useQuery } from "@tanstack/react-query";
 import { trpcClient } from "@/utils/trpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
 
 export default function StudentDashboard({ session }: { session: any }) {
   const studentClassesQuery = useQuery({
@@ -36,21 +37,26 @@ export default function StudentDashboard({ session }: { session: any }) {
                   studentClassesQuery.data.length > 0 ? (
                   <div className="space-y-4">
                     {studentClassesQuery.data.map((enrollment) => (
-                      <div
+                      <Link
+                        href={`/class/student/${enrollment.classId}`}
                         key={enrollment.classId}
-                        className="border rounded-lg p-4"
+                        className="block"
                       >
-                        <h3 className="font-semibold text-lg">
-                          {enrollment.className}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          Code: {enrollment.classCode}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Joined:{" "}
-                          {new Date(enrollment.enrolledAt).toLocaleDateString()}
-                        </p>
-                      </div>
+                        <div className="border rounded-lg p-4">
+                          <h3 className="font-semibold text-lg">
+                            {enrollment.className}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            Code: {enrollment.classCode}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Joined:{" "}
+                            {new Date(
+                              enrollment.enrolledAt
+                            ).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </Link>
                     ))}
                   </div>
                 ) : (

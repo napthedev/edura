@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { protectedProcedure, router } from "../index";
-import { classes, enrollments } from "@edura/db/schema/education";
+import { classes, enrollments, assignments } from "@edura/db/schema/education";
 import { eq, and } from "drizzle-orm";
+import { user } from "@edura/db/schema/auth";
 
 export const educationRouter = router({
   createClass: protectedProcedure
@@ -54,6 +55,95 @@ export const educationRouter = router({
       .from(classes)
       .where(eq(classes.teacherId, ctx.session.user.id));
   }),
+  getClassById: protectedProcedure
+    .input(z.object({ classId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const classData = await ctx.db
+        .select()
+        .from(classes)
+        .where(eq(classes.classId, input.classId));
+
+      if (classData.length === 0) {
+        throw new Error("Class not found");
+      }
+
+      return classData[0];
+    }),
+  getClassStudents: protectedProcedure
+    .input(z.object({ classId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      return await ctx.db
+        .select({
+          userId: user.id,
+          name: user.name,
+          email: user.email,
+          enrolledAt: enrollments.enrolledAt,
+        })
+        .from(enrollments)
+        .innerJoin(user, eq(enrollments.studentId, user.id))
+        .where(eq(enrollments.classId, input.classId));
+    }),
+  getClassAssignments: protectedProcedure
+    .input(z.object({ classId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      return await ctx.db
+        .select()
+        .from(assignments)
+        .where(eq(assignments.classId, input.classId))
+        .orderBy(assignments.createdAt);
+    }),
+  renameClass: protectedProcedure
+    .input(
+      z.object({
+        classId: z.string(),
+        newName: z.string().min(1),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Check if the class belongs to the teacher
+      const classData = await ctx.db
+        .select()
+        .from(classes)
+        .where(
+          and(
+            eq(classes.classId, input.classId),
+            eq(classes.teacherId, ctx.session.user.id)
+          )
+        );
+
+      if (classData.length === 0) {
+        throw new Error("Class not found or access denied");
+      }
+
+      await ctx.db
+        .update(classes)
+        .set({ className: input.newName })
+        .where(eq(classes.classId, input.classId));
+
+      return { success: true };
+    }),
+  deleteClass: protectedProcedure
+    .input(z.object({ classId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // Check if the class belongs to the teacher
+      const classData = await ctx.db
+        .select()
+        .from(classes)
+        .where(
+          and(
+            eq(classes.classId, input.classId),
+            eq(classes.teacherId, ctx.session.user.id)
+          )
+        );
+
+      if (classData.length === 0) {
+        throw new Error("Class not found or access denied");
+      }
+
+      await ctx.db.delete(classes).where(eq(classes.classId, input.classId));
+
+      return { success: true };
+    }),
   joinClass: protectedProcedure
     .input(
       z.object({
@@ -114,6 +204,54 @@ export const educationRouter = router({
       .innerJoin(classes, eq(enrollments.classId, classes.classId))
       .where(eq(enrollments.studentId, ctx.session.user.id));
   }),
+  getClassTeacher: protectedProcedure
+    .input(z.object({ classId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const teacherData = await ctx.db
+        .select({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+        })
+        .from(classes)
+        .innerJoin(user, eq(classes.teacherId, user.id))
+        .where(eq(classes.classId, input.classId));
+
+      if (teacherData.length === 0) {
+        throw new Error("Teacher not found");
+      }
+
+      return teacherData[0];
+    }),
+  leaveClass: protectedProcedure
+    .input(z.object({ classId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // Check if the student is enrolled in the class
+      const enrollment = await ctx.db
+        .select()
+        .from(enrollments)
+        .where(
+          and(
+            eq(enrollments.studentId, ctx.session.user.id),
+            eq(enrollments.classId, input.classId)
+          )
+        );
+
+      if (enrollment.length === 0) {
+        throw new Error("Not enrolled in this class");
+      }
+
+      await ctx.db
+        .delete(enrollments)
+        .where(
+          and(
+            eq(enrollments.studentId, ctx.session.user.id),
+            eq(enrollments.classId, input.classId)
+          )
+        );
+
+      return { success: true };
+    }),
 });
 
 export type EducationRouter = typeof educationRouter;

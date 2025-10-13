@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import Link from "next/link";
 
 const createClassSchema = z.object({
   className: z.string().min(1, "Class name is required"),
@@ -111,18 +112,24 @@ export default function TeacherDashboard({ session }: { session: any }) {
                 ) : classesQuery.data && classesQuery.data.length > 0 ? (
                   <div className="space-y-4">
                     {classesQuery.data.map((cls) => (
-                      <div key={cls.classId} className="border rounded-lg p-4">
-                        <h3 className="font-semibold text-lg">
-                          {cls.className}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          Code: {cls.classCode}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Created:{" "}
-                          {new Date(cls.createdAt).toLocaleDateString()}
-                        </p>
-                      </div>
+                      <Link
+                        className="block"
+                        href={`/class/teacher/${cls.classId}`}
+                        key={cls.classId}
+                      >
+                        <div className="border rounded-lg p-4">
+                          <h3 className="font-semibold text-lg">
+                            {cls.className}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            Code: {cls.classCode}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Created:{" "}
+                            {new Date(cls.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </Link>
                     ))}
                   </div>
                 ) : (
