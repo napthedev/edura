@@ -54,8 +54,8 @@ export default function TeacherDashboard({ session }: { session: any }) {
   return (
     <div className="min-h-screen">
       <Header />
-      <div className="container mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-4">Teacher Dashboard</h1>
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <h1 className="text-2xl font-bold my-8">Teacher Dashboard</h1>
         <div className="max-w-md mb-8">
           <h2 className="text-xl font-semibold mb-2">Create New Class</h2>
           <Form {...form}>
@@ -67,7 +67,11 @@ export default function TeacherDashboard({ session }: { session: any }) {
                   <FormItem>
                     <FormLabel>Class Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter class name" {...field} />
+                      <Input
+                        autoComplete="off"
+                        placeholder="Enter class name"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
