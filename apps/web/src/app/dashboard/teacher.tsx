@@ -11,10 +11,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { authClient } from "@/lib/auth-client";
-import { trpc, trpcClient } from "@/utils/trpc";
+import { trpcClient } from "@/utils/trpc";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -26,8 +24,7 @@ const createClassSchema = z.object({
 
 type CreateClassForm = z.infer<typeof createClassSchema>;
 
-export default function TeacherDashboard({ session }: { session: any }) {
-  const router = useRouter();
+export default function TeacherDashboard() {
   const classesQuery = useQuery({
     queryKey: ["classes"],
     queryFn: () => trpcClient.education.getClasses.query(),

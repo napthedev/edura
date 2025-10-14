@@ -6,7 +6,7 @@ import { trpcClient } from "@/utils/trpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 
-export default function StudentDashboard({ session }: { session: any }) {
+export default function StudentDashboard() {
   const studentClassesQuery = useQuery({
     queryKey: ["student-classes"],
     queryFn: () => trpcClient.education.getStudentClasses.query(),

@@ -1,10 +1,8 @@
 import { redirect } from "next/navigation";
-import Dashboard from "./dashboard";
 import TeacherDashboard from "./teacher";
 import StudentDashboard from "./student";
 import { headers } from "next/headers";
 import { auth } from "@edura/auth";
-import { authClient } from "@/lib/auth-client";
 
 export default async function DashboardPage() {
   const session = await auth.api.getSession({
@@ -20,9 +18,9 @@ export default async function DashboardPage() {
   return (
     <>
       {role === "teacher" ? (
-        <TeacherDashboard session={session} />
+        <TeacherDashboard />
       ) : role === "student" ? (
-        <StudentDashboard session={session} />
+        <StudentDashboard />
       ) : (
         <></>
       )}
