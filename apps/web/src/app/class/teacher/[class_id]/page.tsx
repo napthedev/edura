@@ -30,6 +30,15 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
+
+type SessionUser = {
+  id: string;
+  role: string;
+  name: string;
+  email: string;
+  image?: string | null;
+};
 
 export default function ClassPage() {
   const params = useParams();
@@ -37,6 +46,37 @@ export default function ClassPage() {
   const router = useRouter();
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [newClassName, setNewClassName] = useState("");
+
+  const sessionQuery = useQuery({
+    queryKey: ["session"],
+    queryFn: async () => {
+      const result = await authClient.getSession();
+      if (result.error) throw result.error;
+      return result.data;
+    },
+    staleTime: Infinity,
+  });
+
+  if (sessionQuery.isLoading) {
+    return (
+      <div className="min-h-screen">
+        <Header />
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center">Loading class...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!sessionQuery.data?.user) {
+    router.push("/login");
+    return null;
+  }
+
+  if ((sessionQuery.data?.user as unknown as SessionUser).role === "student") {
+    router.push("/dashboard");
+    return null;
+  }
 
   const classQuery = useQuery({
     queryKey: ["class", classId],

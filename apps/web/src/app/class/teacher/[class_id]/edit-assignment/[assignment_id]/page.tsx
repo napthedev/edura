@@ -24,6 +24,15 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
+import { authClient } from "@/lib/auth-client";
+
+type SessionUser = {
+  id: string;
+  role: string;
+  name: string;
+  email: string;
+  image?: string | null;
+};
 
 const assignmentFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -45,6 +54,37 @@ export default function EditAssignmentPage() {
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, boolean>>({});
   const [questions, setQuestions] = useState<Question[]>([]);
+
+  const sessionQuery = useQuery({
+    queryKey: ["session"],
+    queryFn: async () => {
+      const result = await authClient.getSession();
+      if (result.error) throw result.error;
+      return result.data;
+    },
+    staleTime: Infinity,
+  });
+
+  if (sessionQuery.isLoading) {
+    return (
+      <div className="min-h-screen">
+        <Header />
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
+          <p>Loading assignment...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!sessionQuery.data?.user) {
+    router.push("/login");
+    return null;
+  }
+
+  if ((sessionQuery.data?.user as unknown as SessionUser).role === "student") {
+    router.push("/dashboard");
+    return null;
+  }
 
   const assignmentQuery = useQuery({
     queryKey: ["assignment", assignmentId],

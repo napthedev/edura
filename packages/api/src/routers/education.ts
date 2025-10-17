@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { protectedProcedure, router } from "../index";
-import { classes, enrollments, assignments } from "@edura/db/schema/education";
+import {
+  classes,
+  enrollments,
+  assignments,
+  submissions,
+} from "@edura/db/schema/education";
 import { eq, and } from "drizzle-orm";
 import { user } from "@edura/db/schema/auth";
 
@@ -384,6 +389,97 @@ export const educationRouter = router({
         .where(eq(assignments.assignmentId, input.assignmentId));
 
       return { success: true };
+    }),
+  getStudentAssignment: protectedProcedure
+    .input(z.object({ assignmentId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      // Check if user is a student
+      if (ctx.session.user.role !== "student") {
+        throw new Error("Access denied: Only students can access assignments");
+      }
+
+      // Get assignment and check if student is enrolled in the class
+      const assignmentData = await ctx.db
+        .select({
+          assignment: assignments,
+          class: classes,
+        })
+        .from(assignments)
+        .innerJoin(classes, eq(assignments.classId, classes.classId))
+        .innerJoin(enrollments, eq(classes.classId, enrollments.classId))
+        .where(
+          and(
+            eq(assignments.assignmentId, input.assignmentId),
+            eq(enrollments.studentId, ctx.session.user.id)
+          )
+        );
+
+      if (assignmentData.length === 0) {
+        throw new Error("Assignment not found or access denied");
+      }
+
+      return assignmentData[0];
+    }),
+  submitAssignment: protectedProcedure
+    .input(
+      z.object({
+        assignmentId: z.string(),
+        submissionContent: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Check if user is a student
+      if (ctx.session.user.role !== "student") {
+        throw new Error("Access denied: Only students can submit assignments");
+      }
+
+      // Check if student is enrolled and assignment exists
+      const assignmentData = await ctx.db
+        .select({
+          assignment: assignments,
+          class: classes,
+        })
+        .from(assignments)
+        .innerJoin(classes, eq(assignments.classId, classes.classId))
+        .innerJoin(enrollments, eq(classes.classId, enrollments.classId))
+        .where(
+          and(
+            eq(assignments.assignmentId, input.assignmentId),
+            eq(enrollments.studentId, ctx.session.user.id)
+          )
+        );
+
+      if (assignmentData.length === 0) {
+        throw new Error("Assignment not found or access denied");
+      }
+
+      // Check if student has already submitted
+      const existingSubmission = await ctx.db
+        .select()
+        .from(submissions)
+        .where(
+          and(
+            eq(submissions.assignmentId, input.assignmentId),
+            eq(submissions.studentId, ctx.session.user.id)
+          )
+        );
+
+      if (existingSubmission.length > 0) {
+        throw new Error("You have already submitted this assignment");
+      }
+
+      // Create submission
+      const submission = await ctx.db
+        .insert(submissions)
+        .values({
+          submissionId: crypto.randomUUID(),
+          assignmentId: input.assignmentId,
+          studentId: ctx.session.user.id,
+          submissionContent: input.submissionContent,
+        })
+        .returning();
+
+      return submission[0];
     }),
 });
 

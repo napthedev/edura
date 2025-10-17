@@ -28,6 +28,16 @@ import {
 } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
+import { authClient } from "@/lib/auth-client";
+import { useQuery } from "@tanstack/react-query";
+
+type SessionUser = {
+  id: string;
+  role: string;
+  name: string;
+  email: string;
+  image?: string | null;
+};
 
 const createAssignmentSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -47,6 +57,37 @@ export default function CreateAssignmentPage() {
   const router = useRouter();
   const [showForm, setShowForm] = useState(false);
   const [date, setDate] = useState<Date | undefined>(undefined);
+
+  const sessionQuery = useQuery({
+    queryKey: ["session"],
+    queryFn: async () => {
+      const result = await authClient.getSession();
+      if (result.error) throw result.error;
+      return result.data;
+    },
+    staleTime: Infinity,
+  });
+
+  if (sessionQuery.isLoading) {
+    return (
+      <div className="min-h-screen">
+        <Header />
+        <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 py-8">
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!sessionQuery.data?.user) {
+    router.push("/login");
+    return null;
+  }
+
+  if ((sessionQuery.data?.user as unknown as SessionUser).role === "student") {
+    router.push("/dashboard");
+    return null;
+  }
 
   const form = useForm<CreateAssignmentForm>({
     resolver: zodResolver(createAssignmentSchema),
