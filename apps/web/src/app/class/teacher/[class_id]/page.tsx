@@ -57,27 +57,6 @@ export default function ClassPage() {
     staleTime: Infinity,
   });
 
-  if (sessionQuery.isLoading) {
-    return (
-      <div className="min-h-screen">
-        <Header />
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">Loading class...</div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!sessionQuery.data?.user) {
-    router.push("/login");
-    return null;
-  }
-
-  if ((sessionQuery.data?.user as unknown as SessionUser).role === "student") {
-    router.push("/dashboard");
-    return null;
-  }
-
   const classQuery = useQuery({
     queryKey: ["class", classId],
     queryFn: () => trpcClient.education.getClassById.query({ classId }),
@@ -129,11 +108,38 @@ export default function ClassPage() {
     },
   });
 
+  if (sessionQuery.isLoading) {
+    return (
+      <div className="min-h-screen">
+        <Header />
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center">Loading class...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!sessionQuery.data?.user) {
+    router.push("/login");
+    return null;
+  }
+
+  if ((sessionQuery.data?.user as unknown as SessionUser).role === "student") {
+    router.push("/dashboard");
+    return null;
+  }
+
   const copyClassCode = () => {
     if (classQuery.data?.classCode) {
       navigator.clipboard.writeText(classQuery.data.classCode);
       toast.success("Class code copied to clipboard");
     }
+  };
+
+  const copyAssignmentUrl = (assignmentId: string) => {
+    const url = `${window.location.origin}/do-assignment/${assignmentId}`;
+    navigator.clipboard.writeText(url);
+    toast.success("Assignment URL copied to clipboard");
   };
 
   const handleRename = () => {
@@ -365,6 +371,16 @@ export default function ClassPage() {
                           </div>
                         </div>
                         <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              copyAssignmentUrl(assignment.assignmentId)
+                            }
+                          >
+                            <Copy className="w-4 h-4 mr-2" />
+                            Copy URL
+                          </Button>
                           <Button
                             variant="outline"
                             size="sm"

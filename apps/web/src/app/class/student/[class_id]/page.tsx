@@ -45,40 +45,26 @@ export default function ClassPage() {
     staleTime: Infinity,
   });
 
-  if (sessionQuery.isLoading) {
-    return (
-      <div className="min-h-screen">
-        <Header />
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">Loading...</div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!sessionQuery.data?.user) {
-    router.push("/login");
-    return null;
-  }
-
-  if ((sessionQuery.data?.user as unknown as SessionUser).role === "teacher") {
-    router.push("/dashboard");
-    return null;
-  }
+  const isAuthenticated = !!sessionQuery.data?.user;
+  const isStudent =
+    (sessionQuery.data?.user as unknown as SessionUser)?.role === "student";
 
   const classQuery = useQuery({
     queryKey: ["class", classId],
     queryFn: () => trpcClient.education.getClassById.query({ classId }),
+    enabled: isAuthenticated && isStudent,
   });
 
   const teacherQuery = useQuery({
     queryKey: ["class-teacher", classId],
     queryFn: () => trpcClient.education.getClassTeacher.query({ classId }),
+    enabled: isAuthenticated && isStudent,
   });
 
   const assignmentsQuery = useQuery({
     queryKey: ["class-assignments", classId],
     queryFn: () => trpcClient.education.getClassAssignments.query({ classId }),
+    enabled: isAuthenticated && isStudent,
   });
 
   const leaveClassMutation = useMutation({
@@ -103,6 +89,27 @@ export default function ClassPage() {
     leaveClassMutation.mutate();
   };
 
+  if (sessionQuery.isLoading) {
+    return (
+      <div className="min-h-screen">
+        <Header />
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    router.push("/login");
+    return null;
+  }
+
+  if (!isStudent) {
+    router.push("/dashboard");
+    return null;
+  }
+
   if (classQuery.isLoading) {
     return (
       <div className="min-h-screen">
@@ -114,18 +121,7 @@ export default function ClassPage() {
     );
   }
 
-  if (classQuery.error || !classQuery.data) {
-    return (
-      <div className="min-h-screen">
-        <Header />
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center text-red-500">Class not found</div>
-        </div>
-      </div>
-    );
-  }
-
-  const classData = classQuery.data;
+  const classData = classQuery.data!;
 
   return (
     <div className="min-h-screen">

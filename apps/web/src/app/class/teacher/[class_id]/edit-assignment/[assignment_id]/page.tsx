@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, Copy, Trash2 } from "lucide-react";
 import { trpcClient } from "@/utils/trpc";
 import { QuestionEditor } from "@/components/assignment/question-editor";
 import { AddQuestion } from "@/components/assignment/add-question";
@@ -65,27 +65,6 @@ export default function EditAssignmentPage() {
     staleTime: Infinity,
   });
 
-  if (sessionQuery.isLoading) {
-    return (
-      <div className="min-h-screen">
-        <Header />
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
-          <p>Loading assignment...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!sessionQuery.data?.user) {
-    router.push("/login");
-    return null;
-  }
-
-  if ((sessionQuery.data?.user as unknown as SessionUser).role === "student") {
-    router.push("/dashboard");
-    return null;
-  }
-
   const assignmentQuery = useQuery({
     queryKey: ["assignment", assignmentId],
     queryFn: () => trpcClient.education.getAssignment.query({ assignmentId }),
@@ -103,6 +82,18 @@ export default function EditAssignmentPage() {
     onSuccess: () => {
       assignmentQuery.refetch();
       toast.success("Assignment saved successfully");
+    },
+  });
+
+  const deleteAssignmentMutation = useMutation({
+    mutationFn: async () => {
+      return await trpcClient.education.deleteAssignment.mutate({
+        assignmentId,
+      });
+    },
+    onSuccess: () => {
+      toast.success("Assignment deleted successfully");
+      router.push(`/class/teacher/${classId}`);
     },
   });
 
@@ -141,6 +132,18 @@ export default function EditAssignmentPage() {
       }
     }
   }, [assignmentQuery.data, form]);
+
+  useEffect(() => {
+    if (!sessionQuery.isLoading && !sessionQuery.data?.user) {
+      router.push("/login");
+    } else if (
+      !sessionQuery.isLoading &&
+      sessionQuery.data?.user &&
+      (sessionQuery.data.user as unknown as SessionUser).role === "student"
+    ) {
+      router.push("/dashboard");
+    }
+  }, [sessionQuery.isLoading, sessionQuery.data, router]);
 
   const handleAddQuestion = (question: Question) => {
     setQuestions((prev) => [...prev, question]);
@@ -223,7 +226,23 @@ export default function EditAssignmentPage() {
     });
   };
 
-  if (assignmentQuery.isLoading) {
+  const handleCopyAssignmentUrl = async () => {
+    const url = `${window.location.origin}/do-assignment/${assignmentId}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Assignment URL copied to clipboard");
+    } catch (error) {
+      toast.error("Failed to copy URL");
+    }
+  };
+
+  const handleDeleteAssignment = () => {
+    if (confirm("Are you sure you want to delete this assignment?")) {
+      deleteAssignmentMutation.mutate();
+    }
+  };
+
+  if (sessionQuery.isLoading || assignmentQuery.isLoading) {
     return (
       <div className="min-h-screen">
         <Header />
@@ -250,7 +269,7 @@ export default function EditAssignmentPage() {
       <Header />
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
         <div className="space-y-6">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 flex-wrap">
             <Button
               variant="outline"
               onClick={() => router.push(`/class/teacher/${classId}`)}
@@ -259,6 +278,23 @@ export default function EditAssignmentPage() {
               Back
             </Button>
             <h1 className="text-3xl font-bold">Edit Assignment</h1>
+            <Button
+              variant="outline"
+              onClick={handleCopyAssignmentUrl}
+              className="flex items-center gap-2"
+            >
+              <Copy className="w-4 h-4" />
+              Copy Assignment URL
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteAssignment}
+              disabled={deleteAssignmentMutation.isPending}
+              className="flex items-center gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete Assignment
+            </Button>
           </div>
 
           <Card>

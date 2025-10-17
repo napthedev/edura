@@ -68,27 +68,6 @@ export default function CreateAssignmentPage() {
     staleTime: Infinity,
   });
 
-  if (sessionQuery.isLoading) {
-    return (
-      <div className="min-h-screen">
-        <Header />
-        <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 py-8">
-          <p>Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!sessionQuery.data?.user) {
-    router.push("/login");
-    return null;
-  }
-
-  if ((sessionQuery.data?.user as unknown as SessionUser).role === "student") {
-    router.push("/dashboard");
-    return null;
-  }
-
   const form = useForm<CreateAssignmentForm>({
     resolver: zodResolver(createAssignmentSchema),
     defaultValues: {
@@ -117,6 +96,27 @@ export default function CreateAssignmentPage() {
       }
     },
   });
+
+  if (sessionQuery.isLoading) {
+    return (
+      <div className="min-h-screen">
+        <Header />
+        <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 py-8">
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!sessionQuery.data?.user) {
+    router.push("/login");
+    return null;
+  }
+
+  if ((sessionQuery.data?.user as unknown as SessionUser).role === "student") {
+    router.push("/dashboard");
+    return null;
+  }
 
   const onSubmit = (data: CreateAssignmentForm) => {
     createAssignmentMutation.mutate(data);
