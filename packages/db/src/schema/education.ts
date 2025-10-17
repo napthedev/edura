@@ -39,7 +39,9 @@ export const assignments = pgTable("assignments", {
     .references(() => classes.classId, { onDelete: "cascade" }),
   title: text("title").notNull(),
   description: text("description"),
+  assignmentContent: text("assignment_content"),
   dueDate: timestamp("due_date"),
+  testingDuration: integer("testing_duration"), // Duration in minutes
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

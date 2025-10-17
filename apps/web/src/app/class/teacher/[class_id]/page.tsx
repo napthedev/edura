@@ -77,6 +77,18 @@ export default function ClassPage() {
     },
   });
 
+  const deleteAssignmentMutation = useMutation({
+    mutationFn: (assignmentId: string) =>
+      trpcClient.education.deleteAssignment.mutate({ assignmentId }),
+    onSuccess: () => {
+      toast.success("Assignment deleted successfully");
+      assignmentsQuery.refetch();
+    },
+    onError: (error) => {
+      toast.error(`Failed to delete assignment: ${error.message}`);
+    },
+  });
+
   const copyClassCode = () => {
     if (classQuery.data?.classCode) {
       navigator.clipboard.writeText(classQuery.data.classCode);
@@ -259,10 +271,17 @@ export default function ClassPage() {
 
           {/* Assignments Section */}
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
               <CardTitle>
                 Assignments ({assignmentsQuery.data?.length || 0})
               </CardTitle>
+              <Button
+                onClick={() =>
+                  router.push(`/class/teacher/${classId}/create-assignment`)
+                }
+              >
+                Create assignment
+              </Button>
             </CardHeader>
             <CardContent>
               {assignmentsQuery.isLoading ? (
@@ -279,29 +298,78 @@ export default function ClassPage() {
                     }) => (
                       <div
                         key={assignment.assignmentId}
-                        className="p-3 border rounded-lg"
+                        className="flex items-center justify-between p-3 border rounded-lg"
                       >
-                        <h3 className="font-medium">{assignment.title}</h3>
-                        {assignment.description && (
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {assignment.description}
-                          </p>
-                        )}
-                        <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                          <span>
-                            Created:{" "}
-                            {new Date(
-                              assignment.createdAt
-                            ).toLocaleDateString()}
-                          </span>
-                          {assignment.dueDate && (
+                        <div className="flex-1">
+                          <h3 className="font-medium">{assignment.title}</h3>
+                          {assignment.description && (
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {assignment.description}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                             <span>
-                              Due:{" "}
+                              Created:{" "}
                               {new Date(
-                                assignment.dueDate
+                                assignment.createdAt
                               ).toLocaleDateString()}
                             </span>
-                          )}
+                            {assignment.dueDate && (
+                              <span>
+                                Due:{" "}
+                                {new Date(
+                                  assignment.dueDate
+                                ).toLocaleDateString()}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              router.push(
+                                `/class/teacher/${classId}/edit-assignment/${assignment.assignmentId}`
+                              )
+                            }
+                          >
+                            <Edit className="w-4 h-4 mr-2" />
+                            Edit
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="destructive" size="sm">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  Delete Assignment
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete this
+                                  assignment? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() =>
+                                    deleteAssignmentMutation.mutate(
+                                      assignment.assignmentId
+                                    )
+                                  }
+                                  className="bg-destructive text-white hover:bg-destructive/90"
+                                >
+                                  {deleteAssignmentMutation.isPending
+                                    ? "Deleting..."
+                                    : "Delete"}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </div>
                     )

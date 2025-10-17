@@ -252,6 +252,139 @@ export const educationRouter = router({
 
       return { success: true };
     }),
+  createAssignment: protectedProcedure
+    .input(
+      z.object({
+        classId: z.string(),
+        title: z.string().min(1),
+        description: z.string().optional(),
+        dueDate: z.string().optional(),
+        testingDuration: z.number().min(1).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Check if the class belongs to the teacher
+      const classData = await ctx.db
+        .select()
+        .from(classes)
+        .where(
+          and(
+            eq(classes.classId, input.classId),
+            eq(classes.teacherId, ctx.session.user.id)
+          )
+        );
+
+      if (classData.length === 0) {
+        throw new Error("Class not found or access denied");
+      }
+
+      const assignmentId = crypto.randomUUID();
+
+      const newAssignment = await ctx.db
+        .insert(assignments)
+        .values({
+          assignmentId,
+          classId: input.classId,
+          title: input.title,
+          description: input.description,
+          dueDate: input.dueDate ? new Date(input.dueDate) : null,
+          testingDuration: input.testingDuration,
+        })
+        .returning();
+
+      return newAssignment[0];
+    }),
+  getAssignment: protectedProcedure
+    .input(z.object({ assignmentId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const assignment = await ctx.db
+        .select()
+        .from(assignments)
+        .innerJoin(classes, eq(assignments.classId, classes.classId))
+        .where(
+          and(
+            eq(assignments.assignmentId, input.assignmentId),
+            eq(classes.teacherId, ctx.session.user.id)
+          )
+        );
+
+      if (assignment.length === 0) {
+        throw new Error("Assignment not found or access denied");
+      }
+
+      return assignment[0];
+    }),
+  updateAssignment: protectedProcedure
+    .input(
+      z.object({
+        assignmentId: z.string(),
+        title: z.string().min(1).optional(),
+        description: z.string().optional(),
+        dueDate: z.string().optional(),
+        assignmentContent: z.string().optional(),
+        testingDuration: z.number().min(1).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Check if the assignment belongs to the teacher
+      const assignmentData = await ctx.db
+        .select()
+        .from(assignments)
+        .innerJoin(classes, eq(assignments.classId, classes.classId))
+        .where(
+          and(
+            eq(assignments.assignmentId, input.assignmentId),
+            eq(classes.teacherId, ctx.session.user.id)
+          )
+        );
+
+      if (assignmentData.length === 0) {
+        throw new Error("Assignment not found or access denied");
+      }
+
+      const updateData: any = {};
+      if (input.title !== undefined) updateData.title = input.title;
+      if (input.description !== undefined)
+        updateData.description = input.description;
+      if (input.dueDate !== undefined)
+        updateData.dueDate = input.dueDate ? new Date(input.dueDate) : null;
+      if (input.assignmentContent !== undefined)
+        updateData.assignmentContent = input.assignmentContent;
+      if (input.testingDuration !== undefined)
+        updateData.testingDuration = input.testingDuration;
+
+      await ctx.db
+        .update(assignments)
+        .set(updateData)
+        .where(eq(assignments.assignmentId, input.assignmentId));
+
+      return { success: true };
+    }),
+  deleteAssignment: protectedProcedure
+    .input(z.object({ assignmentId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // Check if the assignment belongs to the teacher
+      const assignmentData = await ctx.db
+        .select()
+        .from(assignments)
+        .innerJoin(classes, eq(assignments.classId, classes.classId))
+        .where(
+          and(
+            eq(assignments.assignmentId, input.assignmentId),
+            eq(classes.teacherId, ctx.session.user.id)
+          )
+        );
+
+      if (assignmentData.length === 0) {
+        throw new Error("Assignment not found or access denied");
+      }
+
+      await ctx.db
+        .delete(assignments)
+        .where(eq(assignments.assignmentId, input.assignmentId));
+
+      return { success: true };
+    }),
 });
 
 export type EducationRouter = typeof educationRouter;
