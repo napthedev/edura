@@ -165,7 +165,9 @@ export default function CreateAssignmentPage() {
           <div className="flex items-center gap-4">
             <Button
               variant="outline"
-              onClick={() => router.push(`/class/teacher/${classId}`)}
+              onClick={() =>
+                router.push(`/class/teacher/${classId}?tab=assignments`)
+              }
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back

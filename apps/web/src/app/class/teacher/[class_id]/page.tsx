@@ -314,7 +314,7 @@ export default function ClassPage() {
                   />
                 </CardHeader>
                 <CardContent>
-                  <AnnouncementList classId={classId} />
+                  <AnnouncementList classId={classId} isTeacher={true} />
                 </CardContent>
               </Card>
             </TabsContent>

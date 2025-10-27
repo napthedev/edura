@@ -1,10 +1,26 @@
 "use client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { trpcClient } from "@/utils/trpc";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Edit, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
+import { useState } from "react";
+import EditAnnouncementForm from "./edit-announcement-form";
 
 interface Announcement {
   announcement: {
@@ -23,9 +39,21 @@ interface Announcement {
 
 interface AnnouncementListProps {
   classId: string;
+  isTeacher?: boolean;
 }
 
-export default function AnnouncementList({ classId }: AnnouncementListProps) {
+export default function AnnouncementList({
+  classId,
+  isTeacher = false,
+}: AnnouncementListProps) {
+  const queryClient = useQueryClient();
+  const [editingAnnouncement, setEditingAnnouncement] = useState<{
+    id: string;
+    title: string;
+    content: string | null;
+    attachedImage: string | null;
+  } | null>(null);
+
   const {
     data: announcements,
     isLoading,
@@ -34,6 +62,20 @@ export default function AnnouncementList({ classId }: AnnouncementListProps) {
     queryKey: ["class-announcements", classId],
     queryFn: () =>
       trpcClient.education.getClassAnnouncements.query({ classId }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (announcementId: string) =>
+      trpcClient.education.deleteAnnouncement.mutate({ announcementId }),
+    onSuccess: () => {
+      toast.success("Announcement deleted successfully");
+      queryClient.invalidateQueries({
+        queryKey: ["class-announcements", classId],
+      });
+    },
+    onError: (error) => {
+      toast.error(`Failed to delete announcement: ${error.message}`);
+    },
   });
 
   if (isLoading) {
@@ -111,6 +153,57 @@ export default function AnnouncementList({ classId }: AnnouncementListProps) {
                       addSuffix: true,
                     })}
                   </Badge>
+                  {isTeacher && (
+                    <div className="flex gap-1 ml-auto">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() =>
+                          setEditingAnnouncement({
+                            id: announcement.announcementId,
+                            title: announcement.title,
+                            content: announcement.content,
+                            attachedImage: announcement.attachedImage,
+                          })
+                        }
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Delete Announcement
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete this announcement?
+                              This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() =>
+                                deleteMutation.mutate(
+                                  announcement.announcementId
+                                )
+                              }
+                              className="bg-destructive text-white hover:bg-destructive/90"
+                            >
+                              {deleteMutation.isPending
+                                ? "Deleting..."
+                                : "Delete"}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  )}
                 </div>
 
                 <p className="text-sm text-muted-foreground mb-3">
@@ -139,6 +232,19 @@ export default function AnnouncementList({ classId }: AnnouncementListProps) {
           </CardContent>
         </Card>
       ))}
+
+      {editingAnnouncement && (
+        <EditAnnouncementForm
+          announcementId={editingAnnouncement.id}
+          classId={classId}
+          initialTitle={editingAnnouncement.title}
+          initialContent={editingAnnouncement.content}
+          initialAttachedImage={editingAnnouncement.attachedImage}
+          isOpen={true}
+          onClose={() => setEditingAnnouncement(null)}
+          onSuccess={() => setEditingAnnouncement(null)}
+        />
+      )}
     </div>
   );
 }

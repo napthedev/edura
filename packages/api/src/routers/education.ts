@@ -625,6 +625,31 @@ export const educationRouter = router({
 
       return { success: true };
     }),
+  deleteLecture: protectedProcedure
+    .input(z.object({ lectureId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // Check if the lecture belongs to the teacher
+      const lectureData = await ctx.db
+        .select()
+        .from(lectures)
+        .innerJoin(classes, eq(lectures.classId, classes.classId))
+        .where(
+          and(
+            eq(lectures.lectureId, input.lectureId),
+            eq(classes.teacherId, ctx.session.user.id)
+          )
+        );
+
+      if (lectureData.length === 0) {
+        throw new Error("Lecture not found or access denied");
+      }
+
+      await ctx.db
+        .delete(lectures)
+        .where(eq(lectures.lectureId, input.lectureId));
+
+      return { success: true };
+    }),
   createAnnouncement: protectedProcedure
     .input(
       z.object({
@@ -712,28 +737,67 @@ export const educationRouter = router({
         .where(eq(announcements.classId, input.classId))
         .orderBy(announcements.createdAt);
     }),
-  deleteLecture: protectedProcedure
-    .input(z.object({ lectureId: z.string() }))
+  updateAnnouncement: protectedProcedure
+    .input(
+      z.object({
+        announcementId: z.string(),
+        title: z.string().min(1).optional(),
+        content: z.string().optional(),
+        attachedImage: z.string().optional(),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
-      // Check if the lecture belongs to the teacher
-      const lectureData = await ctx.db
+      // Check if the announcement belongs to the teacher
+      const announcementData = await ctx.db
         .select()
-        .from(lectures)
-        .innerJoin(classes, eq(lectures.classId, classes.classId))
+        .from(announcements)
+        .innerJoin(classes, eq(announcements.classId, classes.classId))
         .where(
           and(
-            eq(lectures.lectureId, input.lectureId),
+            eq(announcements.announcementId, input.announcementId),
             eq(classes.teacherId, ctx.session.user.id)
           )
         );
 
-      if (lectureData.length === 0) {
-        throw new Error("Lecture not found or access denied");
+      if (announcementData.length === 0) {
+        throw new Error("Announcement not found or access denied");
+      }
+
+      const updateData: any = {};
+      if (input.title !== undefined) updateData.title = input.title;
+      if (input.content !== undefined) updateData.content = input.content;
+      if (input.attachedImage !== undefined)
+        updateData.attachedImage = input.attachedImage;
+
+      await ctx.db
+        .update(announcements)
+        .set(updateData)
+        .where(eq(announcements.announcementId, input.announcementId));
+
+      return { success: true };
+    }),
+  deleteAnnouncement: protectedProcedure
+    .input(z.object({ announcementId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // Check if the announcement belongs to the teacher
+      const announcementData = await ctx.db
+        .select()
+        .from(announcements)
+        .innerJoin(classes, eq(announcements.classId, classes.classId))
+        .where(
+          and(
+            eq(announcements.announcementId, input.announcementId),
+            eq(classes.teacherId, ctx.session.user.id)
+          )
+        );
+
+      if (announcementData.length === 0) {
+        throw new Error("Announcement not found or access denied");
       }
 
       await ctx.db
-        .delete(lectures)
-        .where(eq(lectures.lectureId, input.lectureId));
+        .delete(announcements)
+        .where(eq(announcements.announcementId, input.announcementId));
 
       return { success: true };
     }),
