@@ -17,6 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useTranslations } from "next-intl";
 
 interface CreateAnnouncementFormProps {
   classId: string;
@@ -33,6 +34,7 @@ export default function CreateAnnouncementForm({
   const [attachedImage, setAttachedImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const queryClient = useQueryClient();
+  const t = useTranslations("CreateAnnouncement");
 
   const createMutation = useMutation({
     mutationFn: (data: {
@@ -45,7 +47,7 @@ export default function CreateAnnouncementForm({
         ...data,
       }),
     onSuccess: () => {
-      toast.success("Announcement created successfully");
+      toast.success(t("announcementCreated"));
       setIsOpen(false);
       setTitle("");
       setContent("");
@@ -57,7 +59,7 @@ export default function CreateAnnouncementForm({
       onSuccess?.();
     },
     onError: (error) => {
-      toast.error(`Failed to create announcement: ${error.message}`);
+      toast.error(`${t("failedToCreateAnnouncement")}: ${error.message}`);
     },
   });
 
@@ -67,13 +69,13 @@ export default function CreateAnnouncementForm({
     // Validate file type
     const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
-      toast.error("Only image files are allowed");
+      toast.error(t("onlyImageFilesAllowed"));
       return;
     }
 
     // Validate file size (5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("File size must be less than 5MB");
+      toast.error(t("fileSizeTooLarge"));
       return;
     }
 
@@ -91,12 +93,12 @@ export default function CreateAnnouncementForm({
 
       if (result.success) {
         setAttachedImage(result.url);
-        toast.success("Image uploaded successfully");
+        toast.success(t("imageUploaded"));
       } else {
-        toast.error(result.error || "Failed to upload image");
+        toast.error(result.error || t("failedToUploadImage"));
       }
     } catch (error) {
-      toast.error("Failed to upload image");
+      toast.error(t("failedToUploadImage"));
     } finally {
       setIsUploading(false);
     }
@@ -105,7 +107,7 @@ export default function CreateAnnouncementForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) {
-      toast.error("Title is required");
+      toast.error(t("titleRequired"));
       return;
     }
 
@@ -119,43 +121,43 @@ export default function CreateAnnouncementForm({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button>Create Announcement</Button>
+        <Button>{t("createAnnouncement")}</Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Create Announcement</DialogTitle>
+          <DialogTitle>{t("createAnnouncement")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="title">Title *</Label>
+            <Label htmlFor="title">{t("titleLabel")}</Label>
             <Input
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter announcement title"
+              placeholder={t("enterAnnouncementTitle")}
               required
             />
           </div>
 
           <div>
-            <Label htmlFor="content">Description</Label>
+            <Label htmlFor="content">{t("description")}</Label>
             <Textarea
               id="content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Enter announcement description"
+              placeholder={t("enterAnnouncementDescription")}
               rows={4}
             />
           </div>
 
           <div>
-            <Label>Attached Image (Optional)</Label>
+            <Label>{t("attachedImageOptional")}</Label>
             <div className="mt-2">
               {attachedImage ? (
                 <div className="relative">
                   <img
                     src={attachedImage}
-                    alt="Attached image"
+                    alt={t("attachedImage")}
                     className="w-full max-h-48 object-cover rounded-lg"
                   />
                   <Button
@@ -172,7 +174,7 @@ export default function CreateAnnouncementForm({
                 <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
                   <ImageIcon className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
                   <p className="text-sm text-muted-foreground mb-4">
-                    Upload an image to attach to your announcement
+                    {t("uploadImageDescription")}
                   </p>
                   <label htmlFor="image-upload">
                     <Button
@@ -187,7 +189,7 @@ export default function CreateAnnouncementForm({
                         ) : (
                           <Upload className="w-4 h-4 mr-2" />
                         )}
-                        {isUploading ? "" : "Choose Image"}
+                        {isUploading ? "" : t("chooseImage")}
                       </span>
                     </Button>
                     <input
@@ -214,13 +216,15 @@ export default function CreateAnnouncementForm({
               variant="outline"
               onClick={() => setIsOpen(false)}
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button
               type="submit"
               disabled={createMutation.isPending || isUploading}
             >
-              {createMutation.isPending ? "Creating..." : "Create Announcement"}
+              {createMutation.isPending
+                ? t("creating")
+                : t("createAnnouncementButton")}
             </Button>
           </div>
         </form>

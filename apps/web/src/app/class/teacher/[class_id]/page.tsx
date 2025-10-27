@@ -38,6 +38,7 @@ import AnnouncementList from "@/components/announcement/announcement-list";
 import CreateScheduleForm from "@/components/schedule/schedule-form";
 import ScheduleCalendar from "@/components/schedule/schedule-calendar";
 import Loader from "@/components/loader";
+import { useTranslations } from "next-intl";
 
 type SessionUser = {
   id: string;
@@ -55,6 +56,7 @@ export default function ClassPage() {
   const currentTab = searchParams.get("tab") || "announcement";
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [newClassName, setNewClassName] = useState("");
+  const t = useTranslations("ClassPage");
 
   const sessionQuery = useQuery({
     queryKey: ["session"],
@@ -187,7 +189,7 @@ export default function ClassPage() {
       <div className="min-h-screen">
         <Header />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center text-red-500">Class not found</div>
+          <div className="text-center text-red-500">{t("classNotFound")}</div>
         </div>
       </div>
     );
@@ -205,16 +207,17 @@ export default function ClassPage() {
             <div>
               <h1 className="text-3xl font-bold">{classData.className}</h1>
               <p className="text-muted-foreground">
-                Class Code: {classData.classCode}
+                {t("classCode")}: {classData.classCode}
               </p>
               <p className="text-sm text-muted-foreground">
-                Created: {new Date(classData.createdAt).toLocaleDateString()}
+                {t("created")}:{" "}
+                {new Date(classData.createdAt).toLocaleDateString()}
               </p>
             </div>
             <div className="flex gap-2">
               <Button variant="outline" onClick={copyClassCode}>
                 <Copy className="w-4 h-4 mr-2" />
-                Copy Code
+                {t("copyCode")}
               </Button>
               <Dialog
                 open={renameDialogOpen}
@@ -223,12 +226,12 @@ export default function ClassPage() {
                 <DialogTrigger asChild>
                   <Button variant="outline">
                     <Edit className="w-4 h-4 mr-2" />
-                    Rename
+                    {t("renameClassButton")}
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Rename Class</DialogTitle>
+                    <DialogTitle>{t("renameClass")}</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div>
@@ -236,7 +239,7 @@ export default function ClassPage() {
                         id="className"
                         value={newClassName}
                         onChange={(e) => setNewClassName(e.target.value)}
-                        placeholder="Enter new class name"
+                        placeholder={t("enterNewClassName")}
                       />
                     </div>
                     <div className="flex gap-2 justify-end">
@@ -244,7 +247,7 @@ export default function ClassPage() {
                         variant="outline"
                         onClick={() => setRenameDialogOpen(false)}
                       >
-                        Cancel
+                        {t("cancel")}
                       </Button>
                       <Button
                         onClick={handleRename}
@@ -252,7 +255,9 @@ export default function ClassPage() {
                           renameMutation.isPending || !newClassName.trim()
                         }
                       >
-                        {renameMutation.isPending ? "Renaming..." : "Rename"}
+                        {renameMutation.isPending
+                          ? t("renaming")
+                          : t("renameButton")}
                       </Button>
                     </div>
                   </div>
@@ -262,24 +267,25 @@ export default function ClassPage() {
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive">
                     <Trash2 className="w-4 h-4 mr-2" />
-                    Delete
+                    {t("deleteClassButton")}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Class</AlertDialogTitle>
+                    <AlertDialogTitle>{t("deleteClass")}</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Are you sure you want to delete this class? This action
-                      cannot be undone and will remove all associated data.
+                      {t("deleteClassDescription")}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={handleDelete}
                       className="bg-destructive text-white hover:bg-destructive/90"
                     >
-                      {deleteMutation.isPending ? "Deleting..." : "Delete"}
+                      {deleteMutation.isPending
+                        ? t("deleting")
+                        : t("deleteButton")}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
@@ -295,17 +301,19 @@ export default function ClassPage() {
             className="w-full"
           >
             <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="announcement">Announcement</TabsTrigger>
-              <TabsTrigger value="students">Students</TabsTrigger>
-              <TabsTrigger value="schedule">Schedule</TabsTrigger>
-              <TabsTrigger value="assignments">Assignments</TabsTrigger>
-              <TabsTrigger value="lectures">Lectures</TabsTrigger>
+              <TabsTrigger value="announcement">
+                {t("announcement")}
+              </TabsTrigger>
+              <TabsTrigger value="students">{t("students")}</TabsTrigger>
+              <TabsTrigger value="schedule">{t("schedule")}</TabsTrigger>
+              <TabsTrigger value="assignments">{t("assignments")}</TabsTrigger>
+              <TabsTrigger value="lectures">{t("lectures")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="announcement" className="space-y-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0">
-                  <CardTitle>Announcements</CardTitle>
+                  <CardTitle>{t("announcements")}</CardTitle>
                   <CreateAnnouncementForm
                     classId={classId}
                     onSuccess={() => {
@@ -325,7 +333,7 @@ export default function ClassPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>
-                    Students ({studentsQuery.data?.length || 0})
+                    {t("studentsCount")} ({studentsQuery.data?.length || 0})
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -351,7 +359,7 @@ export default function ClassPage() {
                               </p>
                             </div>
                             <Badge variant="secondary">
-                              Enrolled{" "}
+                              {t("enrolled")}{" "}
                               {new Date(
                                 student.enrolledAt
                               ).toLocaleDateString()}
@@ -362,7 +370,7 @@ export default function ClassPage() {
                     </div>
                   ) : (
                     <p className="text-muted-foreground">
-                      No students enrolled yet.
+                      {t("noStudentsEnrolled")}
                     </p>
                   )}
                 </CardContent>
@@ -372,7 +380,7 @@ export default function ClassPage() {
             <TabsContent value="schedule" className="space-y-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0">
-                  <CardTitle>Class Schedule</CardTitle>
+                  <CardTitle>{t("classSchedule")}</CardTitle>
                   <CreateScheduleForm
                     classId={classId}
                     onSuccess={() => schedulesQuery.refetch()}
@@ -398,14 +406,15 @@ export default function ClassPage() {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0">
                   <CardTitle>
-                    Assignments ({assignmentsQuery.data?.length || 0})
+                    {t("assignmentsCount")} (
+                    {assignmentsQuery.data?.length || 0})
                   </CardTitle>
                   <Button
                     onClick={() =>
                       router.push(`/class/teacher/${classId}/create-assignment`)
                     }
                   >
-                    Create assignment
+                    {t("createAssignment")}
                   </Button>
                 </CardHeader>
                 <CardContent>
@@ -437,14 +446,14 @@ export default function ClassPage() {
                               )}
                               <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                                 <span>
-                                  Created:{" "}
+                                  {t("created")}:{" "}
                                   {new Date(
                                     assignment.createdAt
                                   ).toLocaleDateString()}
                                 </span>
                                 {assignment.dueDate && (
                                   <span>
-                                    Due:{" "}
+                                    {t("due")}:{" "}
                                     {new Date(
                                       assignment.dueDate
                                     ).toLocaleDateString()}
@@ -461,14 +470,14 @@ export default function ClassPage() {
                                 }
                               >
                                 <Copy className="w-4 h-4 mr-2" />
-                                Copy URL
+                                {t("copyUrl")}
                               </Button>
                               <Link
                                 href={`/class/teacher/${classId}/edit-assignment/${assignment.assignmentId}`}
                               >
                                 <Button variant="outline" size="sm">
                                   <Edit className="w-4 h-4 mr-2" />
-                                  Edit
+                                  {t("edit")}
                                 </Button>
                               </Link>
                               <AlertDialog>
@@ -480,16 +489,15 @@ export default function ClassPage() {
                                 <AlertDialogContent>
                                   <AlertDialogHeader>
                                     <AlertDialogTitle>
-                                      Delete Assignment
+                                      {t("deleteAssignment")}
                                     </AlertDialogTitle>
                                     <AlertDialogDescription>
-                                      Are you sure you want to delete this
-                                      assignment? This action cannot be undone.
+                                      {t("deleteAssignmentDescription")}
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
                                     <AlertDialogCancel>
-                                      Cancel
+                                      {t("cancel")}
                                     </AlertDialogCancel>
                                     <AlertDialogAction
                                       onClick={() =>
@@ -500,8 +508,8 @@ export default function ClassPage() {
                                       className="bg-destructive text-white hover:bg-destructive/90"
                                     >
                                       {deleteAssignmentMutation.isPending
-                                        ? "Deleting..."
-                                        : "Delete"}
+                                        ? t("deleting")
+                                        : t("deleteButton")}
                                     </AlertDialogAction>
                                   </AlertDialogFooter>
                                 </AlertDialogContent>
@@ -513,7 +521,7 @@ export default function ClassPage() {
                     </div>
                   ) : (
                     <p className="text-muted-foreground">
-                      No assignments created yet.
+                      {t("noAssignmentsCreated")}
                     </p>
                   )}
                 </CardContent>
@@ -525,14 +533,15 @@ export default function ClassPage() {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0">
                   <CardTitle>
-                    Lectures & Materials ({lecturesQuery.data?.length || 0})
+                    {t("lecturesAndMaterials")} (
+                    {lecturesQuery.data?.length || 0})
                   </CardTitle>
                   <Button
                     onClick={() =>
                       router.push(`/class/teacher/${classId}/upload-lecture`)
                     }
                   >
-                    Upload Lecture
+                    {t("uploadLecture")}
                   </Button>
                 </CardHeader>
                 <CardContent>
@@ -566,17 +575,17 @@ export default function ClassPage() {
                                 <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                                   <Badge variant="outline">
                                     {lecture.type === "file"
-                                      ? "File"
-                                      : "YouTube"}
+                                      ? t("file")
+                                      : t("youtube")}
                                   </Badge>
                                   <span>
-                                    Date:{" "}
+                                    {t("date")}:{" "}
                                     {new Date(
                                       lecture.lectureDate
                                     ).toLocaleDateString()}
                                   </span>
                                   <span>
-                                    Uploaded:{" "}
+                                    {t("uploaded")}:{" "}
                                     {new Date(
                                       lecture.createdAt
                                     ).toLocaleDateString()}
@@ -590,7 +599,7 @@ export default function ClassPage() {
                     </div>
                   ) : (
                     <p className="text-muted-foreground">
-                      No lectures uploaded yet.
+                      {t("noLecturesUploaded")}
                     </p>
                   )}
                 </CardContent>

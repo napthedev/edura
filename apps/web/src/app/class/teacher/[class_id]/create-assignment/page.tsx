@@ -33,6 +33,7 @@ import { useQuery } from "@tanstack/react-query";
 import { GenerateQuestions } from "@/components/assignment/generate-questions";
 import type { Question } from "@/lib/assignment-types";
 import Loader from "@/components/loader";
+import { useTranslations } from "next-intl";
 
 type SessionUser = {
   id: string;
@@ -62,6 +63,7 @@ export default function CreateAssignmentPage() {
   const [showAIGeneration, setShowAIGeneration] = useState(false);
   const [generatedQuestions, setGeneratedQuestions] = useState<Question[]>([]);
   const [date, setDate] = useState<Date | undefined>(undefined);
+  const t = useTranslations("CreateAssignment");
 
   const sessionQuery = useQuery({
     queryKey: ["session"],
@@ -171,14 +173,14 @@ export default function CreateAssignmentPage() {
               }
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
+              {t("back")}
             </Button>
-            <h1 className="text-3xl font-bold">Create Assignment</h1>
+            <h1 className="text-3xl font-bold">{t("title")}</h1>
           </div>
 
           <Card>
             <CardHeader>
-              <CardTitle>Choose Assignment Type</CardTitle>
+              <CardTitle>{t("chooseAssignmentType")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -187,14 +189,14 @@ export default function CreateAssignmentPage() {
                   className="w-full"
                   onClick={handleManualInput}
                 >
-                  Manually input questions
+                  {t("manuallyInputQuestions")}
                 </Button>
                 <Button
                   variant="outline"
                   className="w-full"
                   onClick={handleAIGeneration}
                 >
-                  Generate questions from documents using AI
+                  {t("generateQuestionsAI")}
                 </Button>
               </div>
             </CardContent>
@@ -210,7 +212,7 @@ export default function CreateAssignmentPage() {
           {showForm && (
             <Card>
               <CardHeader>
-                <CardTitle>Create Assignment</CardTitle>
+                <CardTitle>{t("createAssignment")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <Form {...form}>
@@ -223,9 +225,12 @@ export default function CreateAssignmentPage() {
                       name="title"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Title</FormLabel>
+                          <FormLabel>{t("titleLabel")}</FormLabel>
                           <FormControl>
-                            <Input placeholder="Assignment title" {...field} />
+                            <Input
+                              placeholder={t("assignmentTitlePlaceholder")}
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -234,9 +239,8 @@ export default function CreateAssignmentPage() {
                     {generatedQuestions.length > 0 && (
                       <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
                         <p className="text-sm text-blue-700">
-                          {generatedQuestions.length} questions will be
-                          generated from AI. You can edit them after creating
-                          the assignment.
+                          {generatedQuestions.length}{" "}
+                          {t("questionsGeneratedNote")}
                         </p>
                       </div>
                     )}
@@ -245,10 +249,12 @@ export default function CreateAssignmentPage() {
                       name="description"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Description (Optional)</FormLabel>
+                          <FormLabel>{t("descriptionOptional")}</FormLabel>
                           <FormControl>
                             <Textarea
-                              placeholder="Assignment description"
+                              placeholder={t(
+                                "assignmentDescriptionPlaceholder"
+                              )}
                               {...field}
                             />
                           </FormControl>
@@ -261,7 +267,7 @@ export default function CreateAssignmentPage() {
                       name="dueDate"
                       render={({ field }) => (
                         <FormItem className="flex flex-col">
-                          <FormLabel>Due Date (Optional)</FormLabel>
+                          <FormLabel>{t("dueDateOptional")}</FormLabel>
                           <Popover>
                             <PopoverTrigger asChild>
                               <FormControl>
@@ -274,7 +280,7 @@ export default function CreateAssignmentPage() {
                                   {field.value ? (
                                     format(field.value, "PPP")
                                   ) : (
-                                    <span>Pick a date</span>
+                                    <span>{t("pickDate")}</span>
                                   )}
                                   <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                 </Button>
@@ -308,13 +314,11 @@ export default function CreateAssignmentPage() {
                       name="testingDuration"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>
-                            Testing Duration (minutes, Optional)
-                          </FormLabel>
+                          <FormLabel>{t("testingDurationOptional")}</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
-                              placeholder="e.g. 60"
+                              placeholder={t("testingDurationPlaceholder")}
                               {...field}
                               onChange={(e) =>
                                 field.onChange(
@@ -335,8 +339,8 @@ export default function CreateAssignmentPage() {
                         disabled={createAssignmentMutation.isPending}
                       >
                         {createAssignmentMutation.isPending
-                          ? "Creating..."
-                          : "Create Assignment"}
+                          ? t("creating")
+                          : t("createAssignmentButton")}
                       </Button>
                       <Button
                         type="button"
@@ -346,7 +350,7 @@ export default function CreateAssignmentPage() {
                           setGeneratedQuestions([]);
                         }}
                       >
-                        Cancel
+                        {t("cancel")}
                       </Button>
                     </div>
                   </form>

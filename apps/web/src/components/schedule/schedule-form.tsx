@@ -15,6 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useTranslations } from "next-intl";
 
 interface CreateScheduleFormProps {
   classId: string;
@@ -42,6 +43,7 @@ export default function CreateScheduleForm({
   const [time, setTime] = useState("");
   const [meetingLink, setMeetingLink] = useState("");
   const queryClient = useQueryClient();
+  const t = useTranslations("ScheduleForm");
 
   const createMutation = useMutation({
     mutationFn: (data: {
@@ -56,7 +58,7 @@ export default function CreateScheduleForm({
         ...data,
       }),
     onSuccess: () => {
-      toast.success("Schedule created successfully");
+      toast.success(t("scheduleCreated"));
       setIsOpen(false);
       resetForm();
       // Invalidate schedules query
@@ -66,7 +68,7 @@ export default function CreateScheduleForm({
       onSuccess?.();
     },
     onError: (error) => {
-      toast.error(`Failed to create schedule: ${error.message}`);
+      toast.error(`${t("failedToCreateSchedule")}: ${error.message}`);
     },
   });
 
@@ -81,15 +83,15 @@ export default function CreateScheduleForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) {
-      toast.error("Title is required");
+      toast.error(t("titleRequired"));
       return;
     }
     if (!date) {
-      toast.error("Date is required");
+      toast.error(t("dateRequired"));
       return;
     }
     if (!time) {
-      toast.error("Time is required");
+      toast.error(t("timeRequired"));
       return;
     }
 
@@ -105,38 +107,38 @@ export default function CreateScheduleForm({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button>Create Schedule</Button>
+        <Button>{t("createSchedule")}</Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Create Schedule</DialogTitle>
+          <DialogTitle>{t("createSchedule")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="title">Title *</Label>
+            <Label htmlFor="title">{t("titleLabel")}</Label>
             <Input
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter schedule title"
+              placeholder={t("enterScheduleTitle")}
               required
             />
           </div>
 
           <div>
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{t("description")}</Label>
             <Textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter schedule description"
+              placeholder={t("enterScheduleDescription")}
               rows={3}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="date">Date *</Label>
+              <Label htmlFor="date">{t("dateLabel")}</Label>
               <Input
                 id="date"
                 type="date"
@@ -146,7 +148,7 @@ export default function CreateScheduleForm({
               />
             </div>
             <div>
-              <Label htmlFor="time">Time *</Label>
+              <Label htmlFor="time">{t("timeLabel")}</Label>
               <Input
                 id="time"
                 type="time"
@@ -158,13 +160,13 @@ export default function CreateScheduleForm({
           </div>
 
           <div>
-            <Label htmlFor="meetingLink">Meeting Link</Label>
+            <Label htmlFor="meetingLink">{t("meetingLink")}</Label>
             <Input
               id="meetingLink"
               type="url"
               value={meetingLink}
               onChange={(e) => setMeetingLink(e.target.value)}
-              placeholder="https://meet.google.com/..."
+              placeholder={t("meetingLinkPlaceholder")}
             />
           </div>
 
@@ -174,10 +176,12 @@ export default function CreateScheduleForm({
               variant="outline"
               onClick={() => setIsOpen(false)}
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button type="submit" disabled={createMutation.isPending}>
-              {createMutation.isPending ? "Creating..." : "Create Schedule"}
+              {createMutation.isPending
+                ? t("creating")
+                : t("createScheduleButton")}
             </Button>
           </div>
         </form>
@@ -202,6 +206,7 @@ export function EditScheduleForm({
   );
   const [meetingLink, setMeetingLink] = useState(schedule?.meetingLink || "");
   const queryClient = useQueryClient();
+  const t = useTranslations("ScheduleForm");
 
   const updateMutation = useMutation({
     mutationFn: (data: {
@@ -213,7 +218,7 @@ export function EditScheduleForm({
       meetingLink?: string;
     }) => trpcClient.education.updateSchedule.mutate(data),
     onSuccess: () => {
-      toast.success("Schedule updated successfully");
+      toast.success(t("scheduleUpdated"));
       setIsOpen(false);
       // Invalidate schedules query
       queryClient.invalidateQueries({
@@ -222,7 +227,7 @@ export function EditScheduleForm({
       onSuccess?.();
     },
     onError: (error) => {
-      toast.error(`Failed to update schedule: ${error.message}`);
+      toast.error(`${t("failedToUpdateSchedule")}: ${error.message}`);
     },
   });
 
@@ -231,7 +236,7 @@ export function EditScheduleForm({
     if (!schedule) return;
 
     if (!title.trim()) {
-      toast.error("Title is required");
+      toast.error(t("titleRequired"));
       return;
     }
 
@@ -249,39 +254,41 @@ export function EditScheduleForm({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
-          Edit
+          {t("edit")}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Edit Schedule</DialogTitle>
+          <DialogTitle>{t("editSchedule")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="edit-title">Title *</Label>
+            <Label htmlFor="edit-title">{t("titleLabel")}</Label>
             <Input
               id="edit-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter schedule title"
+              placeholder={t("enterScheduleTitle")}
               required
             />
           </div>
 
           <div>
-            <Label htmlFor="edit-description">Description</Label>
+            <Label htmlFor="edit-description">{t("description")}</Label>
             <Textarea
               id="edit-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter schedule description"
+              placeholder={t("enterScheduleDescription")}
               rows={3}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="edit-date">Date</Label>
+              <Label htmlFor="edit-date">
+                {t("dateLabel").replace(" *", "")}
+              </Label>
               <Input
                 id="edit-date"
                 type="date"
@@ -290,7 +297,9 @@ export function EditScheduleForm({
               />
             </div>
             <div>
-              <Label htmlFor="edit-time">Time</Label>
+              <Label htmlFor="edit-time">
+                {t("timeLabel").replace(" *", "")}
+              </Label>
               <Input
                 id="edit-time"
                 type="time"
@@ -301,13 +310,13 @@ export function EditScheduleForm({
           </div>
 
           <div>
-            <Label htmlFor="edit-meetingLink">Meeting Link</Label>
+            <Label htmlFor="edit-meetingLink">{t("meetingLink")}</Label>
             <Input
               id="edit-meetingLink"
               type="url"
               value={meetingLink}
               onChange={(e) => setMeetingLink(e.target.value)}
-              placeholder="https://meet.google.com/..."
+              placeholder={t("meetingLinkPlaceholder")}
             />
           </div>
 
@@ -317,10 +326,10 @@ export function EditScheduleForm({
               variant="outline"
               onClick={() => setIsOpen(false)}
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button type="submit" disabled={updateMutation.isPending}>
-              {updateMutation.isPending ? "Updating..." : "Update Schedule"}
+              {updateMutation.isPending ? t("updating") : t("updateSchedule")}
             </Button>
           </div>
         </form>

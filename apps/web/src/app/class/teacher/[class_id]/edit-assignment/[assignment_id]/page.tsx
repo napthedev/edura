@@ -26,6 +26,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import Loader from "@/components/loader";
+import { useTranslations } from "next-intl";
 
 type SessionUser = {
   id: string;
@@ -55,6 +56,7 @@ export default function EditAssignmentPage() {
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, boolean>>({});
   const [questions, setQuestions] = useState<Question[]>([]);
+  const t = useTranslations("EditAssignment");
 
   const sessionQuery = useQuery({
     queryKey: ["session"],
@@ -238,7 +240,7 @@ export default function EditAssignmentPage() {
   };
 
   const handleDeleteAssignment = () => {
-    if (confirm("Are you sure you want to delete this assignment?")) {
+    if (confirm(t("confirmDeleteAssignment"))) {
       deleteAssignmentMutation.mutate();
     }
   };
@@ -259,7 +261,9 @@ export default function EditAssignmentPage() {
       <div className="min-h-screen">
         <Header />
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
-          <p>Error loading assignment: {assignmentQuery.error.message}</p>
+          <p>
+            {t("errorLoadingAssignment")}: {assignmentQuery.error.message}
+          </p>
         </div>
       </div>
     );
@@ -278,16 +282,16 @@ export default function EditAssignmentPage() {
               }
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
+              {t("back")}
             </Button>
-            <h1 className="text-3xl font-bold">Edit Assignment</h1>
+            <h1 className="text-3xl font-bold">{t("title")}</h1>
             <Button
               variant="outline"
               onClick={handleCopyAssignmentUrl}
               className="flex items-center gap-2"
             >
               <Copy className="w-4 h-4" />
-              Copy Assignment URL
+              {t("copyAssignmentUrl")}
             </Button>
             <Button
               variant="destructive"
@@ -296,13 +300,13 @@ export default function EditAssignmentPage() {
               className="flex items-center gap-2"
             >
               <Trash2 className="w-4 h-4" />
-              Delete Assignment
+              {t("deleteAssignment")}
             </Button>
           </div>
 
           <Card>
             <CardHeader>
-              <CardTitle>Assignment Details</CardTitle>
+              <CardTitle>{t("assignmentDetails")}</CardTitle>
             </CardHeader>
             <CardContent>
               <Form {...form}>
@@ -312,9 +316,12 @@ export default function EditAssignmentPage() {
                     name="title"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Title</FormLabel>
+                        <FormLabel>{t("titleLabel")}</FormLabel>
                         <FormControl>
-                          <Input placeholder="Assignment title" {...field} />
+                          <Input
+                            placeholder={t("assignmentTitlePlaceholder")}
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -325,10 +332,10 @@ export default function EditAssignmentPage() {
                     name="description"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Description (Optional)</FormLabel>
+                        <FormLabel>{t("descriptionOptional")}</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Assignment description"
+                            placeholder={t("assignmentDescriptionPlaceholder")}
                             {...field}
                           />
                         </FormControl>
@@ -341,7 +348,7 @@ export default function EditAssignmentPage() {
                     name="dueDate"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Due Date (Optional)</FormLabel>
+                        <FormLabel>{t("dueDateOptional")}</FormLabel>
                         <FormControl>
                           <Input type="date" {...field} />
                         </FormControl>
@@ -354,13 +361,11 @@ export default function EditAssignmentPage() {
                     name="testingDuration"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>
-                          Testing Duration (minutes, Optional)
-                        </FormLabel>
+                        <FormLabel>{t("testingDurationOptional")}</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
-                            placeholder="e.g. 60"
+                            placeholder={t("testingDurationPlaceholder")}
                             {...field}
                             onChange={(e) =>
                               field.onChange(
@@ -382,7 +387,9 @@ export default function EditAssignmentPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Questions ({questions.length})</CardTitle>
+              <CardTitle>
+                {t("questionsCount")} ({questions.length})
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               {questions.map((question) => (
@@ -410,8 +417,8 @@ export default function EditAssignmentPage() {
             >
               <Save className="w-4 h-4" />
               {updateAssignmentMutation.isPending
-                ? "Saving..."
-                : "Save Assignment"}
+                ? t("saving")
+                : t("saveAssignment")}
             </Button>
           </div>
         </div>

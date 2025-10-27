@@ -18,6 +18,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
 import Loader from "@/components/loader";
+import { useTranslations } from "next-intl";
 
 const createClassSchema = z.object({
   className: z.string().min(1, "Class name is required"),
@@ -26,6 +27,7 @@ const createClassSchema = z.object({
 type CreateClassForm = z.infer<typeof createClassSchema>;
 
 export default function TeacherDashboard() {
+  const t = useTranslations("TeacherDashboard");
   const classesQuery = useQuery({
     queryKey: ["classes"],
     queryFn: () => trpcClient.education.getClasses.query(),
@@ -55,12 +57,12 @@ export default function TeacherDashboard() {
     <div className="min-h-screen">
       <Header />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <h1 className="text-2xl font-bold my-8">Teacher Dashboard</h1>
+        <h1 className="text-2xl font-bold my-8">{t("title")}</h1>
 
         <div className="grid items-start gap-6 md:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle>Create New Class</CardTitle>
+              <CardTitle>{t("createNewClass")}</CardTitle>
             </CardHeader>
             <CardContent>
               <Form {...form}>
@@ -73,11 +75,11 @@ export default function TeacherDashboard() {
                     name="className"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Class Name</FormLabel>
+                        <FormLabel>{t("className")}</FormLabel>
                         <FormControl>
                           <Input
                             autoComplete="off"
-                            placeholder="Enter class name"
+                            placeholder={t("enterClassName")}
                             {...field}
                           />
                         </FormControl>
@@ -91,8 +93,8 @@ export default function TeacherDashboard() {
                     disabled={createClassMutation.isPending}
                   >
                     {createClassMutation.isPending
-                      ? "Creating..."
-                      : "Create Class"}
+                      ? t("creating")
+                      : t("createClass")}
                   </Button>
                 </form>
               </Form>
@@ -102,7 +104,7 @@ export default function TeacherDashboard() {
           <div>
             <Card>
               <CardHeader>
-                <CardTitle>Your Classes</CardTitle>
+                <CardTitle>{t("yourClasses")}</CardTitle>
               </CardHeader>
               <CardContent>
                 {classesQuery.isLoading ? (
@@ -120,10 +122,10 @@ export default function TeacherDashboard() {
                             {cls.className}
                           </h3>
                           <p className="text-sm text-muted-foreground">
-                            Code: {cls.classCode}
+                            {t("code")}: {cls.classCode}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            Created:{" "}
+                            {t("created")}:{" "}
                             {new Date(cls.createdAt).toLocaleDateString()}
                           </p>
                         </div>
@@ -131,7 +133,7 @@ export default function TeacherDashboard() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-muted-foreground">No classes yet.</p>
+                  <p className="text-muted-foreground">{t("noClassesYet")}</p>
                 )}
               </CardContent>
             </Card>

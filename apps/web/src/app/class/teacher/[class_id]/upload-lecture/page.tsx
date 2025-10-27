@@ -22,6 +22,7 @@ import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Upload, Link as LinkIcon, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 const fileUploadSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -44,6 +45,7 @@ export default function UploadLecturePage() {
   const classId = params.class_id as string;
   const router = useRouter();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const t = useTranslations("UploadLecture");
 
   const fileForm = useForm<FileUploadForm>({
     resolver: zodResolver(fileUploadSchema),
@@ -76,11 +78,11 @@ export default function UploadLecturePage() {
       });
     },
     onSuccess: () => {
-      toast.success("YouTube lecture created successfully");
+      toast.success(t("youtubeLectureCreated"));
       router.push(`/class/teacher/${classId}`);
     },
     onError: (error) => {
-      toast.error(`Failed to create lecture: ${error.message}`);
+      toast.error(`${t("failedToCreateLecture")}: ${error.message}`);
     },
   });
 
@@ -108,11 +110,11 @@ export default function UploadLecturePage() {
       return response.json();
     },
     onSuccess: () => {
-      toast.success("File uploaded successfully");
+      toast.success(t("fileUploaded"));
       router.push(`/class/teacher/${classId}`);
     },
     onError: (error) => {
-      toast.error(`Upload failed: ${error.message}`);
+      toast.error(`${t("uploadFailed")}: ${error.message}`);
     },
   });
 
@@ -136,12 +138,12 @@ export default function UploadLecturePage() {
         "image/webp",
       ];
       if (!allowedTypes.includes(file.type)) {
-        toast.error("Invalid file type. Only PDFs and images are allowed.");
+        toast.error(t("invalidFileType"));
         return;
       }
       // Validate file size (10MB limit)
       if (file.size > 10 * 1024 * 1024) {
-        toast.error("File size must be less than 10MB.");
+        toast.error(t("fileSizeTooLarge"));
         return;
       }
       setSelectedFile(file);
@@ -154,28 +156,26 @@ export default function UploadLecturePage() {
       <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 py-8">
         <div className="space-y-6">
           <div className="text-center">
-            <h1 className="text-3xl font-bold">Upload Lecture</h1>
-            <p className="text-muted-foreground mt-2">
-              Upload a file or add a YouTube video link
-            </p>
+            <h1 className="text-3xl font-bold">{t("title")}</h1>
+            <p className="text-muted-foreground mt-2">{t("subtitle")}</p>
           </div>
 
           <Tabs defaultValue="file" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="file" className="flex items-center gap-2">
                 <Upload className="w-4 h-4" />
-                Upload File
+                {t("uploadFile")}
               </TabsTrigger>
               <TabsTrigger value="youtube" className="flex items-center gap-2">
                 <LinkIcon className="w-4 h-4" />
-                YouTube Link
+                {t("youtubeLink")}
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="file" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Upload File</CardTitle>
+                  <CardTitle>{t("uploadFileTitle")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <Form {...fileForm}>
@@ -188,10 +188,10 @@ export default function UploadLecturePage() {
                         name="title"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Title</FormLabel>
+                            <FormLabel>{t("titleLabel")}</FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="Enter lecture title"
+                                placeholder={t("enterLectureTitle")}
                                 {...field}
                               />
                             </FormControl>
@@ -205,10 +205,10 @@ export default function UploadLecturePage() {
                         name="description"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Description (Optional)</FormLabel>
+                            <FormLabel>{t("descriptionOptional")}</FormLabel>
                             <FormControl>
                               <Textarea
-                                placeholder="Enter lecture description"
+                                placeholder={t("enterLectureDescription")}
                                 {...field}
                               />
                             </FormControl>
@@ -222,7 +222,7 @@ export default function UploadLecturePage() {
                         name="lectureDate"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Lecture Date</FormLabel>
+                            <FormLabel>{t("lectureDate")}</FormLabel>
                             <FormControl>
                               <Input type="date" {...field} />
                             </FormControl>
@@ -232,7 +232,7 @@ export default function UploadLecturePage() {
                       />
 
                       <div className="space-y-2">
-                        <FormLabel>File</FormLabel>
+                        <FormLabel>{t("file")}</FormLabel>
                         <Input
                           type="file"
                           accept=".pdf,image/*"
@@ -241,7 +241,7 @@ export default function UploadLecturePage() {
                         />
                         {selectedFile && (
                           <p className="text-sm text-muted-foreground">
-                            Selected: {selectedFile.name} (
+                            {t("selectedFile")}: {selectedFile.name} (
                             {(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
                           </p>
                         )}
@@ -255,7 +255,7 @@ export default function UploadLecturePage() {
                             router.push(`/class/teacher/${classId}`)
                           }
                         >
-                          Cancel
+                          {t("cancel")}
                         </Button>
                         <Button
                           type="submit"
@@ -268,7 +268,9 @@ export default function UploadLecturePage() {
                           ) : (
                             <Upload className="w-4 h-4 mr-2" />
                           )}
-                          {uploadFileMutation.isPending ? "" : "Upload Lecture"}
+                          {uploadFileMutation.isPending
+                            ? ""
+                            : t("uploadLecture")}
                         </Button>
                       </div>
                     </form>
@@ -280,7 +282,7 @@ export default function UploadLecturePage() {
             <TabsContent value="youtube" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Add YouTube Video</CardTitle>
+                  <CardTitle>{t("addYoutubeVideo")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <Form {...youtubeForm}>
@@ -327,10 +329,10 @@ export default function UploadLecturePage() {
                         name="url"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>YouTube URL</FormLabel>
+                            <FormLabel>{t("youtubeUrl")}</FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="https://www.youtube.com/watch?v=..."
+                                placeholder={t("youtubeUrlPlaceholder")}
                                 {...field}
                               />
                             </FormControl>
@@ -361,15 +363,15 @@ export default function UploadLecturePage() {
                             router.push(`/class/teacher/${classId}`)
                           }
                         >
-                          Cancel
+                          {t("cancel")}
                         </Button>
                         <Button
                           type="submit"
                           disabled={createLectureMutation.isPending}
                         >
                           {createLectureMutation.isPending
-                            ? "Creating..."
-                            : "Add Lecture"}
+                            ? t("creating")
+                            : t("addLecture")}
                         </Button>
                       </div>
                     </form>
