@@ -7,6 +7,7 @@ import {
   submissions,
   lectures,
   announcements,
+  schedules,
 } from "@edura/db/schema/education";
 import { eq, and } from "drizzle-orm";
 import { user } from "@edura/db/schema/auth";
@@ -731,6 +732,172 @@ export const educationRouter = router({
       await ctx.db
         .delete(lectures)
         .where(eq(lectures.lectureId, input.lectureId));
+
+      return { success: true };
+    }),
+  createSchedule: protectedProcedure
+    .input(
+      z.object({
+        classId: z.string(),
+        title: z.string().min(1),
+        description: z.string().optional(),
+        date: z.string(), // YYYY-MM-DD format
+        time: z.string(), // HH:MM format
+        meetingLink: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Check if the class belongs to the teacher
+      const classData = await ctx.db
+        .select()
+        .from(classes)
+        .where(
+          and(
+            eq(classes.classId, input.classId),
+            eq(classes.teacherId, ctx.session.user.id)
+          )
+        );
+
+      if (classData.length === 0) {
+        throw new Error("Class not found or access denied");
+      }
+
+      const scheduleId = crypto.randomUUID();
+      // Combine date and time into a single timestamp
+      const scheduledAt = new Date(`${input.date}T${input.time}:00`);
+
+      const newSchedule = await ctx.db
+        .insert(schedules)
+        .values({
+          scheduleId,
+          classId: input.classId,
+          title: input.title,
+          description: input.description,
+          scheduledAt,
+          meetingLink: input.meetingLink,
+        })
+        .returning();
+
+      return newSchedule[0];
+    }),
+  getClassSchedules: protectedProcedure
+    .input(z.object({ classId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      // Check if user is the teacher or enrolled student
+      const classData = await ctx.db
+        .select()
+        .from(classes)
+        .where(eq(classes.classId, input.classId));
+
+      if (classData.length === 0) {
+        throw new Error("Class not found");
+      }
+
+      const classInfo = classData[0]!;
+
+      // If user is not the teacher, check if they are enrolled
+      if (classInfo.teacherId !== ctx.session.user.id) {
+        const enrollment = await ctx.db
+          .select()
+          .from(enrollments)
+          .where(
+            and(
+              eq(enrollments.studentId, ctx.session.user.id),
+              eq(enrollments.classId, input.classId)
+            )
+          );
+
+        if (enrollment.length === 0) {
+          throw new Error("Access denied");
+        }
+      }
+
+      return await ctx.db
+        .select()
+        .from(schedules)
+        .where(eq(schedules.classId, input.classId))
+        .orderBy(schedules.scheduledAt);
+    }),
+  updateSchedule: protectedProcedure
+    .input(
+      z.object({
+        scheduleId: z.string(),
+        title: z.string().min(1).optional(),
+        description: z.string().optional(),
+        date: z.string().optional(), // YYYY-MM-DD format
+        time: z.string().optional(), // HH:MM format
+        meetingLink: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Check if the schedule belongs to the teacher
+      const scheduleData = await ctx.db
+        .select()
+        .from(schedules)
+        .innerJoin(classes, eq(schedules.classId, classes.classId))
+        .where(
+          and(
+            eq(schedules.scheduleId, input.scheduleId),
+            eq(classes.teacherId, ctx.session.user.id)
+          )
+        );
+
+      if (scheduleData.length === 0) {
+        throw new Error("Schedule not found or access denied");
+      }
+
+      const existingSchedule = scheduleData[0]!;
+      const updateData: any = {};
+      if (input.title !== undefined) updateData.title = input.title;
+      if (input.description !== undefined)
+        updateData.description = input.description;
+      if (input.date !== undefined && input.time !== undefined) {
+        updateData.scheduledAt = new Date(`${input.date}T${input.time}:00`);
+      } else if (input.date !== undefined) {
+        // Update only date, keep existing time
+        const existingTime = existingSchedule.schedules.scheduledAt
+          .toTimeString()
+          .slice(0, 5);
+        updateData.scheduledAt = new Date(`${input.date}T${existingTime}:00`);
+      } else if (input.time !== undefined) {
+        // Update only time, keep existing date
+        const existingDate = existingSchedule.schedules.scheduledAt
+          .toISOString()
+          .slice(0, 10);
+        updateData.scheduledAt = new Date(`${existingDate}T${input.time}:00`);
+      }
+      if (input.meetingLink !== undefined)
+        updateData.meetingLink = input.meetingLink;
+
+      await ctx.db
+        .update(schedules)
+        .set(updateData)
+        .where(eq(schedules.scheduleId, input.scheduleId));
+
+      return { success: true };
+    }),
+  deleteSchedule: protectedProcedure
+    .input(z.object({ scheduleId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // Check if the schedule belongs to the teacher
+      const scheduleData = await ctx.db
+        .select()
+        .from(schedules)
+        .innerJoin(classes, eq(schedules.classId, classes.classId))
+        .where(
+          and(
+            eq(schedules.scheduleId, input.scheduleId),
+            eq(classes.teacherId, ctx.session.user.id)
+          )
+        );
+
+      if (scheduleData.length === 0) {
+        throw new Error("Schedule not found or access denied");
+      }
+
+      await ctx.db
+        .delete(schedules)
+        .where(eq(schedules.scheduleId, input.scheduleId));
 
       return { success: true };
     }),

@@ -22,6 +22,7 @@ import {
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
+import ScheduleCalendar from "@/components/schedule/schedule-calendar";
 
 type SessionUser = {
   id: string;
@@ -71,6 +72,12 @@ export default function ClassPage() {
   const lecturesQuery = useQuery({
     queryKey: ["class-lectures", classId],
     queryFn: () => trpcClient.education.getClassLectures.query({ classId }),
+    enabled: isAuthenticated && isStudent,
+  });
+
+  const schedulesQuery = useQuery({
+    queryKey: ["class-schedules", classId],
+    queryFn: () => trpcClient.education.getClassSchedules.query({ classId }),
     enabled: isAuthenticated && isStudent,
   });
 
@@ -204,6 +211,27 @@ export default function ClassPage() {
               ) : (
                 <p className="text-muted-foreground">
                   Teacher information not available.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Schedule Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Class Schedule</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {schedulesQuery.isLoading ? (
+                <p>Loading schedule...</p>
+              ) : schedulesQuery.data && schedulesQuery.data.length > 0 ? (
+                <ScheduleCalendar
+                  schedules={schedulesQuery.data}
+                  classId={classId}
+                />
+              ) : (
+                <p className="text-muted-foreground">
+                  No class schedules available yet.
                 </p>
               )}
             </CardContent>

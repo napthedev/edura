@@ -83,6 +83,7 @@ export const schedules = pgTable("schedules", {
   title: text("title").notNull(),
   description: text("description"),
   scheduledAt: timestamp("scheduled_at").notNull(),
+  meetingLink: text("meeting_link"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

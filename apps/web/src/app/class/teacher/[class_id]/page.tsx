@@ -35,6 +35,8 @@ import Link from "next/link";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import CreateAnnouncementForm from "@/components/announcement/create-announcement-form";
 import AnnouncementList from "@/components/announcement/announcement-list";
+import CreateScheduleForm from "@/components/schedule/schedule-form";
+import ScheduleCalendar from "@/components/schedule/schedule-calendar";
 
 type SessionUser = {
   id: string;
@@ -81,6 +83,11 @@ export default function ClassPage() {
   const lecturesQuery = useQuery({
     queryKey: ["class-lectures", classId],
     queryFn: () => trpcClient.education.getClassLectures.query({ classId }),
+  });
+
+  const schedulesQuery = useQuery({
+    queryKey: ["class-schedules", classId],
+    queryFn: () => trpcClient.education.getClassSchedules.query({ classId }),
   });
 
   const renameMutation = useMutation({
@@ -363,15 +370,24 @@ export default function ClassPage() {
 
             <TabsContent value="schedule" className="space-y-4">
               <Card>
-                <CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0">
                   <CardTitle>Class Schedule</CardTitle>
+                  <CreateScheduleForm
+                    classId={classId}
+                    onSuccess={() => schedulesQuery.refetch()}
+                  />
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground">
-                    No schedule set yet. Create a schedule for your class
-                    sessions.
-                  </p>
-                  <Button className="mt-4">Create Schedule</Button>
+                  {schedulesQuery.isLoading ? (
+                    <p>Loading schedules...</p>
+                  ) : (
+                    <ScheduleCalendar
+                      schedules={schedulesQuery.data || []}
+                      classId={classId}
+                      onScheduleUpdate={() => schedulesQuery.refetch()}
+                      isTeacher={true}
+                    />
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
