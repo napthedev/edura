@@ -268,6 +268,7 @@ export const educationRouter = router({
         description: z.string().optional(),
         dueDate: z.string().optional(),
         testingDuration: z.number().min(1).optional(),
+        assignmentContent: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -295,6 +296,7 @@ export const educationRouter = router({
           classId: input.classId,
           title: input.title,
           description: input.description,
+          assignmentContent: input.assignmentContent,
           dueDate: input.dueDate ? new Date(input.dueDate) : null,
           testingDuration: input.testingDuration,
         })
@@ -900,6 +902,60 @@ export const educationRouter = router({
         .where(eq(schedules.scheduleId, input.scheduleId));
 
       return { success: true };
+    }),
+  generateQuestionsFromDocument: protectedProcedure
+    .input(
+      z.object({
+        questions: z.array(
+          z.object({
+            id: z.string(),
+            index: z.number(),
+            type: z.enum(["simple", "multiple", "truefalse"]),
+            statement: z.string(),
+            options: z.array(z.string()).optional(),
+            correctAnswer: z.string(),
+            explanation: z.string().optional(),
+          })
+        ),
+        classId: z.string(),
+        title: z.string().optional(),
+        description: z.string().optional(),
+        dueDate: z.string().optional(),
+        testingDuration: z.number().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Check if the class belongs to the teacher
+      const classData = await ctx.db
+        .select()
+        .from(classes)
+        .where(
+          and(
+            eq(classes.classId, input.classId),
+            eq(classes.teacherId, ctx.session.user.id)
+          )
+        );
+
+      if (classData.length === 0) {
+        throw new Error("Class not found or access denied");
+      }
+
+      const assignmentId = crypto.randomUUID();
+
+      const newAssignment = await ctx.db
+        .insert(assignments)
+        .values({
+          assignmentId,
+          classId: input.classId,
+          title: input.title || "AI Generated Assignment",
+          description: input.description,
+          assignmentContent: JSON.stringify({ questions: input.questions }),
+          dueDate: input.dueDate ? new Date(input.dueDate) : null,
+          testingDuration: input.testingDuration,
+        })
+        .returning();
+
+      return newAssignment[0];
     }),
 });
 

@@ -30,6 +30,8 @@ import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { authClient } from "@/lib/auth-client";
 import { useQuery } from "@tanstack/react-query";
+import { GenerateQuestions } from "@/components/assignment/generate-questions";
+import type { Question } from "@/lib/assignment-types";
 
 type SessionUser = {
   id: string;
@@ -56,6 +58,8 @@ export default function CreateAssignmentPage() {
   const classId = params.class_id as string;
   const router = useRouter();
   const [showForm, setShowForm] = useState(false);
+  const [showAIGeneration, setShowAIGeneration] = useState(false);
+  const [generatedQuestions, setGeneratedQuestions] = useState<Question[]>([]);
   const [date, setDate] = useState<Date | undefined>(undefined);
 
   const sessionQuery = useQuery({
@@ -79,13 +83,16 @@ export default function CreateAssignmentPage() {
   });
 
   const createAssignmentMutation = useMutation({
-    mutationFn: async (data: CreateAssignmentForm) => {
+    mutationFn: async (
+      data: CreateAssignmentForm & { assignmentContent?: string }
+    ) => {
       return await trpcClient.education.createAssignment.mutate({
         classId,
         title: data.title,
         description: data.description,
         dueDate: data.dueDate ? data.dueDate.toISOString() : undefined,
         testingDuration: data.testingDuration,
+        assignmentContent: data.assignmentContent,
       });
     },
     onSuccess: (data) => {
@@ -118,8 +125,36 @@ export default function CreateAssignmentPage() {
     return null;
   }
 
+  const handleManualInput = () => {
+    setShowForm(true);
+    setShowAIGeneration(false);
+  };
+
+  const handleAIGeneration = () => {
+    setShowAIGeneration(true);
+    setShowForm(false);
+  };
+
+  const handleQuestionsGenerated = (questions: Question[]) => {
+    setGeneratedQuestions(questions);
+    setShowAIGeneration(false);
+    setShowForm(true);
+  };
+
+  const handleCancelAIGeneration = () => {
+    setShowAIGeneration(false);
+  };
+
   const onSubmit = (data: CreateAssignmentForm) => {
-    createAssignmentMutation.mutate(data);
+    const assignmentContent =
+      generatedQuestions.length > 0
+        ? JSON.stringify({ questions: generatedQuestions })
+        : undefined;
+
+    createAssignmentMutation.mutate({
+      ...data,
+      assignmentContent,
+    });
   };
 
   return (
@@ -147,16 +182,27 @@ export default function CreateAssignmentPage() {
                 <Button
                   variant="outline"
                   className="w-full"
-                  onClick={() => setShowForm(true)}
+                  onClick={handleManualInput}
                 >
                   Manually input questions
                 </Button>
-                <Button variant="outline" className="w-full">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleAIGeneration}
+                >
                   Generate questions from documents using AI
                 </Button>
               </div>
             </CardContent>
           </Card>
+
+          {showAIGeneration && (
+            <GenerateQuestions
+              onCancel={handleCancelAIGeneration}
+              classId={classId}
+            />
+          )}
 
           {showForm && (
             <Card>
@@ -182,6 +228,15 @@ export default function CreateAssignmentPage() {
                         </FormItem>
                       )}
                     />
+                    {generatedQuestions.length > 0 && (
+                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                        <p className="text-sm text-blue-700">
+                          {generatedQuestions.length} questions will be
+                          generated from AI. You can edit them after creating
+                          the assignment.
+                        </p>
+                      </div>
+                    )}
                     <FormField
                       control={form.control}
                       name="description"
@@ -283,7 +338,10 @@ export default function CreateAssignmentPage() {
                       <Button
                         type="button"
                         variant="outline"
-                        onClick={() => setShowForm(false)}
+                        onClick={() => {
+                          setShowForm(false);
+                          setGeneratedQuestions([]);
+                        }}
                       >
                         Cancel
                       </Button>
