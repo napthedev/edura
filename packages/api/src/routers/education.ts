@@ -5,6 +5,7 @@ import {
   enrollments,
   assignments,
   submissions,
+  lectures,
 } from "@edura/db/schema/education";
 import { eq, and } from "drizzle-orm";
 import { user } from "@edura/db/schema/auth";
@@ -480,6 +481,170 @@ export const educationRouter = router({
         .returning();
 
       return submission[0];
+    }),
+  createLecture: protectedProcedure
+    .input(
+      z.object({
+        classId: z.string(),
+        title: z.string().min(1),
+        description: z.string().optional(),
+        type: z.enum(["file", "youtube"]),
+        url: z.string().url(),
+        lectureDate: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Check if the class belongs to the teacher
+      const classData = await ctx.db
+        .select()
+        .from(classes)
+        .where(
+          and(
+            eq(classes.classId, input.classId),
+            eq(classes.teacherId, ctx.session.user.id)
+          )
+        );
+
+      if (classData.length === 0) {
+        throw new Error("Class not found or access denied");
+      }
+
+      const lectureId = crypto.randomUUID();
+
+      const newLecture = await ctx.db
+        .insert(lectures)
+        .values({
+          lectureId,
+          classId: input.classId,
+          title: input.title,
+          description: input.description,
+          type: input.type,
+          url: input.url,
+          lectureDate: new Date(input.lectureDate),
+        })
+        .returning();
+
+      return newLecture[0];
+    }),
+  getClassLectures: protectedProcedure
+    .input(z.object({ classId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      return await ctx.db
+        .select()
+        .from(lectures)
+        .where(eq(lectures.classId, input.classId))
+        .orderBy(lectures.createdAt);
+    }),
+  getLecture: protectedProcedure
+    .input(z.object({ lectureId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const lecture = await ctx.db
+        .select({
+          lecture: lectures,
+          class: classes,
+        })
+        .from(lectures)
+        .innerJoin(classes, eq(lectures.classId, classes.classId))
+        .where(eq(lectures.lectureId, input.lectureId));
+
+      if (lecture.length === 0) {
+        throw new Error("Lecture not found");
+      }
+
+      // Check if user is the teacher or enrolled student
+      const lectureData = lecture[0];
+      if (
+        // @ts-ignore
+        lectureData.class.teacherId !== ctx.session.user.id &&
+        ctx.session.user.role === "student"
+      ) {
+        // Check if student is enrolled
+        const enrollment = await ctx.db
+          .select()
+          .from(enrollments)
+          .where(
+            and(
+              eq(enrollments.studentId, ctx.session.user.id),
+              // @ts-ignore
+              eq(enrollments.classId, lectureData.class.classId)
+            )
+          );
+
+        if (enrollment.length === 0) {
+          throw new Error("Access denied");
+        }
+      }
+
+      return lectureData;
+    }),
+  updateLecture: protectedProcedure
+    .input(
+      z.object({
+        lectureId: z.string(),
+        title: z.string().min(1).optional(),
+        description: z.string().optional(),
+        type: z.enum(["file", "youtube"]).optional(),
+        url: z.string().url().optional(),
+        lectureDate: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Check if the lecture belongs to the teacher
+      const lectureData = await ctx.db
+        .select()
+        .from(lectures)
+        .innerJoin(classes, eq(lectures.classId, classes.classId))
+        .where(
+          and(
+            eq(lectures.lectureId, input.lectureId),
+            eq(classes.teacherId, ctx.session.user.id)
+          )
+        );
+
+      if (lectureData.length === 0) {
+        throw new Error("Lecture not found or access denied");
+      }
+
+      const updateData: any = {};
+      if (input.title !== undefined) updateData.title = input.title;
+      if (input.description !== undefined)
+        updateData.description = input.description;
+      if (input.type !== undefined) updateData.type = input.type;
+      if (input.url !== undefined) updateData.url = input.url;
+      if (input.lectureDate !== undefined)
+        updateData.lectureDate = new Date(input.lectureDate);
+
+      await ctx.db
+        .update(lectures)
+        .set(updateData)
+        .where(eq(lectures.lectureId, input.lectureId));
+
+      return { success: true };
+    }),
+  deleteLecture: protectedProcedure
+    .input(z.object({ lectureId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // Check if the lecture belongs to the teacher
+      const lectureData = await ctx.db
+        .select()
+        .from(lectures)
+        .innerJoin(classes, eq(lectures.classId, classes.classId))
+        .where(
+          and(
+            eq(lectures.lectureId, input.lectureId),
+            eq(classes.teacherId, ctx.session.user.id)
+          )
+        );
+
+      if (lectureData.length === 0) {
+        throw new Error("Lecture not found or access denied");
+      }
+
+      await ctx.db
+        .delete(lectures)
+        .where(eq(lectures.lectureId, input.lectureId));
+
+      return { success: true };
     }),
 });
 

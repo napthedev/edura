@@ -1,5 +1,5 @@
 "use client";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { trpcClient } from "@/utils/trpc";
 import Header from "@/components/header";
@@ -31,6 +31,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import Link from "next/link";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 type SessionUser = {
   id: string;
@@ -44,6 +46,8 @@ export default function ClassPage() {
   const params = useParams();
   const classId = params.class_id as string;
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const currentTab = searchParams.get("tab") || "announcement";
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [newClassName, setNewClassName] = useState("");
 
@@ -70,6 +74,11 @@ export default function ClassPage() {
   const assignmentsQuery = useQuery({
     queryKey: ["class-assignments", classId],
     queryFn: () => trpcClient.education.getClassAssignments.query({ classId }),
+  });
+
+  const lecturesQuery = useQuery({
+    queryKey: ["class-lectures", classId],
+    queryFn: () => trpcClient.education.getClassLectures.query({ classId }),
   });
 
   const renameMutation = useMutation({
@@ -270,174 +279,302 @@ export default function ClassPage() {
 
           <Separator />
 
-          {/* Students Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                Students ({studentsQuery.data?.length || 0})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {studentsQuery.isLoading ? (
-                <p>Loading students...</p>
-              ) : studentsQuery.data && studentsQuery.data.length > 0 ? (
-                <div className="space-y-2">
-                  {studentsQuery.data.map(
-                    (student: {
-                      userId: string;
-                      name: string;
-                      email: string;
-                      enrolledAt: string;
-                    }) => (
-                      <div
-                        key={student.userId}
-                        className="flex items-center justify-between p-3 border rounded-lg"
-                      >
-                        <div>
-                          <p className="font-medium">{student.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {student.email}
-                          </p>
-                        </div>
-                        <Badge variant="secondary">
-                          Enrolled{" "}
-                          {new Date(student.enrolledAt).toLocaleDateString()}
-                        </Badge>
-                      </div>
-                    )
-                  )}
-                </div>
-              ) : (
-                <p className="text-muted-foreground">
-                  No students enrolled yet.
-                </p>
-              )}
-            </CardContent>
-          </Card>
+          <Tabs
+            value={currentTab}
+            onValueChange={(value) => router.replace(`?tab=${value}`)}
+            className="w-full"
+          >
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="announcement">Announcement</TabsTrigger>
+              <TabsTrigger value="students">Students</TabsTrigger>
+              <TabsTrigger value="schedule">Schedule</TabsTrigger>
+              <TabsTrigger value="assignments">Assignments</TabsTrigger>
+              <TabsTrigger value="lectures">Lectures</TabsTrigger>
+            </TabsList>
 
-          {/* Assignments Section */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0">
-              <CardTitle>
-                Assignments ({assignmentsQuery.data?.length || 0})
-              </CardTitle>
-              <Button
-                onClick={() =>
-                  router.push(`/class/teacher/${classId}/create-assignment`)
-                }
-              >
-                Create assignment
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {assignmentsQuery.isLoading ? (
-                <p>Loading assignments...</p>
-              ) : assignmentsQuery.data && assignmentsQuery.data.length > 0 ? (
-                <div className="space-y-2">
-                  {assignmentsQuery.data.map(
-                    (assignment: {
-                      assignmentId: string;
-                      title: string;
-                      description: string | null;
-                      dueDate: string | null;
-                      createdAt: string;
-                    }) => (
-                      <div
-                        key={assignment.assignmentId}
-                        className="flex items-center justify-between p-3 border rounded-lg"
-                      >
-                        <div className="flex-1">
-                          <h3 className="font-medium">{assignment.title}</h3>
-                          {assignment.description && (
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {assignment.description}
-                            </p>
-                          )}
-                          <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                            <span>
-                              Created:{" "}
+            <TabsContent value="announcement" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Announcements</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    No announcements yet. Create your first announcement to
+                    communicate with your students.
+                  </p>
+                  <Button className="mt-4">Create Announcement</Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="students" className="space-y-4">
+              {/* Students Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    Students ({studentsQuery.data?.length || 0})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {studentsQuery.isLoading ? (
+                    <p>Loading students...</p>
+                  ) : studentsQuery.data && studentsQuery.data.length > 0 ? (
+                    <div className="space-y-2">
+                      {studentsQuery.data.map(
+                        (student: {
+                          userId: string;
+                          name: string;
+                          email: string;
+                          enrolledAt: string;
+                        }) => (
+                          <div
+                            key={student.userId}
+                            className="flex items-center justify-between p-3 border rounded-lg"
+                          >
+                            <div>
+                              <p className="font-medium">{student.name}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {student.email}
+                              </p>
+                            </div>
+                            <Badge variant="secondary">
+                              Enrolled{" "}
                               {new Date(
-                                assignment.createdAt
+                                student.enrolledAt
                               ).toLocaleDateString()}
-                            </span>
-                            {assignment.dueDate && (
-                              <span>
-                                Due:{" "}
-                                {new Date(
-                                  assignment.dueDate
-                                ).toLocaleDateString()}
-                              </span>
-                            )}
+                            </Badge>
                           </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              copyAssignmentUrl(assignment.assignmentId)
-                            }
-                          >
-                            <Copy className="w-4 h-4 mr-2" />
-                            Copy URL
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              router.push(
-                                `/class/teacher/${classId}/edit-assignment/${assignment.assignmentId}`
-                              )
-                            }
-                          >
-                            <Edit className="w-4 h-4 mr-2" />
-                            Edit
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="destructive" size="sm">
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                  Delete Assignment
-                                </AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to delete this
-                                  assignment? This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() =>
-                                    deleteAssignmentMutation.mutate(
-                                      assignment.assignmentId
-                                    )
-                                  }
-                                  className="bg-destructive text-white hover:bg-destructive/90"
-                                >
-                                  {deleteAssignmentMutation.isPending
-                                    ? "Deleting..."
-                                    : "Delete"}
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </div>
-                    )
+                        )
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">
+                      No students enrolled yet.
+                    </p>
                   )}
-                </div>
-              ) : (
-                <p className="text-muted-foreground">
-                  No assignments created yet.
-                </p>
-              )}
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="schedule" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Class Schedule</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    No schedule set yet. Create a schedule for your class
+                    sessions.
+                  </p>
+                  <Button className="mt-4">Create Schedule</Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="assignments" className="space-y-4">
+              {/* Assignments Section */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                  <CardTitle>
+                    Assignments ({assignmentsQuery.data?.length || 0})
+                  </CardTitle>
+                  <Button
+                    onClick={() =>
+                      router.push(`/class/teacher/${classId}/create-assignment`)
+                    }
+                  >
+                    Create assignment
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  {assignmentsQuery.isLoading ? (
+                    <p>Loading assignments...</p>
+                  ) : assignmentsQuery.data &&
+                    assignmentsQuery.data.length > 0 ? (
+                    <div className="space-y-2">
+                      {assignmentsQuery.data.map(
+                        (assignment: {
+                          assignmentId: string;
+                          title: string;
+                          description: string | null;
+                          dueDate: string | null;
+                          createdAt: string;
+                        }) => (
+                          <div
+                            key={assignment.assignmentId}
+                            className="flex items-center justify-between p-3 border rounded-lg"
+                          >
+                            <div className="flex-1">
+                              <h3 className="font-medium">
+                                {assignment.title}
+                              </h3>
+                              {assignment.description && (
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  {assignment.description}
+                                </p>
+                              )}
+                              <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                                <span>
+                                  Created:{" "}
+                                  {new Date(
+                                    assignment.createdAt
+                                  ).toLocaleDateString()}
+                                </span>
+                                {assignment.dueDate && (
+                                  <span>
+                                    Due:{" "}
+                                    {new Date(
+                                      assignment.dueDate
+                                    ).toLocaleDateString()}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  copyAssignmentUrl(assignment.assignmentId)
+                                }
+                              >
+                                <Copy className="w-4 h-4 mr-2" />
+                                Copy URL
+                              </Button>
+                              <Link
+                                href={`/class/teacher/${classId}/edit-assignment/${assignment.assignmentId}`}
+                              >
+                                <Button variant="outline" size="sm">
+                                  <Edit className="w-4 h-4 mr-2" />
+                                  Edit
+                                </Button>
+                              </Link>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="destructive" size="sm">
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>
+                                      Delete Assignment
+                                    </AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete this
+                                      assignment? This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>
+                                      Cancel
+                                    </AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() =>
+                                        deleteAssignmentMutation.mutate(
+                                          assignment.assignmentId
+                                        )
+                                      }
+                                      className="bg-destructive text-white hover:bg-destructive/90"
+                                    >
+                                      {deleteAssignmentMutation.isPending
+                                        ? "Deleting..."
+                                        : "Delete"}
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">
+                      No assignments created yet.
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="lectures" className="space-y-4">
+              {/* Lectures Section */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                  <CardTitle>
+                    Lectures & Materials ({lecturesQuery.data?.length || 0})
+                  </CardTitle>
+                  <Button
+                    onClick={() =>
+                      router.push(`/class/teacher/${classId}/upload-lecture`)
+                    }
+                  >
+                    Upload Lecture
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  {lecturesQuery.isLoading ? (
+                    <p>Loading lectures...</p>
+                  ) : lecturesQuery.data && lecturesQuery.data.length > 0 ? (
+                    <div className="space-y-2">
+                      {lecturesQuery.data.map(
+                        (lecture: {
+                          lectureId: string;
+                          title: string;
+                          description: string | null;
+                          type: string;
+                          url: string;
+                          lectureDate: string;
+                          createdAt: string;
+                        }) => (
+                          <Link
+                            key={lecture.lectureId}
+                            href={`/lecture/${lecture.lectureId}`}
+                            className="block"
+                          >
+                            <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                              <div className="flex-1">
+                                <h3 className="font-medium">{lecture.title}</h3>
+                                {lecture.description && (
+                                  <p className="text-sm text-muted-foreground mt-1">
+                                    {lecture.description}
+                                  </p>
+                                )}
+                                <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                                  <Badge variant="outline">
+                                    {lecture.type === "file"
+                                      ? "File"
+                                      : "YouTube"}
+                                  </Badge>
+                                  <span>
+                                    Date:{" "}
+                                    {new Date(
+                                      lecture.lectureDate
+                                    ).toLocaleDateString()}
+                                  </span>
+                                  <span>
+                                    Uploaded:{" "}
+                                    {new Date(
+                                      lecture.createdAt
+                                    ).toLocaleDateString()}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </Link>
+                        )
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">
+                      No lectures uploaded yet.
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>

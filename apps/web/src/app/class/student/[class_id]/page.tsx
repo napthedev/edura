@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import Link from "next/link";
 
 type SessionUser = {
   id: string;
@@ -64,6 +65,12 @@ export default function ClassPage() {
   const assignmentsQuery = useQuery({
     queryKey: ["class-assignments", classId],
     queryFn: () => trpcClient.education.getClassAssignments.query({ classId }),
+    enabled: isAuthenticated && isStudent,
+  });
+
+  const lecturesQuery = useQuery({
+    queryKey: ["class-lectures", classId],
+    queryFn: () => trpcClient.education.getClassLectures.query({ classId }),
     enabled: isAuthenticated && isStudent,
   });
 
@@ -267,6 +274,68 @@ export default function ClassPage() {
               ) : (
                 <p className="text-muted-foreground">
                   No assignments available yet.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Lectures Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                Lectures & Materials ({lecturesQuery.data?.length || 0})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {lecturesQuery.isLoading ? (
+                <p>Loading lectures...</p>
+              ) : lecturesQuery.data && lecturesQuery.data.length > 0 ? (
+                <div className="space-y-2">
+                  {lecturesQuery.data.map(
+                    (lecture: {
+                      lectureId: string;
+                      title: string;
+                      description: string | null;
+                      type: string;
+                      url: string;
+                      lectureDate: string;
+                      createdAt: string;
+                    }) => (
+                      <Link
+                        key={lecture.lectureId}
+                        href={`/lecture/${lecture.lectureId}`}
+                        className="block"
+                      >
+                        <div className="p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                          <h3 className="font-medium">{lecture.title}</h3>
+                          {lecture.description && (
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {lecture.description}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                              {lecture.type === "file" ? "📄 File" : "🎥 Video"}
+                            </span>
+                            <span>
+                              Date:{" "}
+                              {new Date(
+                                lecture.lectureDate
+                              ).toLocaleDateString()}
+                            </span>
+                            <span>
+                              Uploaded:{" "}
+                              {new Date(lecture.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                      </Link>
+                    )
+                  )}
+                </div>
+              ) : (
+                <p className="text-muted-foreground">
+                  No lectures available yet.
                 </p>
               )}
             </CardContent>
