@@ -1,5 +1,5 @@
 "use client";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { trpcClient } from "@/utils/trpc";
 import Header from "@/components/header";
@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Copy, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -52,11 +52,27 @@ export default function ClassPage() {
   const params = useParams();
   const classId = params.class_id as string;
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const currentTab = searchParams.get("tab") || "announcement";
+  const [currentTab, setCurrentTab] = useState("announcement");
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [newClassName, setNewClassName] = useState("");
   const t = useTranslations("ClassPage");
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace("#", "") || "announcement";
+      setCurrentTab(hash);
+    };
+
+    // Set initial hash if not present
+    if (!window.location.hash) {
+      window.location.hash = "announcement";
+    } else {
+      handleHashChange();
+    }
+
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, []);
 
   const sessionQuery = useQuery({
     queryKey: ["session"],
@@ -297,7 +313,9 @@ export default function ClassPage() {
 
           <Tabs
             value={currentTab}
-            onValueChange={(value) => router.replace(`?tab=${value}`)}
+            onValueChange={(value) => {
+              window.location.hash = value;
+            }}
             className="w-full"
           >
             <TabsList className="grid w-full grid-cols-5">

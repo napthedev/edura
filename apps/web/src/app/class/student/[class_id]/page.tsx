@@ -24,6 +24,9 @@ import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
 import ScheduleCalendar from "@/components/schedule/schedule-calendar";
 import Loader from "@/components/loader";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import AnnouncementList from "@/components/announcement/announcement-list";
+import { useState, useEffect } from "react";
 
 type SessionUser = {
   id: string;
@@ -37,6 +40,24 @@ export default function ClassPage() {
   const params = useParams();
   const classId = params.class_id as string;
   const router = useRouter();
+  const [currentTab, setCurrentTab] = useState("announcements");
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace("#", "") || "announcements";
+      setCurrentTab(hash);
+    };
+
+    // Set initial hash if not present
+    if (!window.location.hash) {
+      window.location.hash = "announcements";
+    } else {
+      handleHashChange();
+    }
+
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, []);
 
   const sessionQuery = useQuery({
     queryKey: ["session"],
@@ -79,6 +100,13 @@ export default function ClassPage() {
   const schedulesQuery = useQuery({
     queryKey: ["class-schedules", classId],
     queryFn: () => trpcClient.education.getClassSchedules.query({ classId }),
+    enabled: isAuthenticated && isStudent,
+  });
+
+  const announcementsQuery = useQuery({
+    queryKey: ["class-announcements", classId],
+    queryFn: () =>
+      trpcClient.education.getClassAnnouncements.query({ classId }),
     enabled: isAuthenticated && isStudent,
   });
 
@@ -192,183 +220,219 @@ export default function ClassPage() {
 
           <Separator />
 
-          {/* Teacher Info Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Teacher</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {teacherQuery.isLoading ? (
-                <Loader />
-              ) : teacherQuery.data ? (
-                <div className="flex items-center space-x-4">
-                  <div>
-                    <p className="font-medium">{teacherQuery.data.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {teacherQuery.data.email}
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-muted-foreground">
-                  Teacher information not available.
-                </p>
-              )}
-            </CardContent>
-          </Card>
+          <Tabs
+            value={currentTab}
+            onValueChange={(value) => {
+              window.location.hash = value;
+            }}
+            className="w-full"
+          >
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="announcements">Announcements</TabsTrigger>
+              <TabsTrigger value="teacher">Teacher</TabsTrigger>
+              <TabsTrigger value="schedule">Schedule</TabsTrigger>
+              <TabsTrigger value="assignments">Assignments</TabsTrigger>
+              <TabsTrigger value="lectures">Lectures</TabsTrigger>
+            </TabsList>
 
-          {/* Schedule Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Class Schedule</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {schedulesQuery.isLoading ? (
-                <Loader />
-              ) : schedulesQuery.data && schedulesQuery.data.length > 0 ? (
-                <ScheduleCalendar
-                  schedules={schedulesQuery.data}
-                  classId={classId}
-                />
-              ) : (
-                <p className="text-muted-foreground">
-                  No class schedules available yet.
-                </p>
-              )}
-            </CardContent>
-          </Card>
+            <TabsContent value="announcements" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Announcements</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <AnnouncementList classId={classId} />
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-          {/* Assignments Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                Assignments ({assignmentsQuery.data?.length || 0})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {assignmentsQuery.isLoading ? (
-                <Loader />
-              ) : assignmentsQuery.data && assignmentsQuery.data.length > 0 ? (
-                <div className="space-y-2">
-                  {assignmentsQuery.data.map(
-                    (assignment: {
-                      assignmentId: string;
-                      title: string;
-                      description: string | null;
-                      dueDate: string | null;
-                      createdAt: string;
-                    }) => (
-                      <div
-                        key={assignment.assignmentId}
-                        className="p-3 border rounded-lg"
-                      >
-                        <h3 className="font-medium">{assignment.title}</h3>
-                        {assignment.description && (
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {assignment.description}
-                          </p>
-                        )}
-                        <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                          <span>
-                            Created:{" "}
-                            {new Date(
-                              assignment.createdAt
-                            ).toLocaleDateString()}
-                          </span>
-                          {assignment.dueDate && (
-                            <span>
-                              Due:{" "}
-                              {new Date(
-                                assignment.dueDate
-                              ).toLocaleDateString()}
-                            </span>
-                          )}
-                        </div>
-                        <div className="mt-3">
-                          <Button
-                            size="sm"
-                            onClick={() =>
-                              router.push(
-                                `/do-assignment/${assignment.assignmentId}`
-                              )
-                            }
-                          >
-                            Take Assignment
-                          </Button>
-                        </div>
+            <TabsContent value="teacher" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Teacher</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {teacherQuery.isLoading ? (
+                    <Loader />
+                  ) : teacherQuery.data ? (
+                    <div className="flex items-center space-x-4">
+                      <div>
+                        <p className="font-medium">{teacherQuery.data.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {teacherQuery.data.email}
+                        </p>
                       </div>
-                    )
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">
+                      Teacher information not available.
+                    </p>
                   )}
-                </div>
-              ) : (
-                <p className="text-muted-foreground">
-                  No assignments available yet.
-                </p>
-              )}
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-          {/* Lectures Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                Lectures & Materials ({lecturesQuery.data?.length || 0})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {lecturesQuery.isLoading ? (
-                <Loader />
-              ) : lecturesQuery.data && lecturesQuery.data.length > 0 ? (
-                <div className="space-y-2">
-                  {lecturesQuery.data.map(
-                    (lecture: {
-                      lectureId: string;
-                      title: string;
-                      description: string | null;
-                      type: string;
-                      url: string;
-                      lectureDate: string;
-                      createdAt: string;
-                    }) => (
-                      <Link
-                        key={lecture.lectureId}
-                        href={`/lecture/${lecture.lectureId}`}
-                        className="block"
-                      >
-                        <div className="p-3 border rounded-lg hover:bg-muted/50 transition-colors">
-                          <h3 className="font-medium">{lecture.title}</h3>
-                          {lecture.description && (
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {lecture.description}
-                            </p>
-                          )}
-                          <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                              {lecture.type === "file" ? "📄 File" : "🎥 Video"}
-                            </span>
-                            <span>
-                              Date:{" "}
-                              {new Date(
-                                lecture.lectureDate
-                              ).toLocaleDateString()}
-                            </span>
-                            <span>
-                              Uploaded:{" "}
-                              {new Date(lecture.createdAt).toLocaleDateString()}
-                            </span>
-                          </div>
-                        </div>
-                      </Link>
-                    )
+            <TabsContent value="schedule" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Class Schedule</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {schedulesQuery.isLoading ? (
+                    <Loader />
+                  ) : schedulesQuery.data && schedulesQuery.data.length > 0 ? (
+                    <ScheduleCalendar
+                      schedules={schedulesQuery.data}
+                      classId={classId}
+                    />
+                  ) : (
+                    <p className="text-muted-foreground">
+                      No class schedules available yet.
+                    </p>
                   )}
-                </div>
-              ) : (
-                <p className="text-muted-foreground">
-                  No lectures available yet.
-                </p>
-              )}
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="assignments" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    Assignments ({assignmentsQuery.data?.length || 0})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {assignmentsQuery.isLoading ? (
+                    <Loader />
+                  ) : assignmentsQuery.data &&
+                    assignmentsQuery.data.length > 0 ? (
+                    <div className="space-y-2">
+                      {assignmentsQuery.data.map(
+                        (assignment: {
+                          assignmentId: string;
+                          title: string;
+                          description: string | null;
+                          dueDate: string | null;
+                          createdAt: string;
+                        }) => (
+                          <div
+                            key={assignment.assignmentId}
+                            className="p-3 border rounded-lg"
+                          >
+                            <h3 className="font-medium">{assignment.title}</h3>
+                            {assignment.description && (
+                              <p className="text-sm text-muted-foreground mt-1">
+                                {assignment.description}
+                              </p>
+                            )}
+                            <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                              <span>
+                                Created:{" "}
+                                {new Date(
+                                  assignment.createdAt
+                                ).toLocaleDateString()}
+                              </span>
+                              {assignment.dueDate && (
+                                <span>
+                                  Due:{" "}
+                                  {new Date(
+                                    assignment.dueDate
+                                  ).toLocaleDateString()}
+                                </span>
+                              )}
+                            </div>
+                            <div className="mt-3">
+                              <Button
+                                size="sm"
+                                onClick={() =>
+                                  router.push(
+                                    `/do-assignment/${assignment.assignmentId}`
+                                  )
+                                }
+                              >
+                                Take Assignment
+                              </Button>
+                            </div>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">
+                      No assignments available yet.
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="lectures" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    Lectures & Materials ({lecturesQuery.data?.length || 0})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {lecturesQuery.isLoading ? (
+                    <Loader />
+                  ) : lecturesQuery.data && lecturesQuery.data.length > 0 ? (
+                    <div className="space-y-2">
+                      {lecturesQuery.data.map(
+                        (lecture: {
+                          lectureId: string;
+                          title: string;
+                          description: string | null;
+                          type: string;
+                          url: string;
+                          lectureDate: string;
+                          createdAt: string;
+                        }) => (
+                          <Link
+                            key={lecture.lectureId}
+                            href={`/lecture/${lecture.lectureId}`}
+                            className="block"
+                          >
+                            <div className="p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                              <h3 className="font-medium">{lecture.title}</h3>
+                              {lecture.description && (
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  {lecture.description}
+                                </p>
+                              )}
+                              <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                                  {lecture.type === "file"
+                                    ? "📄 File"
+                                    : "🎥 Video"}
+                                </span>
+                                <span>
+                                  Date:{" "}
+                                  {new Date(
+                                    lecture.lectureDate
+                                  ).toLocaleDateString()}
+                                </span>
+                                <span>
+                                  Uploaded:{" "}
+                                  {new Date(
+                                    lecture.createdAt
+                                  ).toLocaleDateString()}
+                                </span>
+                              </div>
+                            </div>
+                          </Link>
+                        )
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">
+                      No lectures available yet.
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>

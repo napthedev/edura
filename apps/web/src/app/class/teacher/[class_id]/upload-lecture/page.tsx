@@ -252,7 +252,7 @@ export default function UploadLecturePage() {
                           type="button"
                           variant="outline"
                           onClick={() =>
-                            router.push(`/class/teacher/${classId}`)
+                            router.push(`/class/teacher/${classId}#lectures`)
                           }
                         >
                           {t("cancel")}
