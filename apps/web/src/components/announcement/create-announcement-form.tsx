@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Upload, X, Image as ImageIcon } from "lucide-react";
+import { Upload, X, Image as ImageIcon, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -182,8 +182,12 @@ export default function CreateAnnouncementForm({
                       asChild
                     >
                       <span>
-                        <Upload className="w-4 h-4 mr-2" />
-                        {isUploading ? "Uploading..." : "Choose Image"}
+                        {isUploading ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <Upload className="w-4 h-4 mr-2" />
+                        )}
+                        {isUploading ? "" : "Choose Image"}
                       </span>
                     </Button>
                     <input

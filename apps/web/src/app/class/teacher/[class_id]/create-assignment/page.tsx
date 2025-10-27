@@ -32,6 +32,7 @@ import { authClient } from "@/lib/auth-client";
 import { useQuery } from "@tanstack/react-query";
 import { GenerateQuestions } from "@/components/assignment/generate-questions";
 import type { Question } from "@/lib/assignment-types";
+import Loader from "@/components/loader";
 
 type SessionUser = {
   id: string;
@@ -109,7 +110,7 @@ export default function CreateAssignmentPage() {
       <div className="min-h-screen">
         <Header />
         <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 py-8">
-          <p>Loading...</p>
+          <Loader />
         </div>
       </div>
     );

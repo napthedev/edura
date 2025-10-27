@@ -17,6 +17,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
+import Loader from "@/components/loader";
 
 const createClassSchema = z.object({
   className: z.string().min(1, "Class name is required"),
@@ -105,7 +106,7 @@ export default function TeacherDashboard() {
               </CardHeader>
               <CardContent>
                 {classesQuery.isLoading ? (
-                  <p>Loading classes...</p>
+                  <Loader />
                 ) : classesQuery.data && classesQuery.data.length > 0 ? (
                   <div className="space-y-4">
                     {classesQuery.data.map((cls) => (

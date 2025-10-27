@@ -23,6 +23,7 @@ import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
 import ScheduleCalendar from "@/components/schedule/schedule-calendar";
+import Loader from "@/components/loader";
 
 type SessionUser = {
   id: string;
@@ -108,7 +109,7 @@ export default function ClassPage() {
       <div className="min-h-screen">
         <Header />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">Loading...</div>
+          <Loader />
         </div>
       </div>
     );
@@ -129,7 +130,7 @@ export default function ClassPage() {
       <div className="min-h-screen">
         <Header />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">Loading class...</div>
+          <Loader />
         </div>
       </div>
     );
@@ -198,7 +199,7 @@ export default function ClassPage() {
             </CardHeader>
             <CardContent>
               {teacherQuery.isLoading ? (
-                <p>Loading teacher info...</p>
+                <Loader />
               ) : teacherQuery.data ? (
                 <div className="flex items-center space-x-4">
                   <div>
@@ -223,7 +224,7 @@ export default function ClassPage() {
             </CardHeader>
             <CardContent>
               {schedulesQuery.isLoading ? (
-                <p>Loading schedule...</p>
+                <Loader />
               ) : schedulesQuery.data && schedulesQuery.data.length > 0 ? (
                 <ScheduleCalendar
                   schedules={schedulesQuery.data}
@@ -246,7 +247,7 @@ export default function ClassPage() {
             </CardHeader>
             <CardContent>
               {assignmentsQuery.isLoading ? (
-                <p>Loading assignments...</p>
+                <Loader />
               ) : assignmentsQuery.data && assignmentsQuery.data.length > 0 ? (
                 <div className="space-y-2">
                   {assignmentsQuery.data.map(
@@ -316,7 +317,7 @@ export default function ClassPage() {
             </CardHeader>
             <CardContent>
               {lecturesQuery.isLoading ? (
-                <p>Loading lectures...</p>
+                <Loader />
               ) : lecturesQuery.data && lecturesQuery.data.length > 0 ? (
                 <div className="space-y-2">
                   {lecturesQuery.data.map(

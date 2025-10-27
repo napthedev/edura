@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { trpcClient } from "@/utils/trpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
+import Loader from "@/components/loader";
 
 export default function StudentDashboard() {
   const studentClassesQuery = useQuery({
@@ -32,7 +33,7 @@ export default function StudentDashboard() {
               </CardHeader>
               <CardContent>
                 {studentClassesQuery.isLoading ? (
-                  <p>Loading classes...</p>
+                  <Loader />
                 ) : studentClassesQuery.data &&
                   studentClassesQuery.data.length > 0 ? (
                   <div className="space-y-4">

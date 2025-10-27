@@ -20,7 +20,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Upload, Link as LinkIcon } from "lucide-react";
+import { Upload, Link as LinkIcon, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const fileUploadSchema = z.object({
@@ -263,9 +263,12 @@ export default function UploadLecturePage() {
                             uploadFileMutation.isPending || !selectedFile
                           }
                         >
-                          {uploadFileMutation.isPending
-                            ? "Uploading..."
-                            : "Upload Lecture"}
+                          {uploadFileMutation.isPending ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          ) : (
+                            <Upload className="w-4 h-4 mr-2" />
+                          )}
+                          {uploadFileMutation.isPending ? "" : "Upload Lecture"}
                         </Button>
                       </div>
                     </form>

@@ -20,6 +20,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import Loader from "@/components/loader";
 
 export default function LecturePage() {
   const params = useParams();
@@ -64,7 +65,7 @@ export default function LecturePage() {
       <div className="min-h-screen">
         <Header />
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">Loading lecture...</div>
+          <Loader />
         </div>
       </div>
     );

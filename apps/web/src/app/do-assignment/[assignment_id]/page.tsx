@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useState } from "react";
 import type { AssignmentContent, Question } from "@/lib/assignment-types";
+import Loader from "@/components/loader";
 
 export default function DoAssignmentPage() {
   const params = useParams();
@@ -59,7 +60,7 @@ export default function DoAssignmentPage() {
       <div className="min-h-screen">
         <Header />
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">Loading assignment...</div>
+          <Loader />
         </div>
       </div>
     );
