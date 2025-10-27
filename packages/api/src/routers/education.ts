@@ -6,6 +6,7 @@ import {
   assignments,
   submissions,
   lectures,
+  announcements,
 } from "@edura/db/schema/education";
 import { eq, and } from "drizzle-orm";
 import { user } from "@edura/db/schema/auth";
@@ -620,6 +621,93 @@ export const educationRouter = router({
         .where(eq(lectures.lectureId, input.lectureId));
 
       return { success: true };
+    }),
+  createAnnouncement: protectedProcedure
+    .input(
+      z.object({
+        classId: z.string(),
+        title: z.string().min(1),
+        content: z.string().optional(),
+        attachedImage: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Check if the class belongs to the teacher
+      const classData = await ctx.db
+        .select()
+        .from(classes)
+        .where(
+          and(
+            eq(classes.classId, input.classId),
+            eq(classes.teacherId, ctx.session.user.id)
+          )
+        );
+
+      if (classData.length === 0) {
+        throw new Error("Class not found or access denied");
+      }
+
+      const announcementId = crypto.randomUUID();
+
+      const newAnnouncement = await ctx.db
+        .insert(announcements)
+        .values({
+          announcementId,
+          classId: input.classId,
+          title: input.title,
+          content: input.content,
+          attachedImage: input.attachedImage,
+          createdBy: ctx.session.user.id,
+        })
+        .returning();
+
+      return newAnnouncement[0];
+    }),
+  getClassAnnouncements: protectedProcedure
+    .input(z.object({ classId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      // Check if user is the teacher or enrolled student
+      const classData = await ctx.db
+        .select()
+        .from(classes)
+        .where(eq(classes.classId, input.classId));
+
+      if (classData.length === 0) {
+        throw new Error("Class not found");
+      }
+
+      const classInfo = classData[0]!;
+
+      // If user is not the teacher, check if they are enrolled
+      if (classInfo.teacherId !== ctx.session.user.id) {
+        const enrollment = await ctx.db
+          .select()
+          .from(enrollments)
+          .where(
+            and(
+              eq(enrollments.studentId, ctx.session.user.id),
+              eq(enrollments.classId, input.classId)
+            )
+          );
+
+        if (enrollment.length === 0) {
+          throw new Error("Access denied");
+        }
+      }
+
+      return await ctx.db
+        .select({
+          announcement: announcements,
+          creator: {
+            id: user.id,
+            name: user.name,
+            image: user.image,
+          },
+        })
+        .from(announcements)
+        .innerJoin(user, eq(announcements.createdBy, user.id))
+        .where(eq(announcements.classId, input.classId))
+        .orderBy(announcements.createdAt);
     }),
   deleteLecture: protectedProcedure
     .input(z.object({ lectureId: z.string() }))

@@ -67,6 +67,7 @@ export const announcements = pgTable("announcements", {
     .references(() => classes.classId, { onDelete: "cascade" }),
   title: text("title").notNull(),
   content: text("content"),
+  attachedImage: text("attached_image"),
   createdBy: text("created_by")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),

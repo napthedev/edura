@@ -33,6 +33,8 @@ import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import CreateAnnouncementForm from "@/components/announcement/create-announcement-form";
+import AnnouncementList from "@/components/announcement/announcement-list";
 
 type SessionUser = {
   id: string;
@@ -294,15 +296,18 @@ export default function ClassPage() {
 
             <TabsContent value="announcement" className="space-y-4">
               <Card>
-                <CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0">
                   <CardTitle>Announcements</CardTitle>
+                  <CreateAnnouncementForm
+                    classId={classId}
+                    onSuccess={() => {
+                      // Refetch announcements after creating one
+                      // We'll need to add a query invalidation here
+                    }}
+                  />
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground">
-                    No announcements yet. Create your first announcement to
-                    communicate with your students.
-                  </p>
-                  <Button className="mt-4">Create Announcement</Button>
+                  <AnnouncementList classId={classId} />
                 </CardContent>
               </Card>
             </TabsContent>
