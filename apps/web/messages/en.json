@@ -277,7 +277,9 @@
     "youtube": "YouTube",
     "date": "Date",
     "uploaded": "Uploaded",
-    "noLecturesUploaded": "No lectures uploaded yet."
+    "noLecturesUploaded": "No lectures uploaded yet.",
+    "studentsSubmitted": "students submitted",
+    "viewMetrics": "View Metrics"
   },
   "CreateAssignment": {
     "title": "Create Assignment",
@@ -390,5 +392,14 @@
     "editSchedule": "Edit Schedule",
     "updating": "Updating...",
     "updateSchedule": "Update Schedule"
+  },
+  "AssignmentMetricsDialog": {
+    "metricsFor": "Metrics for",
+    "submissions": "Submissions",
+    "submitted": "Submitted",
+    "grade": "Grade",
+    "notGraded": "Not graded",
+    "noSubmissionsYet": "No submissions yet",
+    "close": "Close"
   }
 }

@@ -277,7 +277,9 @@
     "youtube": "YouTube",
     "date": "Ngày",
     "uploaded": "Đã tải lên",
-    "noLecturesUploaded": "Chưa có bài giảng nào được tải lên."
+    "noLecturesUploaded": "Chưa có bài giảng nào được tải lên.",
+    "studentsSubmitted": "học sinh đã nộp",
+    "viewMetrics": "Xem thống kê"
   },
   "CreateAssignment": {
     "title": "Tạo bài tập",
@@ -390,5 +392,14 @@
     "editSchedule": "Chỉnh sửa lịch trình",
     "updating": "Đang cập nhật...",
     "updateSchedule": "Cập nhật lịch trình"
+  },
+  "AssignmentMetricsDialog": {
+    "metricsFor": "Thống kê cho",
+    "submissions": "Bài nộp",
+    "submitted": "Đã nộp",
+    "grade": "Điểm",
+    "notGraded": "Chưa chấm",
+    "noSubmissionsYet": "Chưa có bài nộp nào",
+    "close": "Đóng"
   }
 }

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Copy, Edit, Trash2 } from "lucide-react";
+import { Copy, Edit, Trash2, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import {
@@ -39,6 +39,7 @@ import CreateScheduleForm from "@/components/schedule/schedule-form";
 import ScheduleCalendar from "@/components/schedule/schedule-calendar";
 import Loader from "@/components/loader";
 import { useTranslations } from "next-intl";
+import AssignmentMetricsDialog from "@/components/assignment/assignment-metrics-dialog";
 
 type SessionUser = {
   id: string;
@@ -57,6 +58,11 @@ export default function ClassPage() {
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [newClassName, setNewClassName] = useState("");
   const t = useTranslations("ClassPage");
+  const [metricsDialogOpen, setMetricsDialogOpen] = useState(false);
+  const [selectedAssignment, setSelectedAssignment] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
 
   const sessionQuery = useQuery({
     queryKey: ["session"],
@@ -434,6 +440,7 @@ export default function ClassPage() {
                           description: string | null;
                           dueDate: string | null;
                           createdAt: string;
+                          submissionCount: number;
                         }) => (
                           <div
                             key={assignment.assignmentId}
@@ -463,6 +470,11 @@ export default function ClassPage() {
                                     ).toLocaleDateString()}
                                   </span>
                                 )}
+                                <span>
+                                  {assignment.submissionCount}/
+                                  {studentsQuery.data?.length || 0}{" "}
+                                  {t("studentsSubmitted")}
+                                </span>
                               </div>
                             </div>
                             <div className="flex gap-2">
@@ -475,6 +487,20 @@ export default function ClassPage() {
                               >
                                 <Copy className="w-4 h-4 mr-2" />
                                 {t("copyUrl")}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedAssignment({
+                                    id: assignment.assignmentId,
+                                    title: assignment.title,
+                                  });
+                                  setMetricsDialogOpen(true);
+                                }}
+                              >
+                                <BarChart3 className="w-4 h-4 mr-2" />
+                                {t("viewMetrics")}
                               </Button>
                               <Link
                                 href={`/class/teacher/${classId}/edit-assignment/${assignment.assignmentId}`}
@@ -610,6 +636,18 @@ export default function ClassPage() {
               </Card>
             </TabsContent>
           </Tabs>
+
+          {selectedAssignment && (
+            <AssignmentMetricsDialog
+              assignmentId={selectedAssignment.id}
+              assignmentTitle={selectedAssignment.title}
+              isOpen={metricsDialogOpen}
+              onClose={() => {
+                setMetricsDialogOpen(false);
+                setSelectedAssignment(null);
+              }}
+            />
+          )}
         </div>
       </div>
     </div>

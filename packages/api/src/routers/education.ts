@@ -9,7 +9,7 @@ import {
   announcements,
   schedules,
 } from "@edura/db/schema/education";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { user } from "@edura/db/schema/auth";
 
 export const educationRouter = router({
@@ -94,11 +94,28 @@ export const educationRouter = router({
   getClassAssignments: protectedProcedure
     .input(z.object({ classId: z.string() }))
     .query(async ({ ctx, input }) => {
-      return await ctx.db
-        .select()
+      // Get assignments with submission count
+      const assignmentsWithCount = await ctx.db
+        .select({
+          assignmentId: assignments.assignmentId,
+          title: assignments.title,
+          description: assignments.description,
+          assignmentContent: assignments.assignmentContent,
+          dueDate: assignments.dueDate,
+          testingDuration: assignments.testingDuration,
+          createdAt: assignments.createdAt,
+          submissionCount: sql<number>`count(${submissions.submissionId})`,
+        })
         .from(assignments)
+        .leftJoin(
+          submissions,
+          eq(assignments.assignmentId, submissions.assignmentId)
+        )
         .where(eq(assignments.classId, input.classId))
+        .groupBy(assignments.assignmentId)
         .orderBy(assignments.createdAt);
+
+      return assignmentsWithCount;
     }),
   renameClass: protectedProcedure
     .input(
@@ -1110,6 +1127,45 @@ export const educationRouter = router({
       }
 
       return submissionData[0];
+    }),
+  getAssignmentSubmissions: protectedProcedure
+    .input(z.object({ assignmentId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      // Check if the assignment belongs to the teacher
+      const assignmentData = await ctx.db
+        .select()
+        .from(assignments)
+        .innerJoin(classes, eq(assignments.classId, classes.classId))
+        .where(
+          and(
+            eq(assignments.assignmentId, input.assignmentId),
+            eq(classes.teacherId, ctx.session.user.id)
+          )
+        );
+
+      if (assignmentData.length === 0) {
+        throw new Error("Assignment not found or access denied");
+      }
+
+      // Get all submissions with student details
+      const submissionsData = await ctx.db
+        .select({
+          submissionId: submissions.submissionId,
+          submissionContent: submissions.submissionContent,
+          submittedAt: submissions.submittedAt,
+          grade: submissions.grade,
+          student: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+          },
+        })
+        .from(submissions)
+        .innerJoin(user, eq(submissions.studentId, user.id))
+        .where(eq(submissions.assignmentId, input.assignmentId))
+        .orderBy(submissions.submittedAt);
+
+      return submissionsData;
     }),
 });
 
