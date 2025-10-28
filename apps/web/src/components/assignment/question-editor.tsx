@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Trash2, Plus } from "lucide-react";
 import type { Question } from "@/lib/assignment-types";
+import { MathJaxProvider, LaTeXRenderer } from "@/components/latex-renderer";
 
 interface QuestionEditorProps {
   question: Question;
@@ -60,6 +61,16 @@ export function QuestionEditor({
                   `question-${question.id}-statement`
                 )}
               />
+              {localQuestion.statement && (
+                <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                  <Label className="text-sm text-muted-foreground">
+                    Preview:
+                  </Label>
+                  <div className="mt-1">
+                    <LaTeXRenderer>{localQuestion.statement}</LaTeXRenderer>
+                  </div>
+                </div>
+              )}
             </div>
             <div>
               <Label htmlFor="correctAnswer">Correct Answer</Label>
@@ -90,6 +101,16 @@ export function QuestionEditor({
                   `question-${question.id}-statement`
                 )}
               />
+              {localQuestion.statement && (
+                <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                  <Label className="text-sm text-muted-foreground">
+                    Preview:
+                  </Label>
+                  <div className="mt-1">
+                    <LaTeXRenderer>{localQuestion.statement}</LaTeXRenderer>
+                  </div>
+                </div>
+              )}
             </div>
             <div>
               <Label>Answer Options</Label>
@@ -98,31 +119,45 @@ export function QuestionEditor({
                   ? localQuestion.options
                   : ["", "", "", ""]
                 ).map((option: string, index: number) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <span className="font-medium w-6">
-                      {String.fromCharCode(97 + index)}.
-                    </span>
-                    <Input
-                      value={option}
-                      onChange={(e) => {
-                        if (localQuestion.type === "multiple") {
-                          const newOptions = [...localQuestion.options] as [
-                            string,
-                            string,
-                            string,
-                            string
-                          ];
-                          newOptions[index] = e.target.value;
-                          updateQuestion({
-                            options: newOptions,
-                          } as Partial<Question>);
-                        }
-                      }}
-                      placeholder={`Option ${String.fromCharCode(97 + index)}`}
-                      className={getInputClassName(
-                        `question-${question.id}-option-${index}`
-                      )}
-                    />
+                  <div key={index} className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium w-6">
+                        {String.fromCharCode(97 + index)}.
+                      </span>
+                      <Input
+                        value={option}
+                        onChange={(e) => {
+                          if (localQuestion.type === "multiple") {
+                            const newOptions = [...localQuestion.options] as [
+                              string,
+                              string,
+                              string,
+                              string
+                            ];
+                            newOptions[index] = e.target.value;
+                            updateQuestion({
+                              options: newOptions,
+                            } as Partial<Question>);
+                          }
+                        }}
+                        placeholder={`Option ${String.fromCharCode(
+                          97 + index
+                        )}`}
+                        className={getInputClassName(
+                          `question-${question.id}-option-${index}`
+                        )}
+                      />
+                    </div>
+                    {option && (
+                      <div className="ml-8 p-2 bg-gray-50 dark:bg-gray-800 rounded-md">
+                        <Label className="text-xs text-muted-foreground">
+                          Preview:
+                        </Label>
+                        <div className="mt-1">
+                          <LaTeXRenderer>{option}</LaTeXRenderer>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -160,6 +195,16 @@ export function QuestionEditor({
                   `question-${question.id}-statement`
                 )}
               />
+              {localQuestion.statement && (
+                <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                  <Label className="text-sm text-muted-foreground">
+                    Preview:
+                  </Label>
+                  <div className="mt-1">
+                    <LaTeXRenderer>{localQuestion.statement}</LaTeXRenderer>
+                  </div>
+                </div>
+              )}
             </div>
             <div>
               <Label>Correct Answer</Label>
@@ -188,27 +233,29 @@ export function QuestionEditor({
   };
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-lg">
-          Question {localQuestion.index}
-        </CardTitle>
-        <Button variant="destructive" size="sm" onClick={onDelete}>
-          <Trash2 className="w-4 h-4" />
-        </Button>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {renderQuestionContent()}
-        <div>
-          <Label htmlFor="explanation">Explanation (Optional)</Label>
-          <Textarea
-            id="explanation"
-            value={localQuestion.explanation || ""}
-            onChange={(e) => updateQuestion({ explanation: e.target.value })}
-            placeholder="Provide an explanation for the answer"
-          />
-        </div>
-      </CardContent>
-    </Card>
+    <MathJaxProvider>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-lg">
+            Question {localQuestion.index}
+          </CardTitle>
+          <Button variant="destructive" size="sm" onClick={onDelete}>
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {renderQuestionContent()}
+          <div>
+            <Label htmlFor="explanation">Explanation (Optional)</Label>
+            <Textarea
+              id="explanation"
+              value={localQuestion.explanation || ""}
+              onChange={(e) => updateQuestion({ explanation: e.target.value })}
+              placeholder="Provide an explanation for the answer"
+            />
+          </div>
+        </CardContent>
+      </Card>
+    </MathJaxProvider>
   );
 }

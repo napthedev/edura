@@ -1021,6 +1021,96 @@ export const educationRouter = router({
 
       return newAssignment[0];
     }),
+  getStudentAssignmentStatuses: protectedProcedure
+    .input(z.object({ classId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      // Check if user is a student
+      if (ctx.session.user.role !== "student") {
+        throw new Error(
+          "Access denied: Only students can access assignment statuses"
+        );
+      }
+
+      // Check if student is enrolled in the class
+      const enrollment = await ctx.db
+        .select()
+        .from(enrollments)
+        .where(
+          and(
+            eq(enrollments.studentId, ctx.session.user.id),
+            eq(enrollments.classId, input.classId)
+          )
+        );
+
+      if (enrollment.length === 0) {
+        throw new Error("Not enrolled in this class");
+      }
+
+      // Get assignments with submission status
+      const assignmentsWithStatus = await ctx.db
+        .select({
+          assignmentId: assignments.assignmentId,
+          title: assignments.title,
+          description: assignments.description,
+          dueDate: assignments.dueDate,
+          createdAt: assignments.createdAt,
+          submitted: submissions.submissionId,
+          submittedAt: submissions.submittedAt,
+        })
+        .from(assignments)
+        .leftJoin(
+          submissions,
+          and(
+            eq(submissions.assignmentId, assignments.assignmentId),
+            eq(submissions.studentId, ctx.session.user.id)
+          )
+        )
+        .where(eq(assignments.classId, input.classId))
+        .orderBy(assignments.createdAt);
+
+      return assignmentsWithStatus.map((item) => ({
+        ...item,
+        submitted: !!item.submitted,
+      }));
+    }),
+  getStudentSubmission: protectedProcedure
+    .input(z.object({ assignmentId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      // Check if user is a student
+      if (ctx.session.user.role !== "student") {
+        throw new Error(
+          "Access denied: Only students can view their submissions"
+        );
+      }
+
+      // Get submission with assignment and class details
+      const submissionData = await ctx.db
+        .select({
+          submission: submissions,
+          assignment: assignments,
+          class: classes,
+        })
+        .from(submissions)
+        .innerJoin(
+          assignments,
+          eq(submissions.assignmentId, assignments.assignmentId)
+        )
+        .innerJoin(classes, eq(assignments.classId, classes.classId))
+        .innerJoin(enrollments, eq(classes.classId, enrollments.classId))
+        .where(
+          and(
+            eq(submissions.assignmentId, input.assignmentId),
+            eq(submissions.studentId, ctx.session.user.id),
+            eq(enrollments.studentId, ctx.session.user.id)
+          )
+        );
+
+      if (submissionData.length === 0) {
+        throw new Error("Submission not found or access denied");
+      }
+
+      return submissionData[0];
+    }),
 });
 
 export type EducationRouter = typeof educationRouter;

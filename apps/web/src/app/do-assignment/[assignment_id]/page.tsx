@@ -6,11 +6,14 @@ import { authClient } from "@/lib/auth-client";
 import Header from "@/components/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useState } from "react";
 import type { AssignmentContent, Question } from "@/lib/assignment-types";
 import Loader from "@/components/loader";
+import { MathJaxProvider, LaTeXRenderer } from "@/components/latex-renderer";
 
 export default function DoAssignmentPage() {
   const params = useParams();
@@ -117,70 +120,77 @@ export default function DoAssignmentPage() {
   };
 
   return (
-    <div className="min-h-screen">
-      <Header />
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-6">
-          {/* Assignment Header */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl">{assignment.title}</CardTitle>
-              <div className="text-sm text-muted-foreground">
-                <p>Class: {classData.className}</p>
-                {assignment.dueDate && (
-                  <p>Due: {new Date(assignment.dueDate).toLocaleString()}</p>
-                )}
-                {assignment.testingDuration && (
-                  <p>Duration: {assignment.testingDuration} minutes</p>
-                )}
-              </div>
-            </CardHeader>
-            {assignment.description && (
-              <CardContent>
-                <p>{assignment.description}</p>
-              </CardContent>
-            )}
-          </Card>
-
-          {/* Assignment Content */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Assignment Questions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {assignmentContent && assignmentContent.questions.length > 0 ? (
-                <div className="space-y-6">
-                  {assignmentContent.questions.map((question: Question) => (
-                    <QuestionCard
-                      key={question.id}
-                      question={question}
-                      answer={answers[question.id] || ""}
-                      onAnswerChange={(answer) =>
-                        setAnswers((prev) => ({
-                          ...prev,
-                          [question.id]: answer,
-                        }))
-                      }
-                    />
-                  ))}
+    <MathJaxProvider>
+      <div className="min-h-screen">
+        <Header />
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
+          <div className="space-y-6">
+            {/* Assignment Header */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl">{assignment.title}</CardTitle>
+                <div className="text-sm text-muted-foreground">
+                  <p>Class: {classData.className}</p>
+                  {assignment.dueDate && (
+                    <p>Due: {new Date(assignment.dueDate).toLocaleString()}</p>
+                  )}
+                  {assignment.testingDuration && (
+                    <p>Duration: {assignment.testingDuration} minutes</p>
+                  )}
                 </div>
-              ) : (
-                <p className="text-muted-foreground">
-                  No questions available for this assignment.
-                </p>
+              </CardHeader>
+              {assignment.description && (
+                <CardContent>
+                  <p>{assignment.description}</p>
+                </CardContent>
               )}
-            </CardContent>
-          </Card>
+            </Card>
 
-          {/* Submit Button */}
-          <div className="flex justify-end">
-            <Button onClick={handleSubmit} disabled={submitMutation.isPending}>
-              {submitMutation.isPending ? "Submitting..." : "Submit Assignment"}
-            </Button>
+            {/* Assignment Content */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Assignment Questions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {assignmentContent && assignmentContent.questions.length > 0 ? (
+                  <div className="space-y-6">
+                    {assignmentContent.questions.map((question: Question) => (
+                      <QuestionCard
+                        key={question.id}
+                        question={question}
+                        answer={answers[question.id] || ""}
+                        onAnswerChange={(answer) =>
+                          setAnswers((prev) => ({
+                            ...prev,
+                            [question.id]: answer,
+                          }))
+                        }
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">
+                    No questions available for this assignment.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Submit Button */}
+            <div className="flex justify-end">
+              <Button
+                onClick={handleSubmit}
+                disabled={submitMutation.isPending}
+              >
+                {submitMutation.isPending
+                  ? "Submitting..."
+                  : "Submit Assignment"}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </MathJaxProvider>
   );
 }
 
@@ -200,7 +210,9 @@ function QuestionCard({
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <p className="font-medium">{question.statement}</p>
+          <p className="font-medium">
+            <LaTeXRenderer>{question.statement}</LaTeXRenderer>
+          </p>
         </div>
 
         {/* Answer Input based on type */}
@@ -217,50 +229,36 @@ function QuestionCard({
         )}
 
         {question.type === "multiple" && (
-          <div className="space-y-2">
+          <RadioGroup value={answer} onValueChange={onAnswerChange}>
             {(question as any).options.map((option: string, index: number) => {
               const optionValue = String.fromCharCode(97 + index);
               return (
                 <div key={index} className="flex items-center space-x-2">
-                  <input
-                    type="radio"
-                    name={`question-${question.id}`}
+                  <RadioGroupItem
                     value={optionValue}
-                    checked={answer === optionValue}
-                    onChange={(e) => onAnswerChange(e.target.value)}
+                    id={`${question.id}-${optionValue}`}
                   />
-                  <label>
-                    {optionValue.toUpperCase()}. {option}
-                  </label>
+                  <Label htmlFor={`${question.id}-${optionValue}`}>
+                    {optionValue.toUpperCase()}.{" "}
+                    <LaTeXRenderer>{option}</LaTeXRenderer>
+                  </Label>
                 </div>
               );
             })}
-          </div>
+          </RadioGroup>
         )}
 
         {question.type === "truefalse" && (
-          <div className="space-y-2">
+          <RadioGroup value={answer} onValueChange={onAnswerChange}>
             <div className="flex items-center space-x-2">
-              <input
-                type="radio"
-                name={`question-${question.id}`}
-                value="true"
-                checked={answer === "true"}
-                onChange={(e) => onAnswerChange(e.target.value)}
-              />
-              <label>True</label>
+              <RadioGroupItem value="true" id={`${question.id}-true`} />
+              <Label htmlFor={`${question.id}-true`}>True</Label>
             </div>
             <div className="flex items-center space-x-2">
-              <input
-                type="radio"
-                name={`question-${question.id}`}
-                value="false"
-                checked={answer === "false"}
-                onChange={(e) => onAnswerChange(e.target.value)}
-              />
-              <label>False</label>
+              <RadioGroupItem value="false" id={`${question.id}-false`} />
+              <Label htmlFor={`${question.id}-false`}>False</Label>
             </div>
-          </div>
+          </RadioGroup>
         )}
       </CardContent>
     </Card>

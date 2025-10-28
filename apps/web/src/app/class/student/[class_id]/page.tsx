@@ -70,7 +70,8 @@ export default function ClassPage() {
 
   const assignmentsQuery = useQuery({
     queryKey: ["class-assignments", classId],
-    queryFn: () => trpcClient.education.getClassAssignments.query({ classId }),
+    queryFn: () =>
+      trpcClient.education.getStudentAssignmentStatuses.query({ classId }),
     enabled: isAuthenticated && isStudent,
   });
 
@@ -299,12 +300,29 @@ export default function ClassPage() {
                           description: string | null;
                           dueDate: string | null;
                           createdAt: string;
+                          submitted: boolean;
+                          submittedAt: string | null;
                         }) => (
                           <div
                             key={assignment.assignmentId}
                             className="p-3 border rounded-lg"
                           >
-                            <h3 className="font-medium">{assignment.title}</h3>
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-medium">
+                                {assignment.title}
+                              </h3>
+                              <div className="flex items-center gap-2">
+                                {assignment.submitted ? (
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    ✅ Submitted
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    ⏳ Not Submitted
+                                  </span>
+                                )}
+                              </div>
+                            </div>
                             {assignment.description && (
                               <p className="text-sm text-muted-foreground mt-1">
                                 {assignment.description}
@@ -325,17 +343,29 @@ export default function ClassPage() {
                                   ).toLocaleDateString()}
                                 </span>
                               )}
+                              {assignment.submitted &&
+                                assignment.submittedAt && (
+                                  <span>
+                                    Submitted:{" "}
+                                    {new Date(
+                                      assignment.submittedAt
+                                    ).toLocaleDateString()}
+                                  </span>
+                                )}
                             </div>
                             <div className="mt-3">
                               <Button
                                 size="sm"
-                                onClick={() =>
-                                  router.push(
-                                    `/do-assignment/${assignment.assignmentId}`
-                                  )
-                                }
+                                onClick={() => {
+                                  const route = assignment.submitted
+                                    ? `/view-submission/${assignment.assignmentId}`
+                                    : `/do-assignment/${assignment.assignmentId}`;
+                                  router.push(route as any);
+                                }}
                               >
-                                Take Assignment
+                                {assignment.submitted
+                                  ? "View Submission"
+                                  : "Take Assignment"}
                               </Button>
                             </div>
                           </div>
