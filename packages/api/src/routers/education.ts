@@ -12,6 +12,37 @@ import {
 import { eq, and, sql } from "drizzle-orm";
 import { user } from "@edura/db/schema/auth";
 
+// Grading function
+function gradeSubmission(
+  assignmentContent: string | null,
+  submissionContent: string
+): number | null {
+  if (!assignmentContent) return null;
+
+  try {
+    const content = JSON.parse(assignmentContent) as { questions: any[] };
+    const answers = JSON.parse(submissionContent) as Record<string, string>;
+
+    const questions = content.questions;
+    if (!questions || questions.length === 0) return null;
+
+    let correct = 0;
+    for (const question of questions) {
+      const studentAnswer = answers[question.id]?.trim().toLowerCase();
+      const correctAnswer = question.correctAnswer?.trim().toLowerCase();
+
+      if (studentAnswer === correctAnswer) {
+        correct++;
+      }
+    }
+
+    return Math.round((correct / questions.length) * 100);
+  } catch (error) {
+    console.error("Error grading submission:", error);
+    return null;
+  }
+}
+
 export const educationRouter = router({
   createClass: protectedProcedure
     .input(
@@ -490,6 +521,13 @@ export const educationRouter = router({
         throw new Error("You have already submitted this assignment");
       }
 
+      // Calculate grade
+      const assignment = assignmentData[0]!.assignment;
+      const grade = gradeSubmission(
+        assignment.assignmentContent,
+        input.submissionContent
+      );
+
       // Create submission
       const submission = await ctx.db
         .insert(submissions)
@@ -498,6 +536,7 @@ export const educationRouter = router({
           assignmentId: input.assignmentId,
           studentId: ctx.session.user.id,
           submissionContent: input.submissionContent,
+          grade: grade,
         })
         .returning();
 
@@ -1166,6 +1205,45 @@ export const educationRouter = router({
         .orderBy(submissions.submittedAt);
 
       return submissionsData;
+    }),
+  getSubmissionById: protectedProcedure
+    .input(z.object({ submissionId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      // Get submission with assignment and class details
+      const submissionData = await ctx.db
+        .select({
+          submission: submissions,
+          assignment: assignments,
+          class: classes,
+          student: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+          },
+        })
+        .from(submissions)
+        .innerJoin(
+          assignments,
+          eq(submissions.assignmentId, assignments.assignmentId)
+        )
+        .innerJoin(classes, eq(assignments.classId, classes.classId))
+        .innerJoin(user, eq(submissions.studentId, user.id))
+        .where(eq(submissions.submissionId, input.submissionId));
+
+      if (submissionData.length === 0) {
+        throw new Error("Submission not found");
+      }
+
+      const data = submissionData[0]!;
+
+      // Check if user is the teacher of the class
+      if (data.class.teacherId !== ctx.session.user.id) {
+        throw new Error(
+          "Access denied: Only the class teacher can view submissions"
+        );
+      }
+
+      return data;
     }),
 });
 

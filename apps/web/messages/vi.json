@@ -400,6 +400,7 @@
     "grade": "Điểm",
     "notGraded": "Chưa chấm",
     "noSubmissionsYet": "Chưa có bài nộp nào",
-    "close": "Đóng"
+    "close": "Đóng",
+    "viewSubmission": "Xem bài nộp"
   }
 }

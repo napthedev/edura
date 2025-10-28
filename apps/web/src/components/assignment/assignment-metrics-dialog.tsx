@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useTranslations } from "next-intl";
 import Loader from "@/components/loader";
+import { useRouter } from "next/navigation";
 
 interface AssignmentMetricsDialogProps {
   assignmentId: string;
@@ -28,6 +29,7 @@ export default function AssignmentMetricsDialog({
   onClose,
 }: AssignmentMetricsDialogProps) {
   const t = useTranslations("AssignmentMetricsDialog");
+  const router = useRouter();
 
   const submissionsQuery = useQuery({
     queryKey: ["assignment-submissions", assignmentId],
@@ -83,9 +85,22 @@ export default function AssignmentMetricsDialog({
                       </div>
                       <div className="flex items-center gap-2">
                         {submission.grade !== null ? (
-                          <Badge variant="secondary">
-                            {t("grade")}: {submission.grade}/100
-                          </Badge>
+                          <>
+                            <Badge variant="secondary">
+                              {t("grade")}: {submission.grade}/100
+                            </Badge>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                router.push(
+                                  `/view-submission/${assignmentId}?submissionId=${submission.submissionId}`
+                                )
+                              }
+                            >
+                              {t("viewSubmission")}
+                            </Button>
+                          </>
                         ) : (
                           <Badge variant="outline">{t("notGraded")}</Badge>
                         )}

@@ -400,6 +400,7 @@
     "grade": "Grade",
     "notGraded": "Not graded",
     "noSubmissionsYet": "No submissions yet",
-    "close": "Close"
+    "close": "Close",
+    "viewSubmission": "View Submission"
   }
 }

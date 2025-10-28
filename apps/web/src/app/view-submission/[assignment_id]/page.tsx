@@ -1,5 +1,5 @@
 "use client";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { trpcClient } from "@/utils/trpc";
 import { authClient } from "@/lib/auth-client";
@@ -14,16 +14,28 @@ import { MathJaxProvider, LaTeXRenderer } from "@/components/latex-renderer";
 
 export default function ViewSubmissionPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const assignmentId = params.assignment_id as string;
+  const submissionId = searchParams.get("submissionId");
   const router = useRouter();
 
   const { data: session, isPending: sessionPending } = authClient.useSession();
 
+  const isTeacherView =
+    !!submissionId && (session?.user as any)?.role === "teacher";
+
   const submissionQuery = useQuery({
-    queryKey: ["student-submission", assignmentId],
-    queryFn: () =>
-      trpcClient.education.getStudentSubmission.query({ assignmentId }),
-    enabled: !!session && (session.user as any).role === "student",
+    queryKey: isTeacherView
+      ? ["teacher-submission", submissionId]
+      : ["student-submission", assignmentId],
+    queryFn: isTeacherView
+      ? () =>
+          trpcClient.education.getSubmissionById.query({
+            submissionId: submissionId!,
+          })
+      : () => trpcClient.education.getStudentSubmission.query({ assignmentId }),
+    enabled:
+      !!session && (isTeacherView || (session.user as any).role === "student"),
   });
 
   // Redirect if not logged in
@@ -32,8 +44,13 @@ export default function ViewSubmissionPage() {
     return null;
   }
 
-  // Redirect if not a student
-  if (!sessionPending && session && (session.user as any).role !== "student") {
+  // Redirect if not a student and not teacher viewing specific submission
+  if (
+    !sessionPending &&
+    session &&
+    !isTeacherView &&
+    (session.user as any).role !== "student"
+  ) {
     router.push("/dashboard");
     return null;
   }
@@ -69,7 +86,9 @@ export default function ViewSubmissionPage() {
     );
   }
 
-  const { submission, assignment, class: classData } = submissionQuery.data!;
+  const data = submissionQuery.data!;
+  const { submission, assignment, class: classData } = data;
+  const student = isTeacherView ? (data as any).student : null;
 
   let assignmentContent: AssignmentContent | null = null;
   let submissionAnswers: Record<string, string> = {};
@@ -97,6 +116,11 @@ export default function ViewSubmissionPage() {
                 <CardTitle className="text-2xl">{assignment.title}</CardTitle>
                 <div className="text-sm text-muted-foreground space-y-1">
                   <p>Class: {classData.className}</p>
+                  {isTeacherView && student && (
+                    <p>
+                      Student: {student.name} ({student.email})
+                    </p>
+                  )}
                   <p>
                     Submitted:{" "}
                     {new Date(submission.submittedAt).toLocaleString()}
@@ -139,7 +163,9 @@ export default function ViewSubmissionPage() {
             {/* Submission Content */}
             <Card>
               <CardHeader>
-                <CardTitle>Your Submission</CardTitle>
+                <CardTitle>
+                  {isTeacherView ? "Student Submission" : "Your Submission"}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 {assignmentContent && assignmentContent.questions.length > 0 ? (
@@ -182,6 +208,10 @@ function SubmittedQuestionCard({
   question: Question;
   answer: string;
 }) {
+  const isCorrect =
+    answer.trim().toLowerCase() ===
+    question.correctAnswer?.trim().toLowerCase();
+
   return (
     <Card>
       <CardHeader>
@@ -195,16 +225,32 @@ function SubmittedQuestionCard({
         </div>
 
         {/* Display Answer based on type */}
-        <div className="bg-muted p-4 rounded-lg">
+        <div
+          className={`p-4 rounded-lg ${
+            isCorrect
+              ? "bg-green-50 border border-green-200"
+              : "bg-red-50 border border-red-200"
+          }`}
+        >
           <p className="text-sm font-medium text-muted-foreground mb-2">
-            Your Answer:
+            Answer:
           </p>
           {question.type === "simple" && (
-            <p className="whitespace-pre-wrap">{answer}</p>
+            <p
+              className={`whitespace-pre-wrap ${
+                isCorrect ? "text-green-800" : "text-red-800"
+              }`}
+            >
+              {answer}
+            </p>
           )}
 
           {question.type === "multiple" && (
-            <p className="font-medium">
+            <p
+              className={`font-medium ${
+                isCorrect ? "text-green-800" : "text-red-800"
+              }`}
+            >
               {answer ? (
                 <>
                   {answer.toUpperCase()}.{" "}
@@ -220,13 +266,46 @@ function SubmittedQuestionCard({
           )}
 
           {question.type === "truefalse" && (
-            <p className="font-medium">
+            <p
+              className={`font-medium ${
+                isCorrect ? "text-green-800" : "text-red-800"
+              }`}
+            >
               {answer === "true"
                 ? "True"
                 : answer === "false"
                 ? "False"
                 : "No answer"}
             </p>
+          )}
+
+          {/* Show correct answer if wrong */}
+          {!isCorrect && question.correctAnswer && (
+            <div className="mt-2 p-2 bg-green-100 rounded border border-green-300">
+              <p className="text-sm font-medium text-green-800 mb-1">
+                Correct Answer:
+              </p>
+              {question.type === "simple" && (
+                <p className="text-green-800 whitespace-pre-wrap">
+                  {question.correctAnswer}
+                </p>
+              )}
+              {question.type === "multiple" && (
+                <p className="text-green-800 font-medium">
+                  {question.correctAnswer.toUpperCase()}.{" "}
+                  <LaTeXRenderer>
+                    {(question as any).options?.[
+                      question.correctAnswer.charCodeAt(0) - 97
+                    ] || question.correctAnswer}
+                  </LaTeXRenderer>
+                </p>
+              )}
+              {question.type === "truefalse" && (
+                <p className="text-green-800 font-medium">
+                  {question.correctAnswer === "true" ? "True" : "False"}
+                </p>
+              )}
+            </div>
           )}
         </div>
       </CardContent>
