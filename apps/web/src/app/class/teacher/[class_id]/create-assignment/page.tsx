@@ -169,7 +169,7 @@ export default function CreateAssignmentPage() {
             <Button
               variant="outline"
               onClick={() =>
-                router.push(`/class/teacher/${classId}#assignments`)
+                router.push(`/class/teacher/${classId}?tab=assignments`)
               }
             >
               <ArrowLeft className="w-4 h-4 mr-2" />

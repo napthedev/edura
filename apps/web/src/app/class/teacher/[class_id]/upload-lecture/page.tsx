@@ -252,7 +252,9 @@ export default function UploadLecturePage() {
                           type="button"
                           variant="outline"
                           onClick={() =>
-                            router.push(`/class/teacher/${classId}#lectures`)
+                            router.push(
+                              `/class/teacher/${classId}?tab=lectures`
+                            )
                           }
                         >
                           {t("cancel")}
@@ -360,7 +362,9 @@ export default function UploadLecturePage() {
                           type="button"
                           variant="outline"
                           onClick={() =>
-                            router.push(`/class/teacher/${classId}`)
+                            router.push(
+                              `/class/teacher/${classId}?tab=lectures`
+                            )
                           }
                         >
                           {t("cancel")}

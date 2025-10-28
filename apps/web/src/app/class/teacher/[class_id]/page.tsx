@@ -1,5 +1,5 @@
 "use client";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { trpcClient } from "@/utils/trpc";
 import Header from "@/components/header";
@@ -52,27 +52,11 @@ export default function ClassPage() {
   const params = useParams();
   const classId = params.class_id as string;
   const router = useRouter();
-  const [currentTab, setCurrentTab] = useState("announcement");
+  const searchParams = useSearchParams();
+  const currentTab = searchParams.get("tab") || "announcement";
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [newClassName, setNewClassName] = useState("");
   const t = useTranslations("ClassPage");
-
-  useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.replace("#", "") || "announcement";
-      setCurrentTab(hash);
-    };
-
-    // Set initial hash if not present
-    if (!window.location.hash) {
-      window.location.hash = "announcement";
-    } else {
-      handleHashChange();
-    }
-
-    window.addEventListener("hashchange", handleHashChange);
-    return () => window.removeEventListener("hashchange", handleHashChange);
-  }, []);
 
   const sessionQuery = useQuery({
     queryKey: ["session"],
@@ -314,7 +298,9 @@ export default function ClassPage() {
           <Tabs
             value={currentTab}
             onValueChange={(value) => {
-              window.location.hash = value;
+              const newSearchParams = new URLSearchParams(searchParams);
+              newSearchParams.set("tab", value);
+              router.push(`?${newSearchParams.toString()}`);
             }}
             className="w-full"
           >

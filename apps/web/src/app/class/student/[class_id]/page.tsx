@@ -1,5 +1,5 @@
 "use client";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { trpcClient } from "@/utils/trpc";
 import Header from "@/components/header";
@@ -26,7 +26,6 @@ import ScheduleCalendar from "@/components/schedule/schedule-calendar";
 import Loader from "@/components/loader";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import AnnouncementList from "@/components/announcement/announcement-list";
-import { useState, useEffect } from "react";
 
 type SessionUser = {
   id: string;
@@ -40,24 +39,8 @@ export default function ClassPage() {
   const params = useParams();
   const classId = params.class_id as string;
   const router = useRouter();
-  const [currentTab, setCurrentTab] = useState("announcements");
-
-  useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.replace("#", "") || "announcements";
-      setCurrentTab(hash);
-    };
-
-    // Set initial hash if not present
-    if (!window.location.hash) {
-      window.location.hash = "announcements";
-    } else {
-      handleHashChange();
-    }
-
-    window.addEventListener("hashchange", handleHashChange);
-    return () => window.removeEventListener("hashchange", handleHashChange);
-  }, []);
+  const searchParams = useSearchParams();
+  const currentTab = searchParams.get("tab") || "announcements";
 
   const sessionQuery = useQuery({
     queryKey: ["session"],
@@ -223,7 +206,9 @@ export default function ClassPage() {
           <Tabs
             value={currentTab}
             onValueChange={(value) => {
-              window.location.hash = value;
+              const newSearchParams = new URLSearchParams(searchParams);
+              newSearchParams.set("tab", value);
+              router.push(`?${newSearchParams.toString()}`);
             }}
             className="w-full"
           >
