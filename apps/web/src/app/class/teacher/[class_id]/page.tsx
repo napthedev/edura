@@ -2,14 +2,19 @@
 import { useParams, useSearchParams } from "next/navigation";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { trpcClient } from "@/utils/trpc";
-import Header from "@/components/header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Copy, Edit, Trash2, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -32,7 +37,6 @@ import {
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import CreateAnnouncementForm from "@/components/announcement/create-announcement-form";
 import AnnouncementList from "@/components/announcement/announcement-list";
 import CreateScheduleForm from "@/components/schedule/schedule-form";
@@ -40,6 +44,7 @@ import ScheduleCalendar from "@/components/schedule/schedule-calendar";
 import Loader from "@/components/loader";
 import { useTranslations } from "next-intl";
 import AssignmentMetricsDialog from "@/components/assignment/assignment-metrics-dialog";
+import { ClassShell } from "@/components/class/class-shell";
 
 type SessionUser = {
   id: string;
@@ -137,11 +142,8 @@ export default function ClassPage() {
 
   if (sessionQuery.isLoading) {
     return (
-      <div className="min-h-screen">
-        <Header />
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-          <Loader />
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader />
       </div>
     );
   }
@@ -181,22 +183,16 @@ export default function ClassPage() {
 
   if (classQuery.isLoading) {
     return (
-      <div className="min-h-screen">
-        <Header />
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-          <Loader />
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader />
       </div>
     );
   }
 
   if (classQuery.error || !classQuery.data) {
     return (
-      <div className="min-h-screen">
-        <Header />
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center text-red-500">{t("classNotFound")}</div>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center text-red-500">{t("classNotFound")}</div>
       </div>
     );
   }
@@ -204,452 +200,491 @@ export default function ClassPage() {
   const classData = classQuery.data;
 
   return (
-    <div className="min-h-screen">
-      <Header />
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-6">
-          {/* Class Header */}
+    <ClassShell classId={classId} className={classData.className}>
+      {currentTab === "announcement" && (
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold">{classData.className}</h1>
-              <p className="text-muted-foreground">
-                {t("classCode")}: {classData.classCode}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {t("created")}:{" "}
-                {new Date(classData.createdAt).toLocaleDateString()}
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={copyClassCode}>
-                <Copy className="w-4 h-4 mr-2" />
-                {t("copyCode")}
-              </Button>
-              <Dialog
-                open={renameDialogOpen}
-                onOpenChange={setRenameDialogOpen}
+            <h2 className="text-2xl font-bold tracking-tight">
+              {t("announcements")}
+            </h2>
+          </div>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
+              <CardTitle>{t("announcements")}</CardTitle>
+              <CreateAnnouncementForm
+                classId={classId}
+                onSuccess={() => {
+                  // Refetch announcements after creating one
+                  // We'll need to add a query invalidation here
+                }}
+              />
+            </CardHeader>
+            <CardContent>
+              <AnnouncementList classId={classId} isTeacher={true} />
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {currentTab === "students" && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold tracking-tight">
+              {t("students")}
+            </h2>
+          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                {t("studentsCount")} ({studentsQuery.data?.length || 0})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {studentsQuery.isLoading ? (
+                <Loader />
+              ) : studentsQuery.data && studentsQuery.data.length > 0 ? (
+                <div className="space-y-2">
+                  {studentsQuery.data.map(
+                    (student: {
+                      userId: string;
+                      name: string;
+                      email: string;
+                      enrolledAt: string;
+                    }) => (
+                      <div
+                        key={student.userId}
+                        className="flex items-center justify-between p-3 border rounded-lg"
+                      >
+                        <div>
+                          <p className="font-medium">{student.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {student.email}
+                          </p>
+                        </div>
+                        <Badge variant="secondary">
+                          {t("enrolled")}{" "}
+                          {new Date(student.enrolledAt).toLocaleDateString()}
+                        </Badge>
+                      </div>
+                    )
+                  )}
+                </div>
+              ) : (
+                <p className="text-muted-foreground">
+                  {t("noStudentsEnrolled")}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {currentTab === "schedule" && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold tracking-tight">
+              {t("schedule")}
+            </h2>
+          </div>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
+              <CardTitle>{t("classSchedule")}</CardTitle>
+              <CreateScheduleForm
+                classId={classId}
+                onSuccess={() => schedulesQuery.refetch()}
+              />
+            </CardHeader>
+            <CardContent>
+              {schedulesQuery.isLoading ? (
+                <Loader />
+              ) : (
+                <ScheduleCalendar
+                  schedules={schedulesQuery.data || []}
+                  classId={classId}
+                  onScheduleUpdate={() => schedulesQuery.refetch()}
+                  isTeacher={true}
+                />
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {currentTab === "assignments" && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold tracking-tight">
+              {t("assignments")}
+            </h2>
+          </div>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
+              <CardTitle>
+                {t("assignmentsCount")} ({assignmentsQuery.data?.length || 0})
+              </CardTitle>
+              <Button
+                onClick={() =>
+                  router.push(`/class/teacher/${classId}/create-assignment`)
+                }
               >
-                <DialogTrigger asChild>
-                  <Button variant="outline">
-                    <Edit className="w-4 h-4 mr-2" />
-                    {t("renameClassButton")}
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>{t("renameClass")}</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <Input
-                        id="className"
-                        value={newClassName}
-                        onChange={(e) => setNewClassName(e.target.value)}
-                        placeholder={t("enterNewClassName")}
-                      />
-                    </div>
-                    <div className="flex gap-2 justify-end">
-                      <Button
-                        variant="outline"
-                        onClick={() => setRenameDialogOpen(false)}
+                {t("createAssignment")}
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {assignmentsQuery.isLoading ? (
+                <Loader />
+              ) : assignmentsQuery.data && assignmentsQuery.data.length > 0 ? (
+                <div className="space-y-2">
+                  {assignmentsQuery.data.map(
+                    (assignment: {
+                      assignmentId: string;
+                      title: string;
+                      description: string | null;
+                      dueDate: string | null;
+                      createdAt: string;
+                      submissionCount: number;
+                    }) => (
+                      <div
+                        key={assignment.assignmentId}
+                        className="flex items-center justify-between p-3 border rounded-lg"
                       >
-                        {t("cancel")}
-                      </Button>
-                      <Button
-                        onClick={handleRename}
-                        disabled={
-                          renameMutation.isPending || !newClassName.trim()
-                        }
+                        <div className="flex-1">
+                          <h3 className="font-medium">{assignment.title}</h3>
+                          {assignment.description && (
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {assignment.description}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                            <span>
+                              {t("created")}:{" "}
+                              {new Date(
+                                assignment.createdAt
+                              ).toLocaleDateString()}
+                            </span>
+                            {assignment.dueDate && (
+                              <span>
+                                {t("due")}:{" "}
+                                {new Date(
+                                  assignment.dueDate
+                                ).toLocaleDateString()}
+                              </span>
+                            )}
+                            <span>
+                              {assignment.submissionCount}/
+                              {studentsQuery.data?.length || 0}{" "}
+                              {t("studentsSubmitted")}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              copyAssignmentUrl(assignment.assignmentId)
+                            }
+                          >
+                            <Copy className="w-4 h-4 mr-2" />
+                            {t("copyUrl")}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedAssignment({
+                                id: assignment.assignmentId,
+                                title: assignment.title,
+                              });
+                              setMetricsDialogOpen(true);
+                            }}
+                          >
+                            <BarChart3 className="w-4 h-4 mr-2" />
+                            {t("viewMetrics")}
+                          </Button>
+                          <Link
+                            href={`/class/teacher/${classId}/edit-assignment/${assignment.assignmentId}`}
+                          >
+                            <Button variant="outline" size="sm">
+                              <Edit className="w-4 h-4 mr-2" />
+                              {t("edit")}
+                            </Button>
+                          </Link>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="destructive" size="sm">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  {t("deleteAssignment")}
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  {t("deleteAssignmentDescription")}
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>
+                                  {t("cancel")}
+                                </AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() =>
+                                    deleteAssignmentMutation.mutate(
+                                      assignment.assignmentId
+                                    )
+                                  }
+                                  className="bg-destructive text-white hover:bg-destructive/90"
+                                >
+                                  {deleteAssignmentMutation.isPending
+                                    ? t("deleting")
+                                    : t("deleteButton")}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </div>
+                    )
+                  )}
+                </div>
+              ) : (
+                <p className="text-muted-foreground">
+                  {t("noAssignmentsCreated")}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {currentTab === "lectures" && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold tracking-tight">
+              {t("lectures")}
+            </h2>
+          </div>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
+              <CardTitle>
+                {t("lecturesAndMaterials")} ({lecturesQuery.data?.length || 0})
+              </CardTitle>
+              <Button
+                onClick={() =>
+                  router.push(`/class/teacher/${classId}/upload-lecture`)
+                }
+              >
+                {t("uploadLecture")}
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {lecturesQuery.isLoading ? (
+                <Loader />
+              ) : lecturesQuery.data && lecturesQuery.data.length > 0 ? (
+                <div className="space-y-2">
+                  {lecturesQuery.data.map(
+                    (lecture: {
+                      lectureId: string;
+                      title: string;
+                      description: string | null;
+                      type: string;
+                      url: string;
+                      lectureDate: string;
+                      createdAt: string;
+                    }) => (
+                      <Link
+                        key={lecture.lectureId}
+                        href={`/lecture/${lecture.lectureId}`}
+                        className="block"
                       >
-                        {renameMutation.isPending
-                          ? t("renaming")
-                          : t("renameButton")}
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive">
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    {t("deleteClassButton")}
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>{t("deleteClass")}</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      {t("deleteClassDescription")}
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleDelete}
-                      className="bg-destructive text-white hover:bg-destructive/90"
-                    >
-                      {deleteMutation.isPending
-                        ? t("deleting")
-                        : t("deleteButton")}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
+                        <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                          <div className="flex-1">
+                            <h3 className="font-medium">{lecture.title}</h3>
+                            {lecture.description && (
+                              <p className="text-sm text-muted-foreground mt-1">
+                                {lecture.description}
+                              </p>
+                            )}
+                            <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                              <Badge variant="outline">
+                                {lecture.type === "file"
+                                  ? t("file")
+                                  : t("youtube")}
+                              </Badge>
+                              <span>
+                                {t("date")}:{" "}
+                                {new Date(
+                                  lecture.lectureDate
+                                ).toLocaleDateString()}
+                              </span>
+                              <span>
+                                {t("uploaded")}:{" "}
+                                {new Date(
+                                  lecture.createdAt
+                                ).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
+                    )
+                  )}
+                </div>
+              ) : (
+                <p className="text-muted-foreground">
+                  {t("noLecturesUploaded")}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {currentTab === "settings" && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold tracking-tight">
+              {t("settings")}
+            </h2>
           </div>
 
-          <Separator />
+          <Card>
+            <CardHeader>
+              <CardTitle>Class Information</CardTitle>
+              <CardDescription>
+                Manage your class details and settings.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                  <p className="font-medium">{t("classCode")}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {classData.classCode}
+                  </p>
+                </div>
+                <Button variant="outline" onClick={copyClassCode}>
+                  <Copy className="w-4 h-4 mr-2" />
+                  {t("copyCode")}
+                </Button>
+              </div>
 
-          <Tabs
-            value={currentTab}
-            onValueChange={(value) => {
-              const newSearchParams = new URLSearchParams(searchParams);
-              newSearchParams.set("tab", value);
-              router.push(`?${newSearchParams.toString()}`);
-            }}
-            className="w-full"
-          >
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="announcement">
-                {t("announcement")}
-              </TabsTrigger>
-              <TabsTrigger value="students">{t("students")}</TabsTrigger>
-              <TabsTrigger value="schedule">{t("schedule")}</TabsTrigger>
-              <TabsTrigger value="assignments">{t("assignments")}</TabsTrigger>
-              <TabsTrigger value="lectures">{t("lectures")}</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="announcement" className="space-y-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0">
-                  <CardTitle>{t("announcements")}</CardTitle>
-                  <CreateAnnouncementForm
-                    classId={classId}
-                    onSuccess={() => {
-                      // Refetch announcements after creating one
-                      // We'll need to add a query invalidation here
-                    }}
-                  />
-                </CardHeader>
-                <CardContent>
-                  <AnnouncementList classId={classId} isTeacher={true} />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="students" className="space-y-4">
-              {/* Students Section */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>
-                    {t("studentsCount")} ({studentsQuery.data?.length || 0})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {studentsQuery.isLoading ? (
-                    <Loader />
-                  ) : studentsQuery.data && studentsQuery.data.length > 0 ? (
-                    <div className="space-y-2">
-                      {studentsQuery.data.map(
-                        (student: {
-                          userId: string;
-                          name: string;
-                          email: string;
-                          enrolledAt: string;
-                        }) => (
-                          <div
-                            key={student.userId}
-                            className="flex items-center justify-between p-3 border rounded-lg"
-                          >
-                            <div>
-                              <p className="font-medium">{student.name}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {student.email}
-                              </p>
-                            </div>
-                            <Badge variant="secondary">
-                              {t("enrolled")}{" "}
-                              {new Date(
-                                student.enrolledAt
-                              ).toLocaleDateString()}
-                            </Badge>
-                          </div>
-                        )
-                      )}
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                  <p className="font-medium">{t("renameClass")}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Change the name of your class.
+                  </p>
+                </div>
+                <Dialog
+                  open={renameDialogOpen}
+                  onOpenChange={setRenameDialogOpen}
+                >
+                  <DialogTrigger asChild>
+                    <Button variant="outline">
+                      <Edit className="w-4 h-4 mr-2" />
+                      {t("renameClassButton")}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>{t("renameClass")}</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Input
+                          id="className"
+                          value={newClassName}
+                          onChange={(e) => setNewClassName(e.target.value)}
+                          placeholder={t("enterNewClassName")}
+                        />
+                      </div>
+                      <div className="flex gap-2 justify-end">
+                        <Button
+                          variant="outline"
+                          onClick={() => setRenameDialogOpen(false)}
+                        >
+                          {t("cancel")}
+                        </Button>
+                        <Button
+                          onClick={handleRename}
+                          disabled={
+                            renameMutation.isPending || !newClassName.trim()
+                          }
+                        >
+                          {renameMutation.isPending
+                            ? t("renaming")
+                            : t("renameButton")}
+                        </Button>
+                      </div>
                     </div>
-                  ) : (
-                    <p className="text-muted-foreground">
-                      {t("noStudentsEnrolled")}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </CardContent>
+          </Card>
 
-            <TabsContent value="schedule" className="space-y-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0">
-                  <CardTitle>{t("classSchedule")}</CardTitle>
-                  <CreateScheduleForm
-                    classId={classId}
-                    onSuccess={() => schedulesQuery.refetch()}
-                  />
-                </CardHeader>
-                <CardContent>
-                  {schedulesQuery.isLoading ? (
-                    <Loader />
-                  ) : (
-                    <ScheduleCalendar
-                      schedules={schedulesQuery.data || []}
-                      classId={classId}
-                      onScheduleUpdate={() => schedulesQuery.refetch()}
-                      isTeacher={true}
-                    />
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="assignments" className="space-y-4">
-              {/* Assignments Section */}
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0">
-                  <CardTitle>
-                    {t("assignmentsCount")} (
-                    {assignmentsQuery.data?.length || 0})
-                  </CardTitle>
-                  <Button
-                    onClick={() =>
-                      router.push(`/class/teacher/${classId}/create-assignment`)
-                    }
-                  >
-                    {t("createAssignment")}
-                  </Button>
-                </CardHeader>
-                <CardContent>
-                  {assignmentsQuery.isLoading ? (
-                    <Loader />
-                  ) : assignmentsQuery.data &&
-                    assignmentsQuery.data.length > 0 ? (
-                    <div className="space-y-2">
-                      {assignmentsQuery.data.map(
-                        (assignment: {
-                          assignmentId: string;
-                          title: string;
-                          description: string | null;
-                          dueDate: string | null;
-                          createdAt: string;
-                          submissionCount: number;
-                        }) => (
-                          <div
-                            key={assignment.assignmentId}
-                            className="flex items-center justify-between p-3 border rounded-lg"
-                          >
-                            <div className="flex-1">
-                              <h3 className="font-medium">
-                                {assignment.title}
-                              </h3>
-                              {assignment.description && (
-                                <p className="text-sm text-muted-foreground mt-1">
-                                  {assignment.description}
-                                </p>
-                              )}
-                              <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                                <span>
-                                  {t("created")}:{" "}
-                                  {new Date(
-                                    assignment.createdAt
-                                  ).toLocaleDateString()}
-                                </span>
-                                {assignment.dueDate && (
-                                  <span>
-                                    {t("due")}:{" "}
-                                    {new Date(
-                                      assignment.dueDate
-                                    ).toLocaleDateString()}
-                                  </span>
-                                )}
-                                <span>
-                                  {assignment.submissionCount}/
-                                  {studentsQuery.data?.length || 0}{" "}
-                                  {t("studentsSubmitted")}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() =>
-                                  copyAssignmentUrl(assignment.assignmentId)
-                                }
-                              >
-                                <Copy className="w-4 h-4 mr-2" />
-                                {t("copyUrl")}
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  setSelectedAssignment({
-                                    id: assignment.assignmentId,
-                                    title: assignment.title,
-                                  });
-                                  setMetricsDialogOpen(true);
-                                }}
-                              >
-                                <BarChart3 className="w-4 h-4 mr-2" />
-                                {t("viewMetrics")}
-                              </Button>
-                              <Link
-                                href={`/class/teacher/${classId}/edit-assignment/${assignment.assignmentId}`}
-                              >
-                                <Button variant="outline" size="sm">
-                                  <Edit className="w-4 h-4 mr-2" />
-                                  {t("edit")}
-                                </Button>
-                              </Link>
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button variant="destructive" size="sm">
-                                    <Trash2 className="w-4 h-4" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>
-                                      {t("deleteAssignment")}
-                                    </AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      {t("deleteAssignmentDescription")}
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>
-                                      {t("cancel")}
-                                    </AlertDialogCancel>
-                                    <AlertDialogAction
-                                      onClick={() =>
-                                        deleteAssignmentMutation.mutate(
-                                          assignment.assignmentId
-                                        )
-                                      }
-                                      className="bg-destructive text-white hover:bg-destructive/90"
-                                    >
-                                      {deleteAssignmentMutation.isPending
-                                        ? t("deleting")
-                                        : t("deleteButton")}
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            </div>
-                          </div>
-                        )
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-muted-foreground">
-                      {t("noAssignmentsCreated")}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="lectures" className="space-y-4">
-              {/* Lectures Section */}
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0">
-                  <CardTitle>
-                    {t("lecturesAndMaterials")} (
-                    {lecturesQuery.data?.length || 0})
-                  </CardTitle>
-                  <Button
-                    onClick={() =>
-                      router.push(`/class/teacher/${classId}/upload-lecture`)
-                    }
-                  >
-                    {t("uploadLecture")}
-                  </Button>
-                </CardHeader>
-                <CardContent>
-                  {lecturesQuery.isLoading ? (
-                    <Loader />
-                  ) : lecturesQuery.data && lecturesQuery.data.length > 0 ? (
-                    <div className="space-y-2">
-                      {lecturesQuery.data.map(
-                        (lecture: {
-                          lectureId: string;
-                          title: string;
-                          description: string | null;
-                          type: string;
-                          url: string;
-                          lectureDate: string;
-                          createdAt: string;
-                        }) => (
-                          <Link
-                            key={lecture.lectureId}
-                            href={`/lecture/${lecture.lectureId}`}
-                            className="block"
-                          >
-                            <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
-                              <div className="flex-1">
-                                <h3 className="font-medium">{lecture.title}</h3>
-                                {lecture.description && (
-                                  <p className="text-sm text-muted-foreground mt-1">
-                                    {lecture.description}
-                                  </p>
-                                )}
-                                <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                                  <Badge variant="outline">
-                                    {lecture.type === "file"
-                                      ? t("file")
-                                      : t("youtube")}
-                                  </Badge>
-                                  <span>
-                                    {t("date")}:{" "}
-                                    {new Date(
-                                      lecture.lectureDate
-                                    ).toLocaleDateString()}
-                                  </span>
-                                  <span>
-                                    {t("uploaded")}:{" "}
-                                    {new Date(
-                                      lecture.createdAt
-                                    ).toLocaleDateString()}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </Link>
-                        )
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-muted-foreground">
-                      {t("noLecturesUploaded")}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-
-          {selectedAssignment && (
-            <AssignmentMetricsDialog
-              assignmentId={selectedAssignment.id}
-              assignmentTitle={selectedAssignment.title}
-              isOpen={metricsDialogOpen}
-              onClose={() => {
-                setMetricsDialogOpen(false);
-                setSelectedAssignment(null);
-              }}
-            />
-          )}
+          <Card className="border-red-200">
+            <CardHeader>
+              <CardTitle className="text-red-600">Danger Zone</CardTitle>
+              <CardDescription>
+                Irreversible actions for this class.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between p-4 border border-red-200 rounded-lg bg-red-50">
+                <div>
+                  <p className="font-medium text-red-900">{t("deleteClass")}</p>
+                  <p className="text-sm text-red-700">
+                    {t("deleteClassDescription")}
+                  </p>
+                </div>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive">
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      {t("deleteClassButton")}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>{t("deleteClass")}</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {t("deleteClassDescription")}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDelete}
+                        className="bg-destructive text-white hover:bg-destructive/90"
+                      >
+                        {deleteMutation.isPending
+                          ? t("deleting")
+                          : t("deleteButton")}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </div>
-    </div>
+      )}
+
+      {selectedAssignment && (
+        <AssignmentMetricsDialog
+          assignmentId={selectedAssignment.id}
+          assignmentTitle={selectedAssignment.title}
+          isOpen={metricsDialogOpen}
+          onClose={() => {
+            setMetricsDialogOpen(false);
+            setSelectedAssignment(null);
+          }}
+        />
+      )}
+    </ClassShell>
   );
 }

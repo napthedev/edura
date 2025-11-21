@@ -59,22 +59,17 @@ function SidebarContent({ role }: { role: "teacher" | "student" | "manager" }) {
       icon: LayoutDashboard,
     },
     {
-      href: "/dashboard/classes",
+      href: "/dashboard/student/classes",
       label: "My Classes",
       icon: BookOpen,
     },
     {
-      href: "/dashboard/assignments",
+      href: "/dashboard/student/assignments",
       label: "Assignments",
       icon: FileText,
     },
     {
-      href: "/dashboard/grades",
-      label: "Grades",
-      icon: GraduationCap,
-    },
-    {
-      href: "/dashboard/schedule",
+      href: "/dashboard/student/schedule",
       label: "Schedule",
       icon: Calendar,
     },

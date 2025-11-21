@@ -54,6 +54,10 @@ export default function StudentDashboard() {
             <p className="text-xs text-muted-foreground">{t("dueThisWeek")}</p>
           </CardContent>
         </Card>
+
+        <div>
+          <JoinClassForm onClassJoined={() => studentClassesQuery.refetch()} />
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
@@ -101,10 +105,6 @@ export default function StudentDashboard() {
               )}
             </CardContent>
           </Card>
-        </div>
-
-        <div>
-          <JoinClassForm onClassJoined={() => studentClassesQuery.refetch()} />
         </div>
       </div>
     </div>

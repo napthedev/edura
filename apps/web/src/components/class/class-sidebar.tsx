@@ -1,0 +1,134 @@
+"use client";
+
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { cn } from "@/lib/utils";
+import {
+  Megaphone,
+  Users,
+  Calendar,
+  FileText,
+  Video,
+  Settings,
+  ArrowLeft,
+} from "lucide-react";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+
+interface ClassSidebarProps {
+  classId: string;
+  className?: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+function ClassSidebarContent({
+  classId,
+  className,
+}: {
+  classId: string;
+  className?: string;
+}) {
+  const searchParams = useSearchParams();
+  const currentTab = searchParams.get("tab") || "announcement";
+
+  const links = [
+    {
+      value: "announcement",
+      label: "Announcements",
+      icon: Megaphone,
+    },
+    {
+      value: "students",
+      label: "Students",
+      icon: Users,
+    },
+    {
+      value: "schedule",
+      label: "Schedule",
+      icon: Calendar,
+    },
+    {
+      value: "assignments",
+      label: "Assignments",
+      icon: FileText,
+    },
+    {
+      value: "lectures",
+      label: "Lectures",
+      icon: Video,
+    },
+    {
+      value: "settings",
+      label: "Settings",
+      icon: Settings,
+    },
+  ];
+
+  return (
+    <>
+      <div className="flex h-16 items-center px-6 border-b">
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors"
+        >
+          <ArrowLeft className="h-5 w-5" />
+          <span className="font-medium">Back to Dashboard</span>
+        </Link>
+      </div>
+      <div className="flex flex-col gap-2 p-4">
+        <div className="px-3 py-2">
+          <h2
+            className="mb-2 px-4 text-lg font-semibold tracking-tight truncate"
+            title={className}
+          >
+            {className || "Class"}
+          </h2>
+        </div>
+        {links.map((link) => {
+          const Icon = link.icon;
+          const isActive = currentTab === link.value;
+          return (
+            <Link
+              key={link.value}
+              href={`/class/teacher/${classId}?tab=${link.value}`}
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
+                isActive
+                  ? "bg-blue-50 text-blue-600"
+                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+              )}
+            >
+              <Icon className="h-5 w-5" />
+              {link.label}
+            </Link>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+export function ClassSidebar({
+  classId,
+  className,
+  open = false,
+  onOpenChange,
+}: ClassSidebarProps) {
+  return (
+    <>
+      {/* Desktop Sidebar - Always visible on md and above */}
+      <div className="hidden border-r bg-white md:block w-64 min-h-screen fixed left-0 top-0 bottom-0 z-30">
+        <ClassSidebarContent classId={classId} className={className} />
+      </div>
+
+      {/* Mobile Sidebar - Drawer */}
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent side="left" className="w-64 p-0 border-0">
+          <div className="bg-white h-full border-r">
+            <ClassSidebarContent classId={classId} className={className} />
+          </div>
+        </SheetContent>
+      </Sheet>
+    </>
+  );
+}

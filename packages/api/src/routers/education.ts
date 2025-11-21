@@ -1079,6 +1079,21 @@ export const educationRouter = router({
       .where(eq(classes.teacherId, ctx.session.user.id))
       .orderBy(schedules.scheduledAt);
   }),
+  getStudentSchedules: protectedProcedure.query(async ({ ctx }) => {
+    // Fetch all schedules for classes the student is enrolled in
+    return await ctx.db
+      .select()
+      .from(schedules)
+      .innerJoin(classes, eq(schedules.classId, classes.classId))
+      .innerJoin(
+        enrollments,
+        and(
+          eq(enrollments.classId, classes.classId),
+          eq(enrollments.studentId, ctx.session.user.id)
+        )
+      )
+      .orderBy(schedules.scheduledAt);
+  }),
   generateQuestionsFromDocument: protectedProcedure
     .input(
       z.object({
@@ -1301,6 +1316,46 @@ export const educationRouter = router({
 
       return data;
     }),
+  getStudentAssignments: protectedProcedure.query(async ({ ctx }) => {
+    // Check if user is a student
+    if (ctx.session.user.role !== "student") {
+      throw new Error(
+        "Access denied: Only students can access their assignments"
+      );
+    }
+
+    // Get all assignments from classes the student is enrolled in
+    const studentAssignments = await ctx.db
+      .select({
+        assignmentId: assignments.assignmentId,
+        title: assignments.title,
+        description: assignments.description,
+        dueDate: assignments.dueDate,
+        createdAt: assignments.createdAt,
+        classId: classes.classId,
+        className: classes.className,
+        submitted: submissions.submissionId,
+        submittedAt: submissions.submittedAt,
+        score: submissions.score,
+      })
+      .from(enrollments)
+      .innerJoin(classes, eq(enrollments.classId, classes.classId))
+      .innerJoin(assignments, eq(classes.classId, assignments.classId))
+      .leftJoin(
+        submissions,
+        and(
+          eq(submissions.assignmentId, assignments.assignmentId),
+          eq(submissions.studentId, ctx.session.user.id)
+        )
+      )
+      .where(eq(enrollments.studentId, ctx.session.user.id))
+      .orderBy(assignments.dueDate, assignments.createdAt);
+
+    return studentAssignments.map((item) => ({
+      ...item,
+      submitted: !!item.submitted,
+    }));
+  }),
 });
 
 export type EducationRouter = typeof educationRouter;

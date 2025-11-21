@@ -7,6 +7,7 @@ import { authClient } from "@/lib/auth-client";
 import { DashboardShell } from "@/components/dashboard/shell";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
+import Loader from "@/components/loader";
 
 export default function DashboardPage() {
   const t = useTranslations("Dashboard");
@@ -23,7 +24,11 @@ export default function DashboardPage() {
   }, []);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader />
+      </div>
+    );
   }
 
   if (!session?.data?.user) {
