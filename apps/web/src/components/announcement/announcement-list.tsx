@@ -21,6 +21,7 @@ import {
 import { toast } from "sonner";
 import { useState } from "react";
 import EditAnnouncementForm from "./edit-announcement-form";
+import { useTranslations } from "next-intl";
 
 interface Announcement {
   announcement: {
@@ -46,6 +47,7 @@ export default function AnnouncementList({
   classId,
   isTeacher = false,
 }: AnnouncementListProps) {
+  const t = useTranslations("AnnouncementList");
   const queryClient = useQueryClient();
   const [editingAnnouncement, setEditingAnnouncement] = useState<{
     id: string;
@@ -68,13 +70,13 @@ export default function AnnouncementList({
     mutationFn: (announcementId: string) =>
       trpcClient.education.deleteAnnouncement.mutate({ announcementId }),
     onSuccess: () => {
-      toast.success("Announcement deleted successfully");
+      toast.success(t("announcementDeleted"));
       queryClient.invalidateQueries({
         queryKey: ["class-announcements", classId],
       });
     },
     onError: (error) => {
-      toast.error(`Failed to delete announcement: ${error.message}`);
+      toast.error(`${t("failedToDeleteAnnouncement")}: ${error.message}`);
     },
   });
 
@@ -104,7 +106,7 @@ export default function AnnouncementList({
       <Card>
         <CardContent className="p-6">
           <p className="text-center text-muted-foreground">
-            Failed to load announcements
+            {t("failedToLoadAnnouncements")}
           </p>
         </CardContent>
       </Card>
@@ -116,7 +118,7 @@ export default function AnnouncementList({
       <Card>
         <CardContent className="p-6">
           <p className="text-center text-muted-foreground">
-            No announcements yet
+            {t("noAnnouncementsYet")}
           </p>
         </CardContent>
       </Card>
@@ -178,15 +180,14 @@ export default function AnnouncementList({
                         <AlertDialogContent>
                           <AlertDialogHeader>
                             <AlertDialogTitle>
-                              Delete Announcement
+                              {t("deleteAnnouncement")}
                             </AlertDialogTitle>
                             <AlertDialogDescription>
-                              Are you sure you want to delete this announcement?
-                              This action cannot be undone.
+                              {t("deleteAnnouncementDescription")}
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
                             <AlertDialogAction
                               onClick={() =>
                                 deleteMutation.mutate(
@@ -196,8 +197,8 @@ export default function AnnouncementList({
                               className="bg-destructive text-white hover:bg-destructive/90"
                             >
                               {deleteMutation.isPending
-                                ? "Deleting..."
-                                : "Delete"}
+                                ? t("deleting")
+                                : t("delete")}
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
@@ -207,7 +208,7 @@ export default function AnnouncementList({
                 </div>
 
                 <p className="text-sm text-muted-foreground mb-3">
-                  Posted by {creator.name}
+                  {t("postedBy")} {creator.name}
                 </p>
 
                 {announcement.content && (

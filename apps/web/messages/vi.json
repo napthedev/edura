@@ -16,103 +16,105 @@
     "about": "Giới thiệu"
   },
   "Hero": {
-    "title": "Nền tảng toàn diện cho gia sư riêng",
-    "subtitle": "Tạo khóa học tương tác, quản lý học sinh và theo dõi tiến trình tất cả trong một nơi",
+    "title": "Nền tảng quản lý giáo dục cho trung tâm",
+    "subtitle": "Tối ưu hóa hoạt động, quản lý tài chính, theo dõi KPI và tương tác với phụ huynh—mọi thứ bạn cần để điều hành trung tâm dạy thêm thành công",
     "ctaText": "Dùng thử miễn phí",
     "watchDemo": "Xem Demo",
-    "trustedBadge": "Được tin tưởng bởi hơn 50,000 gia sư riêng trên toàn thế giới",
-    "trustedBy": "Được tin tưởng bởi các trường hàng đầu:",
-    "whyChoose": "Tại sao các tổ chức chọn Edura",
-    "completeManagement": "Hệ thống quản lý hoàn chỉnh",
-    "aiContentBuilder": "Trình tạo nội dung tích hợp AI",
-    "personalizedTracking": "Theo dõi tiến trình cá nhân hóa",
+    "trustedBadge": "Được tin tưởng bởi hơn 500 trung tâm dạy thêm trên toàn thế giới",
+    "trustedBy": "Được tin tưởng bởi các trung tâm hàng đầu:",
+    "whyChoose": "Tại sao các trung tâm chọn Edura",
+    "completeManagement": "Quản lý hoạt động toàn diện",
+    "aiContentBuilder": "Tạo bài tập tích hợp AI",
+    "personalizedTracking": "Theo dõi tiến trình thời gian thực",
     "stats": {
-      "students": "Học sinh đang học",
-      "teachers": "Giáo viên chuyên nghiệp",
-      "satisfaction": "Sự hài lòng của phụ huynh"
+      "students": "Học sinh được quản lý",
+      "teachers": "Giáo viên kết nối",
+      "satisfaction": "Sự hài lòng của trung tâm"
     }
   },
   "DemoVideo": {
     "seeInAction": "Xem hoạt động thực tế",
-    "mainTitle": "Mọi thứ bạn cần để điều hành",
-    "highlightText": "doanh nghiệp gia sư của bạn",
-    "description": "Xem cách Edura đơn giản hóa việc lập lịch, thanh toán và quản lý học sinh—tất cả trong một nền tảng mạnh mẽ được xây dựng dành riêng cho gia sư riêng.",
+    "mainTitle": "Hệ thống quản lý cho",
+    "highlightText": "trung tâm dạy thêm hiện đại",
+    "description": "Xem cách Edura đơn giản hóa quản lý lớp, tự động hóa thanh toán, theo dõi tài chính, tạo bài tập bằng AI và giữ phụ huynh liên tục cập nhật thông qua Zalo.",
     "duration": "2:30 phút",
     "productDemo": "Demo sản phẩm",
     "demoPlaying": "Video demo sẽ phát tại đây"
   },
   "Features": {
-    "title": "Khám phá tất cả các tính năng tuyệt vời",
-    "subtitle": "Công cụ mạnh mẽ được thiết kế dành riêng cho gia sư riêng",
+    "title": "Các tính năng mạnh mẽ cho trung tâm dạy thêm",
+    "subtitle": "Các công cụ tổng hợp để quản lý lớp, tài chính và hoạt động hiệu quả",
     "studentManagement": {
-      "title": "Quản lý học sinh",
-      "description": "Theo dõi tiến trình, điểm danh và hồ sơ học sinh"
+      "title": "Theo dõi tiến trình lớp",
+      "description": "Theo dõi hiệu suất học sinh, điểm danh và tiến trình lớp thời gian thực"
     },
     "assignmentCreation": {
-      "title": "Tạo bài tập",
-      "description": "Tạo và phân phối bài tập một cách dễ dàng"
+      "title": "Tạo bài tập với AI",
+      "description": "Tự động tạo bài tập và đánh giá bằng trí tuệ nhân tạo thông minh"
     },
     "parentCommunication": {
-      "title": "Giao tiếp với phụ huynh",
-      "description": "Giữ phụ huynh được thông báo với cập nhật tự động"
+      "title": "Thông báo phụ huynh qua Zalo",
+      "description": "Gửi cập nhật tức thời cho phụ huynh trực tiếp qua Zalo"
     },
     "scheduleManagement": {
       "title": "Quản lý lịch trình",
-      "description": "Đặt lịch tự động và đồng bộ lịch"
+      "description": "Tổ chức các lớp học, buổi học và sự kiện một cách liền mạch"
     },
     "performanceAnalytics": {
-      "title": "Phân tích hiệu suất",
-      "description": "Thông tin chi tiết và báo cáo về tiến trình học sinh"
+      "title": "Chấm điểm tự động & Phân tích KPI",
+      "description": "Chấm điểm bài tập tự động và theo dõi các chỉ số hiệu suất chính"
     },
     "resourceLibrary": {
-      "title": "Thư viện tài liệu",
-      "description": "Tổ chức và chia sẻ tài liệu giảng dạy"
+      "title": "Quản lý tài chính & Thanh toán",
+      "description": "Tự động thu tiền học phí và theo dõi dòng tiền một cách dễ dàng"
     }
   },
   "Pricing": {
-    "title": "Chọn gói học của bạn",
-    "subtitle": "Các lựa chọn giá linh hoạt được thiết kế để phù hợp với ngân sách và nhu cầu học tập của mọi gia đình",
+    "title": "Bảng giá minh bạch đơn giản",
+    "subtitle": "Các gói linh hoạt được thiết kế cho trung tâm dạy thêm mọi quy mô",
     "monthly": "Hàng tháng",
     "yearly": "Hàng năm",
     "save": "Tiết kiệm 20%",
     "mostPopular": "Phổ biến nhất",
     "plans": {
       "basic": {
-        "name": "Cơ bản",
-        "description": "Hoàn hảo để bắt đầu",
-        "cta": "Bắt đầu gói Cơ bản",
+        "name": "Khởi động",
+        "description": "Hoàn hảo cho trung tâm nhỏ",
+        "cta": "Bắt đầu gói Khởi động",
         "features": [
-          "Truy cập 5 khóa học mỗi tháng",
-          "Theo dõi tiến trình cơ bản",
+          "Tối đa 3 lớp học",
+          "Quản lý học sinh & theo dõi tiến trình",
+          "Lập lịch lớp cơ bản",
           "Hỗ trợ qua email",
-          "Truy cập ứng dụng di động",
-          "Bảng điều khiển phụ huynh"
+          "Công cụ giao tiếp với phụ huynh"
         ]
       },
       "standard": {
-        "name": "Tiêu chuẩn",
-        "description": "Lựa chọn phổ biến nhất cho gia đình",
-        "cta": "Chọn Tiêu chuẩn",
+        "name": "Chuyên nghiệp",
+        "description": "Phổ biến nhất cho trung tâm đang phát triển",
+        "cta": "Chọn Chuyên nghiệp",
         "features": [
-          "Truy cập khóa học không giới hạn",
-          "Phân tích tiến trình nâng cao",
-          "Hỗ trợ ưu tiên",
-          "Tải khóa học offline",
-          "Hội nghị phụ huynh-giáo viên",
-          "Phiên hỗ trợ bài tập"
+          "Lớp học không giới hạn",
+          "Tạo bài tập bằng AI",
+          "Hệ thống chấm điểm tự động",
+          "Thông báo phụ huynh qua Zalo",
+          "Theo dõi tài chính & báo cáo",
+          "Bảng điều khiển phân tích KPI",
+          "Hỗ trợ ưu tiên"
         ]
       },
       "premium": {
-        "name": "Cao cấp",
-        "description": "Giải pháp học tập hoàn chỉnh",
-        "cta": "Chọn Cao cấp",
+        "name": "Doanh nghiệp",
+        "description": "Giải pháp hoàn chỉnh cho trung tâm lớn",
+        "cta": "Chọn Doanh nghiệp",
         "features": [
-          "Mọi thứ trong gói Tiêu chuẩn",
-          "Phiên dạy kèm 1-1",
-          "Lộ trình học cá nhân hóa",
-          "Đánh giá nâng cao",
-          "Hướng dẫn chuẩn bị đại học",
-          "Đường dây hỗ trợ 24/7"
+          "Mọi thứ trong gói Chuyên nghiệp",
+          "Xử lý thanh toán tự động",
+          "Quản lý tài chính nâng cao",
+          "Theo dõi dòng tiền (lương & học phí)",
+          "Tích hợp tùy chỉnh",
+          "Quản lý tài khoản chuyên dụng",
+          "Hỗ trợ ưu tiên 24/7"
         ]
       }
     },
@@ -120,8 +122,8 @@
     "perYear": "mỗi năm",
     "savePerYear": "Tiết kiệm {amount}/năm",
     "guarantee": {
-      "title": "Đảm bảo hoàn tiền trong 30 ngày",
-      "description": "Dùng thử Edura không rủi ro! Nếu bạn không hoàn toàn hài lòng với trải nghiệm học tập của con trong 30 ngày đầu, chúng tôi sẽ hoàn lại toàn bộ tiền của bạn, không hỏi lý do."
+      "title": "Dùng thử không rủi ro 30 ngày",
+      "description": "Dùng thử Edura hoàn toàn không rủi ro! Nếu bạn không hoàn toàn hài lòng với cách nền tảng của chúng tôi giúp quản lý trung tâm dạy thêm của bạn trong 30 ngày đầu, chúng tôi sẽ hoàn lại toàn bộ tiền của bạn, không hỏi lý do."
     },
     "faq": {
       "question": "Có câu hỏi về các gói của chúng tôi?",
@@ -129,40 +131,40 @@
     }
   },
   "Testimonials": {
-    "title": "Học sinh & Phụ huynh nói gì",
-    "subtitle": "Phản hồi thực từ cộng đồng học tập của chúng tôi về trải nghiệm với Edura",
-    "studentVoices": "Tiếng nói học sinh",
-    "parentFeedback": "Phản hồi phụ huynh",
+    "title": "Các trung tâm nói gì",
+    "subtitle": "Phản hồi thực từ những người quản lý trung tâm và giáo viên sử dụng Edura",
+    "studentVoices": "Quản lý trung tâm",
+    "parentFeedback": "Giáo viên & Nhân viên",
     "students": {
       "emma": {
-        "name": "Emma Thompson",
-        "grade": "Lớp 8",
-        "text": "Edura đã làm cho toán học trở nên dễ hiểu hơn rất nhiều! Các bài học tương tác và trò chơi làm cho việc học trở nên thú vị."
+        "name": "Lĩnh Nguyễn",
+        "grade": "Quản lý trung tâm, Hà Nội",
+        "text": "Edura đã tiết kiệm cho chúng tôi hàng giờ mỗi tuần! Hệ thống thanh toán tự động và báo cáo tài chính giúp chúng tôi quản lý dòng tiền một cách dễ dàng."
       },
       "michael": {
-        "name": "Michael Davis",
-        "grade": "Lớp 10",
-        "text": "Khóa học lập trình thật tuyệt vời! Tôi đã xây dựng trang web đầu tiên và giờ tôi muốn trở thành lập trình viên."
+        "name": "Minh Trần",
+        "grade": "Giám đốc trung tâm, TPHCM",
+        "text": "Tích hợp Zalo là một trò đổi cuộc. Phụ huynh nhận được cập nhật tức thì và tỷ lệ đăng ký của chúng tôi đã tăng đáng kể."
       },
       "sophia": {
-        "name": "Sophia Wilson",
-        "grade": "Lớp 6",
-        "text": "Tôi thích các thí nghiệm khoa học mà chúng ta có thể làm ở nhà. Giống như có một phòng thí nghiệm trong bếp của tôi!"
+        "name": "Hòa Phạm",
+        "grade": "Trưởng bộ phận vận hành, Đà Nẵng",
+        "text": "Bảng điều khiển KPI cung cấp cho chúng tôi sự hiểu biết thời gian thực về hiệu suất của trung tâm. Giờ đây chúng tôi có thể dễ dàng theo dõi tiến trình học sinh và hiệu quả giáo viên."
       }
     },
     "parents": {
       "jennifer": {
-        "name": "Jennifer Martinez",
-        "relation": "Phụ huynh của Alex (Lớp 7)",
-        "text": "Điểm số của con trai tôi đã cải thiện đáng kể sau khi tham gia Edura. Phương pháp học cá nhân hóa thực sự hiệu quả!"
+        "name": "Đức Hoàng",
+        "relation": "Giáo viên tại Học viện Hàng đầu",
+        "text": "Tính năng tạo bài tập bằng AI tiết kiệm cho tôi rất nhiều thời gian chuẩn bị. Chấm điểm tự động có nghĩa là tôi có thể tập trung nhiều hơn vào sự tương tác của học sinh."
       },
       "robert": {
-        "name": "Robert Johnson",
-        "relation": "Phụ huynh của cặp song sinh (Lớp 5)",
-        "text": "Cả hai con gái tôi đều hứng thú và háo hức học tập. Nền tảng này an toàn, giáo dục và thú vị."
+        "name": "Lan Võ",
+        "relation": "Giáo viên chủ nhiệm tại Trung tâm Thành công",
+        "text": "Quản lý nhiều lớp học chưa bao giờ dễ dàng như vậy. Nền tảng xử lý lập lịch, chấm điểm và giao tiếp với phụ huynh một cách liền mạch."
       }
     },
-    "trustBadge": "Đánh giá trung bình 4.9/5 từ hơn 10,000 đánh giá"
+    "trustBadge": "Đánh giá trung bình 4.8/5 từ 500+ trung tâm dạy thêm"
   },
   "Footer": {
     "newsletter": {
@@ -238,7 +240,9 @@
     "code": "Mã",
     "created": "Được tạo",
     "noClassesYet": "Chưa có lớp học nào.",
-    "noAssignmentsCreated": "Chưa có bài tập nào được tạo."
+    "noAssignmentsCreated": "Chưa có bài tập nào được tạo.",
+    "schedule": "Lịch trình",
+    "noSchedulesYet": "Chưa có lịch trình nào."
   },
   "ClassPage": {
     "classNotFound": "Không tìm thấy lớp học",
@@ -369,7 +373,9 @@
     "chooseImage": "Chọn hình ảnh",
     "cancel": "Hủy",
     "creating": "Đang tạo...",
-    "createAnnouncementButton": "Tạo thông báo"
+    "createAnnouncementButton": "Tạo thông báo",
+    "updating": "Đang cập nhật...",
+    "updateAnnouncement": "Cập nhật thông báo"
   },
   "ScheduleForm": {
     "scheduleCreated": "Đã tạo lịch trình thành công",
@@ -419,5 +425,84 @@
     "classes": "Lớp học",
     "joinedDate": "Ngày tham gia",
     "noStudents": "Chưa có học sinh đăng ký"
+  },
+  "Dashboard": {
+    "managerTitle": "Bảng điều khiển quản lý",
+    "welcomeManager": "Chào mừng, Quản lý!"
+  },
+  "StudentDashboard": {
+    "title": "Bảng điều khiển học sinh",
+    "enrolledClasses": "Lớp học đã đăng ký",
+    "activeCourses": "Khóa học đang hoạt động",
+    "pendingAssignments": "Bài tập đang chờ",
+    "dueThisWeek": "Hạn nộp trong tuần này",
+    "myClasses": "Lớp học của tôi",
+    "code": "Mã",
+    "joined": "Đã tham gia",
+    "noClassesJoined": "Chưa tham gia lớp học nào."
+  },
+  "JoinClass": {
+    "title": "Tham gia lớp học",
+    "classCode": "Mã lớp học",
+    "enterClassCode": "Nhập mã lớp học 5 ký tự",
+    "joining": "Đang tham gia...",
+    "joinClass": "Tham gia lớp học",
+    "classCodeLength": "Mã lớp học phải đúng 5 ký tự"
+  },
+  "UserMenu": {
+    "signIn": "Đăng nhập",
+    "myAccount": "Tài khoản của tôi",
+    "teacher": "Giáo viên",
+    "manager": "Quản lý",
+    "student": "Học sinh",
+    "signOut": "Đăng xuất"
+  },
+  "StudentClassPage": {
+    "classCode": "Mã lớp học",
+    "created": "Được tạo",
+    "copyCode": "Sao chép mã",
+    "leaveClass": "Rời lớp học",
+    "leaveClassTitle": "Rời lớp học",
+    "leaveClassDescription": "Bạn có chắc chắn muốn rời lớp học này? Bạn sẽ không còn truy cập được tài liệu và bài tập của lớp.",
+    "cancel": "Hủy",
+    "leaving": "Đang rời...",
+    "leaveClassConfirm": "Rời lớp học",
+    "announcements": "Thông báo",
+    "teacher": "Giáo viên",
+    "teacherInfoNotAvailable": "Thông tin giáo viên không khả dụng.",
+    "schedule": "Lịch trình",
+    "classSchedule": "Lịch trình lớp học",
+    "noSchedulesAvailable": "Chưa có lịch trình lớp học nào.",
+    "assignments": "Bài tập",
+    "submitted": "✅ Đã nộp",
+    "notSubmitted": "⏳ Chưa nộp",
+    "created": "Được tạo",
+    "due": "Hạn nộp",
+    "submittedAt": "Đã nộp",
+    "viewSubmission": "Xem bài nộp",
+    "takeAssignment": "Làm bài tập",
+    "noAssignmentsAvailable": "Chưa có bài tập nào.",
+    "lectures": "Bài giảng",
+    "lecturesAndMaterials": "Bài giảng & Tài liệu",
+    "file": "📄 Tệp",
+    "video": "🎥 Video",
+    "date": "Ngày",
+    "uploaded": "Đã tải lên",
+    "noLecturesAvailable": "Chưa có bài giảng nào.",
+    "leftClassSuccess": "Đã rời lớp học thành công",
+    "failedToLeaveClass": "Không thể rời lớp học",
+    "classCodeCopied": "Mã lớp học đã được sao chép vào clipboard"
+  },
+  "AnnouncementList": {
+    "deleteAnnouncement": "Xóa thông báo",
+    "deleteAnnouncementDescription": "Bạn có chắc chắn muốn xóa thông báo này? Hành động này không thể hoàn tác.",
+    "cancel": "Hủy",
+    "deleting": "Đang xóa...",
+    "delete": "Xóa",
+    "failedToLoadAnnouncements": "Không thể tải thông báo",
+    "noAnnouncementsYet": "Chưa có thông báo nào",
+    "announcementDeleted": "Đã xóa thông báo thành công",
+    "failedToDeleteAnnouncement": "Không thể xóa thông báo",
+    "postedBy": "Đăng bởi"
   }
 }

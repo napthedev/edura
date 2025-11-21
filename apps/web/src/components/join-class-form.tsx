@@ -16,20 +16,23 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTranslations } from "next-intl";
 
-const joinClassSchema = z.object({
-  classCode: z.string().length(5, "Class code must be exactly 5 characters"),
-});
+const joinClassSchema = (t: (key: string) => string) =>
+  z.object({
+    classCode: z.string().length(5, t("classCodeLength")),
+  });
 
-type JoinClassFormData = z.infer<typeof joinClassSchema>;
+type JoinClassFormData = z.infer<ReturnType<typeof joinClassSchema>>;
 
 interface JoinClassFormProps {
   onClassJoined?: () => void;
 }
 
 export function JoinClassForm({ onClassJoined }: JoinClassFormProps = {}) {
+  const t = useTranslations("JoinClass");
   const form = useForm<JoinClassFormData>({
-    resolver: zodResolver(joinClassSchema),
+    resolver: zodResolver(joinClassSchema(t)),
     defaultValues: {
       classCode: "",
     },
@@ -60,7 +63,7 @@ export function JoinClassForm({ onClassJoined }: JoinClassFormProps = {}) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Join a Class</CardTitle>
+        <CardTitle>{t("title")}</CardTitle>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -70,11 +73,11 @@ export function JoinClassForm({ onClassJoined }: JoinClassFormProps = {}) {
               name="classCode"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Class Code</FormLabel>
+                  <FormLabel>{t("classCode")}</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
-                      placeholder="Enter 5-character class code"
+                      placeholder={t("enterClassCode")}
                       maxLength={5}
                       className="uppercase"
                       autoComplete="off"
@@ -92,7 +95,7 @@ export function JoinClassForm({ onClassJoined }: JoinClassFormProps = {}) {
               disabled={joinClassMutation.isPending}
               className="w-full"
             >
-              {joinClassMutation.isPending ? "Joining..." : "Join Class"}
+              {joinClassMutation.isPending ? t("joining") : t("joinClass")}
             </Button>
           </form>
         </Form>

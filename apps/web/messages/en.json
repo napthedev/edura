@@ -16,103 +16,105 @@
     "about": "About"
   },
   "Hero": {
-    "title": "The all-in-one platform for private tutoring",
-    "subtitle": "Create interactive courses, manage students, and track progress all in one place",
+    "title": "A complete management platform for tutoring centre",
+    "subtitle": "Streamline operations, manage finances, track KPIs, and engage parents—everything you need to run a successful tutoring centre",
     "ctaText": "Start Free Trial",
     "watchDemo": "Watch Demo",
-    "trustedBadge": "Trusted by 50,000+ private tutors worldwide",
-    "trustedBy": "Trusted by leading schools:",
-    "whyChoose": "Why institutions Choose Edura",
-    "completeManagement": "Complete management system",
-    "aiContentBuilder": "AI powered content builder",
-    "personalizedTracking": "Personalized progress tracking",
+    "trustedBadge": "Trusted by 500+ tutoring centres worldwide",
+    "trustedBy": "Trusted by leading tutoring centres:",
+    "whyChoose": "Why Tutoring Centres Choose Edura",
+    "completeManagement": "Complete operations management",
+    "aiContentBuilder": "AI-powered quiz generation",
+    "personalizedTracking": "Real-time progress tracking",
     "stats": {
-      "students": "Students Learning",
-      "teachers": "Expert Teachers",
-      "satisfaction": "Parent Satisfaction"
+      "students": "Students Managed",
+      "teachers": "Teachers Connected",
+      "satisfaction": "Centre Satisfaction"
     }
   },
   "DemoVideo": {
     "seeInAction": "See it in action",
-    "mainTitle": "Everything you need to run your",
-    "highlightText": "tutoring business",
-    "description": "Watch how Edura streamlines scheduling, payments, and student management—all in one powerful platform built specifically for private tutors.",
+    "mainTitle": "The management system for",
+    "highlightText": "modern tutoring centres",
+    "description": "Watch how Edura streamlines class management, automates payments, tracks finances, generates quizzes with AI, and keeps parents engaged through Zalo notifications.",
     "duration": "2:30 min",
     "productDemo": "Product Demo",
     "demoPlaying": "Demo video would play here"
   },
   "Features": {
-    "title": "Check out all the amazing features",
-    "subtitle": "Powerful tools designed specifically for private tutors",
+    "title": "Powerful Features for Tutoring Centres",
+    "subtitle": "All-in-one tools to manage classes, finances, and operations efficiently",
     "studentManagement": {
-      "title": "Student Management",
-      "description": "Track progress, attendance, and student profiles"
+      "title": "Class Progress Tracking",
+      "description": "Monitor student performance, attendance, and class progress in real-time"
     },
     "assignmentCreation": {
-      "title": "Assignment Creation",
-      "description": "Create and distribute assignments effortlessly"
+      "title": "AI-Powered Quiz Generation",
+      "description": "Automatically generate quizzes and assessments using intelligent AI"
     },
     "parentCommunication": {
-      "title": "Parent Communication",
-      "description": "Keep parents informed with automated updates"
+      "title": "Zalo Parent Notifications",
+      "description": "Send instant updates to parents directly via Zalo messaging"
     },
     "scheduleManagement": {
       "title": "Schedule Management",
-      "description": "Automated booking and calendar sync"
+      "description": "Organize classes, sessions, and events seamlessly"
     },
     "performanceAnalytics": {
-      "title": "Performance Analytics",
-      "description": "Insights and reports on student progress"
+      "title": "Auto Grading & KPI Analytics",
+      "description": "Auto-grade assignments and track key performance indicators"
     },
     "resourceLibrary": {
-      "title": "Resource Library",
-      "description": "Organize and share teaching materials"
+      "title": "Financial Management & Payments",
+      "description": "Automate tuition fee collection and track cash flow easily"
     }
   },
   "Pricing": {
-    "title": "Choose Your Learning Plan",
-    "subtitle": "Flexible pricing options designed to fit every family's budget and learning needs",
+    "title": "Simple, Transparent Pricing",
+    "subtitle": "Flexible plans designed for tutoring centres of all sizes",
     "monthly": "Monthly",
     "yearly": "Yearly",
     "save": "Save 20%",
     "mostPopular": "Most Popular",
     "plans": {
       "basic": {
-        "name": "Basic",
-        "description": "Perfect for getting started",
-        "cta": "Start Basic Plan",
+        "name": "Starter",
+        "description": "Perfect for small centres",
+        "cta": "Start Starter Plan",
         "features": [
-          "Access to 5 courses per month",
-          "Basic progress tracking",
+          "Up to 3 classes",
+          "Student management & progress tracking",
+          "Basic class scheduling",
           "Email support",
-          "Mobile app access",
-          "Parent dashboard"
+          "Parent communication tools"
         ]
       },
       "standard": {
-        "name": "Standard",
-        "description": "Most popular choice for families",
-        "cta": "Choose Standard",
+        "name": "Professional",
+        "description": "Most popular for growing centres",
+        "cta": "Choose Professional",
         "features": [
-          "Unlimited course access",
-          "Advanced progress analytics",
-          "Priority support",
-          "Offline course downloads",
-          "Parent-teacher conferences",
-          "Homework help sessions"
+          "Unlimited classes",
+          "AI quiz generation",
+          "Automatic grading system",
+          "Zalo parent notifications",
+          "Financial tracking & reports",
+          "KPI analytics dashboard",
+          "Priority support"
         ]
       },
       "premium": {
-        "name": "Premium",
-        "description": "Complete learning solution",
-        "cta": "Go Premium",
+        "name": "Enterprise",
+        "description": "Complete solution for large centres",
+        "cta": "Go Enterprise",
         "features": [
-          "Everything in Standard",
-          "1-on-1 tutoring sessions",
-          "Personalized learning paths",
-          "Advanced assessments",
-          "College prep guidance",
-          "24/7 support hotline"
+          "Everything in Professional",
+          "Automated payment processing",
+          "Advanced financial management",
+          "Cash flow tracking (salaries & fees)",
+          "Custom integrations",
+          "Dedicated account manager",
+          "24/7 priority support"
         ]
       }
     },
@@ -120,8 +122,8 @@
     "perYear": "per year",
     "savePerYear": "Save ${amount}/year",
     "guarantee": {
-      "title": "30-Day Money-Back Guarantee",
-      "description": "Try Edura risk-free! If you're not completely satisfied with your child's learning experience within the first 30 days, we'll refund your payment in full, no questions asked."
+      "title": "30-Day Risk-Free Trial",
+      "description": "Try Edura risk-free! If you're not completely satisfied with how our platform helps manage your tutoring centre within the first 30 days, we'll refund your payment in full, no questions asked."
     },
     "faq": {
       "question": "Have questions about our plans?",
@@ -129,40 +131,40 @@
     }
   },
   "Testimonials": {
-    "title": "What Students & Parents Say",
-    "subtitle": "Real feedback from our learning community about their experience with Edura",
-    "studentVoices": "Student Voices",
-    "parentFeedback": "Parent Feedback",
+    "title": "What Tutoring Centres Say",
+    "subtitle": "Real feedback from centre managers and teachers using Edura",
+    "studentVoices": "Centre Managers",
+    "parentFeedback": "Teachers & Staff",
     "students": {
       "emma": {
-        "name": "Emma Thompson",
-        "grade": "Grade 8",
-        "text": "Edura made math so much easier to understand! The interactive lessons and games make learning fun."
+        "name": "Linh Nguyen",
+        "grade": "Centre Manager, Hanoi",
+        "text": "Edura saved us hours every week! The automated payment system and financial reports help us manage cash flow effortlessly."
       },
       "michael": {
-        "name": "Michael Davis",
-        "grade": "Grade 10",
-        "text": "The coding course was amazing! I built my first website and now I want to become a programmer."
+        "name": "Minh Tran",
+        "grade": "Centre Director, HCMC",
+        "text": "The Zalo integration is a game-changer. Parents receive instant updates, and our enrolment rates have increased significantly."
       },
       "sophia": {
-        "name": "Sophia Wilson",
-        "grade": "Grade 6",
-        "text": "I love the science experiments we can do at home. It's like having a lab in my kitchen!"
+        "name": "Hoa Pham",
+        "grade": "Operations Lead, Da Nang",
+        "text": "The KPI dashboard gives us real-time visibility into our centre's performance. We can now track student progress and teacher effectiveness easily."
       }
     },
     "parents": {
       "jennifer": {
-        "name": "Jennifer Martinez",
-        "relation": "Parent of Alex (Grade 7)",
-        "text": "My son's grades improved dramatically after joining Edura. The personalized learning approach really works!"
+        "name": "Duc Hoang",
+        "relation": "Teacher at Elite Academy",
+        "text": "The AI quiz generation feature saves me so much prep time. Auto-grading means I can focus more on student engagement."
       },
       "robert": {
-        "name": "Robert Johnson",
-        "relation": "Parent of twins (Grade 5)",
-        "text": "Both my daughters are engaged and excited about learning. The platform is safe, educational, and fun."
+        "name": "Lan Vo",
+        "relation": "Head Teacher at Success Centre",
+        "text": "Managing multiple classes has never been easier. The platform handles scheduling, grading, and parent communication seamlessly."
       }
     },
-    "trustBadge": "4.9/5 Average Rating from 10,000+ Reviews"
+    "trustBadge": "4.8/5 Average Rating from 500+ Tutoring Centres"
   },
   "Footer": {
     "newsletter": {
@@ -238,7 +240,9 @@
     "code": "Code",
     "created": "Created",
     "noClassesYet": "No classes yet.",
-    "noAssignmentsCreated": "No assignments created yet."
+    "noAssignmentsCreated": "No assignments created yet.",
+    "schedule": "Schedule",
+    "noSchedulesYet": "No schedules yet."
   },
   "ClassPage": {
     "classNotFound": "Class not found",
@@ -369,7 +373,9 @@
     "chooseImage": "Choose Image",
     "cancel": "Cancel",
     "creating": "Creating...",
-    "createAnnouncementButton": "Create Announcement"
+    "createAnnouncementButton": "Create Announcement",
+    "updating": "Updating...",
+    "updateAnnouncement": "Update Announcement"
   },
   "ScheduleForm": {
     "scheduleCreated": "Schedule created successfully",
@@ -419,5 +425,84 @@
     "classes": "Classes",
     "joinedDate": "Joined Date",
     "noStudents": "No students enrolled yet"
+  },
+  "Dashboard": {
+    "managerTitle": "Manager Dashboard",
+    "welcomeManager": "Welcome, Manager!"
+  },
+  "StudentDashboard": {
+    "title": "Student Dashboard",
+    "enrolledClasses": "Enrolled Classes",
+    "activeCourses": "Active courses",
+    "pendingAssignments": "Pending Assignments",
+    "dueThisWeek": "Due this week",
+    "myClasses": "My Classes",
+    "code": "Code",
+    "joined": "Joined",
+    "noClassesJoined": "No classes joined yet."
+  },
+  "JoinClass": {
+    "title": "Join a Class",
+    "classCode": "Class Code",
+    "enterClassCode": "Enter 5-character class code",
+    "joining": "Joining...",
+    "joinClass": "Join Class",
+    "classCodeLength": "Class code must be exactly 5 characters"
+  },
+  "UserMenu": {
+    "signIn": "Sign In",
+    "myAccount": "My Account",
+    "teacher": "Teacher",
+    "manager": "Manager",
+    "student": "Student",
+    "signOut": "Sign Out"
+  },
+  "StudentClassPage": {
+    "classCode": "Class Code",
+    "created": "Created",
+    "copyCode": "Copy Code",
+    "leaveClass": "Leave Class",
+    "leaveClassTitle": "Leave Class",
+    "leaveClassDescription": "Are you sure you want to leave this class? You will no longer have access to class materials and assignments.",
+    "cancel": "Cancel",
+    "leaving": "Leaving...",
+    "leaveClassConfirm": "Leave Class",
+    "announcements": "Announcements",
+    "teacher": "Teacher",
+    "teacherInfoNotAvailable": "Teacher information not available.",
+    "schedule": "Schedule",
+    "classSchedule": "Class Schedule",
+    "noSchedulesAvailable": "No class schedules available yet.",
+    "assignments": "Assignments",
+    "submitted": "✅ Submitted",
+    "notSubmitted": "⏳ Not Submitted",
+    "created": "Created",
+    "due": "Due",
+    "submittedAt": "Submitted",
+    "viewSubmission": "View Submission",
+    "takeAssignment": "Take Assignment",
+    "noAssignmentsAvailable": "No assignments available yet.",
+    "lectures": "Lectures",
+    "lecturesAndMaterials": "Lectures & Materials",
+    "file": "📄 File",
+    "video": "🎥 Video",
+    "date": "Date",
+    "uploaded": "Uploaded",
+    "noLecturesAvailable": "No lectures available yet.",
+    "leftClassSuccess": "Left class successfully",
+    "failedToLeaveClass": "Failed to leave class",
+    "classCodeCopied": "Class code copied to clipboard"
+  },
+  "AnnouncementList": {
+    "deleteAnnouncement": "Delete Announcement",
+    "deleteAnnouncementDescription": "Are you sure you want to delete this announcement? This action cannot be undone.",
+    "cancel": "Cancel",
+    "deleting": "Deleting...",
+    "delete": "Delete",
+    "failedToLoadAnnouncements": "Failed to load announcements",
+    "noAnnouncementsYet": "No announcements yet",
+    "announcementDeleted": "Announcement deleted successfully",
+    "failedToDeleteAnnouncement": "Failed to delete announcement",
+    "postedBy": "Posted by"
   }
 }

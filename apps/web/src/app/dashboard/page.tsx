@@ -1,20 +1,36 @@
+"use client";
+
 import { redirect } from "next/navigation";
 import TeacherDashboard from "./teacher";
 import StudentDashboard from "./student";
-import { headers } from "next/headers";
-import { auth } from "@edura/auth";
+import { authClient } from "@/lib/auth-client";
 import { DashboardShell } from "@/components/dashboard/shell";
+import { useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
 
-export default async function DashboardPage() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+export default function DashboardPage() {
+  const t = useTranslations("Dashboard");
+  const [session, setSession] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  if (!session?.user) {
+  useEffect(() => {
+    const getSession = async () => {
+      const res = await authClient.getSession();
+      setSession(res);
+      setLoading(false);
+    };
+    getSession();
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!session?.data?.user) {
     redirect("/login");
   }
 
-  const role = (session.user as any)?.role!;
+  const role = (session.data.user as any)?.role!;
 
   return (
     <DashboardShell role={role}>
@@ -24,8 +40,8 @@ export default async function DashboardPage() {
         <StudentDashboard />
       ) : role === "manager" ? (
         <div className="p-8">
-          <h1 className="text-2xl font-bold">Manager Dashboard</h1>
-          <p>Welcome, Manager!</p>
+          <h1 className="text-2xl font-bold">{t("managerTitle")}</h1>
+          <p>{t("welcomeManager")}</p>
         </div>
       ) : (
         <></>

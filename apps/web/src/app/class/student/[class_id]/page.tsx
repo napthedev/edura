@@ -26,6 +26,7 @@ import ScheduleCalendar from "@/components/schedule/schedule-calendar";
 import Loader from "@/components/loader";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import AnnouncementList from "@/components/announcement/announcement-list";
+import { useTranslations } from "next-intl";
 
 type SessionUser = {
   id: string;
@@ -41,6 +42,7 @@ export default function ClassPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentTab = searchParams.get("tab") || "announcements";
+  const t = useTranslations("StudentClassPage");
 
   const sessionQuery = useQuery({
     queryKey: ["session"],
@@ -97,18 +99,18 @@ export default function ClassPage() {
   const leaveClassMutation = useMutation({
     mutationFn: () => trpcClient.education.leaveClass.mutate({ classId }),
     onSuccess: () => {
-      toast.success("Left class successfully");
+      toast.success(t("leftClassSuccess"));
       router.push("/dashboard");
     },
     onError: (error) => {
-      toast.error(`Failed to leave class: ${error.message}`);
+      toast.error(`${t("failedToLeaveClass")}: ${error.message}`);
     },
   });
 
   const copyClassCode = () => {
     if (classQuery.data?.classCode) {
       navigator.clipboard.writeText(classQuery.data.classCode);
-      toast.success("Class code copied to clipboard");
+      toast.success(t("classCodeCopied"));
     }
   };
 
@@ -160,41 +162,41 @@ export default function ClassPage() {
             <div>
               <h1 className="text-3xl font-bold">{classData.className}</h1>
               <p className="text-muted-foreground">
-                Class Code: {classData.classCode}
+                {t("classCode")}: {classData.classCode}
               </p>
               <p className="text-sm text-muted-foreground">
-                Created: {new Date(classData.createdAt).toLocaleDateString()}
+                {t("created")}:{" "}
+                {new Date(classData.createdAt).toLocaleDateString()}
               </p>
             </div>
             <div className="flex gap-2">
               <Button variant="outline" onClick={copyClassCode}>
                 <Copy className="w-4 h-4 mr-2" />
-                Copy Code
+                {t("copyCode")}
               </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive">
                     <LogOut className="w-4 h-4 mr-2" />
-                    Leave Class
+                    {t("leaveClass")}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Leave Class</AlertDialogTitle>
+                    <AlertDialogTitle>{t("leaveClassTitle")}</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Are you sure you want to leave this class? You will no
-                      longer have access to class materials and assignments.
+                      {t("leaveClassDescription")}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={handleLeaveClass}
                       className="bg-destructive text-white hover:bg-destructive/90"
                     >
                       {leaveClassMutation.isPending
-                        ? "Leaving..."
-                        : "Leave Class"}
+                        ? t("leaving")
+                        : t("leaveClassConfirm")}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
@@ -214,17 +216,19 @@ export default function ClassPage() {
             className="w-full"
           >
             <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="announcements">Announcements</TabsTrigger>
-              <TabsTrigger value="teacher">Teacher</TabsTrigger>
-              <TabsTrigger value="schedule">Schedule</TabsTrigger>
-              <TabsTrigger value="assignments">Assignments</TabsTrigger>
-              <TabsTrigger value="lectures">Lectures</TabsTrigger>
+              <TabsTrigger value="announcements">
+                {t("announcements")}
+              </TabsTrigger>
+              <TabsTrigger value="teacher">{t("teacher")}</TabsTrigger>
+              <TabsTrigger value="schedule">{t("schedule")}</TabsTrigger>
+              <TabsTrigger value="assignments">{t("assignments")}</TabsTrigger>
+              <TabsTrigger value="lectures">{t("lectures")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="announcements" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Announcements</CardTitle>
+                  <CardTitle>{t("announcements")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <AnnouncementList classId={classId} />
@@ -235,7 +239,7 @@ export default function ClassPage() {
             <TabsContent value="teacher" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Teacher</CardTitle>
+                  <CardTitle>{t("teacher")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {teacherQuery.isLoading ? (
@@ -251,7 +255,7 @@ export default function ClassPage() {
                     </div>
                   ) : (
                     <p className="text-muted-foreground">
-                      Teacher information not available.
+                      {t("teacherInfoNotAvailable")}
                     </p>
                   )}
                 </CardContent>
@@ -261,7 +265,7 @@ export default function ClassPage() {
             <TabsContent value="schedule" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Class Schedule</CardTitle>
+                  <CardTitle>{t("classSchedule")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {schedulesQuery.isLoading ? (
@@ -273,7 +277,7 @@ export default function ClassPage() {
                     />
                   ) : (
                     <p className="text-muted-foreground">
-                      No class schedules available yet.
+                      {t("noSchedulesAvailable")}
                     </p>
                   )}
                 </CardContent>
@@ -284,7 +288,7 @@ export default function ClassPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>
-                    Assignments ({assignmentsQuery.data?.length || 0})
+                    {t("assignments")} ({assignmentsQuery.data?.length || 0})
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -314,11 +318,11 @@ export default function ClassPage() {
                               <div className="flex items-center gap-2">
                                 {assignment.submitted ? (
                                   <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    ✅ Submitted
+                                    {t("submitted")}
                                   </span>
                                 ) : (
                                   <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                    ⏳ Not Submitted
+                                    {t("notSubmitted")}
                                   </span>
                                 )}
                               </div>
@@ -330,14 +334,14 @@ export default function ClassPage() {
                             )}
                             <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                               <span>
-                                Created:{" "}
+                                {t("created")}:{" "}
                                 {new Date(
                                   assignment.createdAt
                                 ).toLocaleDateString()}
                               </span>
                               {assignment.dueDate && (
                                 <span>
-                                  Due:{" "}
+                                  {t("due")}:{" "}
                                   {new Date(
                                     assignment.dueDate
                                   ).toLocaleDateString()}
@@ -346,7 +350,7 @@ export default function ClassPage() {
                               {assignment.submitted &&
                                 assignment.submittedAt && (
                                   <span>
-                                    Submitted:{" "}
+                                    {t("submittedAt")}:{" "}
                                     {new Date(
                                       assignment.submittedAt
                                     ).toLocaleDateString()}
@@ -364,8 +368,8 @@ export default function ClassPage() {
                                 }}
                               >
                                 {assignment.submitted
-                                  ? "View Submission"
-                                  : "Take Assignment"}
+                                  ? t("viewSubmission")
+                                  : t("takeAssignment")}
                               </Button>
                             </div>
                           </div>
@@ -374,7 +378,7 @@ export default function ClassPage() {
                     </div>
                   ) : (
                     <p className="text-muted-foreground">
-                      No assignments available yet.
+                      {t("noAssignmentsAvailable")}
                     </p>
                   )}
                 </CardContent>
@@ -385,7 +389,8 @@ export default function ClassPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>
-                    Lectures & Materials ({lecturesQuery.data?.length || 0})
+                    {t("lecturesAndMaterials")} (
+                    {lecturesQuery.data?.length || 0})
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -418,17 +423,17 @@ export default function ClassPage() {
                               <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
                                   {lecture.type === "file"
-                                    ? "📄 File"
-                                    : "🎥 Video"}
+                                    ? t("file")
+                                    : t("video")}
                                 </span>
                                 <span>
-                                  Date:{" "}
+                                  {t("date")}:{" "}
                                   {new Date(
                                     lecture.lectureDate
                                   ).toLocaleDateString()}
                                 </span>
                                 <span>
-                                  Uploaded:{" "}
+                                  {t("uploaded")}:{" "}
                                   {new Date(
                                     lecture.createdAt
                                   ).toLocaleDateString()}
@@ -441,7 +446,7 @@ export default function ClassPage() {
                     </div>
                   ) : (
                     <p className="text-muted-foreground">
-                      No lectures available yet.
+                      {t("noLecturesAvailable")}
                     </p>
                   )}
                 </CardContent>

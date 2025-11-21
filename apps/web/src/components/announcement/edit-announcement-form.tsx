@@ -15,6 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useTranslations } from "next-intl";
 
 interface EditAnnouncementFormProps {
   announcementId: string;
@@ -37,6 +38,7 @@ export default function EditAnnouncementForm({
   onClose,
   onSuccess,
 }: EditAnnouncementFormProps) {
+  const t = useTranslations("CreateAnnouncement");
   const [title, setTitle] = useState(initialTitle);
   const [content, setContent] = useState(initialContent || "");
   const [attachedImage, setAttachedImage] = useState<string | null>(
@@ -222,13 +224,15 @@ export default function EditAnnouncementForm({
 
           <div className="flex gap-2 justify-end">
             <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
+              {t("cancel")}
             </Button>
             <Button
               type="submit"
               disabled={updateMutation.isPending || isUploading}
             >
-              {updateMutation.isPending ? "Updating..." : "Update Announcement"}
+              {updateMutation.isPending
+                ? t("updating")
+                : t("updateAnnouncement")}
             </Button>
           </div>
         </form>

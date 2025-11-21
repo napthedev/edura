@@ -13,9 +13,11 @@ import { Skeleton } from "./ui/skeleton";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { User, Mail, Shield, LogOut } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function UserMenu() {
   const router = useRouter();
+  const t = useTranslations("UserMenu");
   const { data: session, isPending } = authClient.useSession();
 
   if (isPending) {
@@ -25,7 +27,7 @@ export default function UserMenu() {
   if (!session) {
     return (
       <Button variant="outline" asChild>
-        <Link href="/login">Sign In</Link>
+        <Link href="/login">{t("signIn")}</Link>
       </Button>
     );
   }
@@ -49,7 +51,7 @@ export default function UserMenu() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-card w-64">
-        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+        <DropdownMenuLabel>{t("myAccount")}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem>
           <User className="mr-2 h-4 w-4" />
@@ -64,10 +66,10 @@ export default function UserMenu() {
           <span>
             Role:{" "}
             {(session.user as any).role === "teacher"
-              ? "Teacher"
+              ? t("teacher")
               : (session.user as any).role === "manager"
-              ? "Manager"
-              : "Student"}
+              ? t("manager")
+              : t("student")}
           </span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -84,7 +86,7 @@ export default function UserMenu() {
           className="cursor-pointer text-destructive focus:text-destructive"
         >
           <LogOut className="mr-2 h-4 w-4" />
-          <span>Sign Out</span>
+          <span>{t("signOut")}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
