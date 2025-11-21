@@ -59,7 +59,11 @@ export default function UserMenu() {
           </div>
           <div>
             <strong>Role</strong>: {/* @ts-ignore */}
-            {session.user.role! === "teacher" ? "Teacher" : "Student"}
+            {session.user.role! === "teacher"
+              ? "Teacher"
+              : session.user.role! === "manager"
+              ? "Manager"
+              : "Student"}
           </div>
         </div>
         <DropdownMenuItem asChild>

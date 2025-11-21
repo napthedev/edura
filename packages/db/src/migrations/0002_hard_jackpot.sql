@@ -1,1 +1,0 @@
-ALTER TABLE "schedules" ADD COLUMN "meeting_link" text;

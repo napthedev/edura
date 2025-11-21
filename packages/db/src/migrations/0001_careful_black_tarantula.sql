@@ -1,1 +1,0 @@
-ALTER TABLE "announcements" ADD COLUMN "attached_image" text;
