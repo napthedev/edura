@@ -234,9 +234,11 @@
     "creating": "Creating...",
     "createClass": "Create Class",
     "yourClasses": "Your Classes",
+    "yourAssignments": "Your Assignments",
     "code": "Code",
     "created": "Created",
-    "noClassesYet": "No classes yet."
+    "noClassesYet": "No classes yet.",
+    "noAssignmentsCreated": "No assignments created yet."
   },
   "ClassPage": {
     "classNotFound": "Class not found",
@@ -403,5 +405,19 @@
     "noSubmissionsYet": "No submissions yet",
     "close": "Close",
     "viewSubmission": "View Submission"
+  },
+  "TeacherStudents": {
+    "title": "My Students",
+    "description": "View all students enrolled in your classes",
+    "totalStudents": "Total Students",
+    "uniqueStudents": "Unique students across all classes",
+    "totalEnrollments": "Total Enrollments",
+    "enrollmentsAcrossClasses": "Total class enrollments",
+    "studentsList": "Students List",
+    "name": "Name",
+    "email": "Email",
+    "classes": "Classes",
+    "joinedDate": "Joined Date",
+    "noStudents": "No students enrolled yet"
   }
 }

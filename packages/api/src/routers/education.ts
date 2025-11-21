@@ -122,6 +122,53 @@ export const educationRouter = router({
         .innerJoin(user, eq(enrollments.studentId, user.id))
         .where(eq(enrollments.classId, input.classId));
     }),
+  getTeacherStudents: protectedProcedure.query(async ({ ctx }) => {
+    // Get all students across all classes taught by this teacher
+    const students = await ctx.db
+      .select({
+        userId: user.id,
+        name: user.name,
+        email: user.email,
+        enrolledAt: enrollments.enrolledAt,
+        classId: classes.classId,
+        className: classes.className,
+        classCode: classes.classCode,
+      })
+      .from(classes)
+      .innerJoin(enrollments, eq(classes.classId, enrollments.classId))
+      .innerJoin(user, eq(enrollments.studentId, user.id))
+      .where(eq(classes.teacherId, ctx.session.user.id))
+      .orderBy(user.name);
+
+    return students;
+  }),
+  getTeacherAssignments: protectedProcedure.query(async ({ ctx }) => {
+    // Get all assignments across all classes taught by this teacher, sorted by latest to oldest
+    const teacherAssignments = await ctx.db
+      .select({
+        assignmentId: assignments.assignmentId,
+        title: assignments.title,
+        description: assignments.description,
+        assignmentContent: assignments.assignmentContent,
+        dueDate: assignments.dueDate,
+        testingDuration: assignments.testingDuration,
+        createdAt: assignments.createdAt,
+        classId: classes.classId,
+        className: classes.className,
+        submissionCount: sql<number>`count(${submissions.submissionId})`,
+      })
+      .from(assignments)
+      .innerJoin(classes, eq(assignments.classId, classes.classId))
+      .leftJoin(
+        submissions,
+        eq(assignments.assignmentId, submissions.assignmentId)
+      )
+      .where(eq(classes.teacherId, ctx.session.user.id))
+      .groupBy(assignments.assignmentId, classes.classId, classes.className)
+      .orderBy(sql`${assignments.createdAt} DESC`);
+
+    return teacherAssignments;
+  }),
   getClassAssignments: protectedProcedure
     .input(z.object({ classId: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -1023,6 +1070,15 @@ export const educationRouter = router({
 
       return { success: true };
     }),
+  getAllTeacherSchedules: protectedProcedure.query(async ({ ctx }) => {
+    // Fetch all schedules for classes owned by the teacher
+    return await ctx.db
+      .select()
+      .from(schedules)
+      .innerJoin(classes, eq(schedules.classId, classes.classId))
+      .where(eq(classes.teacherId, ctx.session.user.id))
+      .orderBy(schedules.scheduledAt);
+  }),
   generateQuestionsFromDocument: protectedProcedure
     .input(
       z.object({

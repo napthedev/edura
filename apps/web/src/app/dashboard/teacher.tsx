@@ -1,5 +1,4 @@
 "use client";
-import Header from "@/components/header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,6 +18,7 @@ import { z } from "zod";
 import Link from "next/link";
 import Loader from "@/components/loader";
 import { useTranslations } from "next-intl";
+import { Users, BookOpen, Plus } from "lucide-react";
 
 const createClassSchema = z.object({
   className: z.string().min(1, "Class name is required"),
@@ -54,90 +54,133 @@ export default function TeacherDashboard() {
   };
 
   return (
-    <div className="min-h-screen">
-      <Header />
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <h1 className="text-2xl font-bold my-8">{t("title")}</h1>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          {t("title")}
+        </h1>
+      </div>
 
-        <div className="grid items-start gap-6 md:grid-cols-2">
-          <Card>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <Card className="shadow-sm border-none">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total Classes
+            </CardTitle>
+            <BookOpen className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {classesQuery.data?.length || 0}
+            </div>
+            <p className="text-xs text-muted-foreground">Active courses</p>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm border-none">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total Students
+            </CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">--</div>
+            <p className="text-xs text-muted-foreground">Across all classes</p>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm border-none sticky top-24">
+          <CardHeader>
+            <CardTitle>{t("createNewClass")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
+                <FormField
+                  control={form.control}
+                  name="className"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("className")}</FormLabel>
+                      <FormControl>
+                        <Input
+                          autoComplete="off"
+                          placeholder={t("enterClassName")}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={createClassMutation.isPending}
+                >
+                  {createClassMutation.isPending ? (
+                    t("creating")
+                  ) : (
+                    <>
+                      <Plus className="mr-2 h-4 w-4" />
+                      {t("createClass")}
+                    </>
+                  )}
+                </Button>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-3">
+        <div className="md:col-span-2 space-y-6">
+          <Card className="shadow-sm border-none">
             <CardHeader>
-              <CardTitle>{t("createNewClass")}</CardTitle>
+              <CardTitle>{t("yourClasses")}</CardTitle>
             </CardHeader>
             <CardContent>
-              <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className="space-y-4"
-                >
-                  <FormField
-                    control={form.control}
-                    name="className"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("className")}</FormLabel>
-                        <FormControl>
-                          <Input
-                            autoComplete="off"
-                            placeholder={t("enterClassName")}
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    disabled={createClassMutation.isPending}
-                  >
-                    {createClassMutation.isPending
-                      ? t("creating")
-                      : t("createClass")}
-                  </Button>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-
-          <div>
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("yourClasses")}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {classesQuery.isLoading ? (
-                  <Loader />
-                ) : classesQuery.data && classesQuery.data.length > 0 ? (
-                  <div className="space-y-4">
-                    {classesQuery.data.map((cls) => (
-                      <Link
-                        className="block"
-                        href={`/class/teacher/${cls.classId}`}
-                        key={cls.classId}
-                      >
-                        <div className="border rounded-lg p-4">
-                          <h3 className="font-semibold text-lg">
+              {classesQuery.isLoading ? (
+                <Loader />
+              ) : classesQuery.data && classesQuery.data.length > 0 ? (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {classesQuery.data.map((cls) => (
+                    <Link
+                      className="block group"
+                      href={`/class/teacher/${cls.classId}`}
+                      key={cls.classId}
+                    >
+                      <div className="border rounded-xl p-5 transition-all hover:shadow-md bg-white h-full flex flex-col justify-between">
+                        <div>
+                          <h3 className="font-semibold text-lg group-hover:text-blue-600 transition-colors">
                             {cls.className}
                           </h3>
-                          <p className="text-sm text-muted-foreground">
-                            {t("code")}: {cls.classCode}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            {t("created")}:{" "}
-                            {new Date(cls.createdAt).toLocaleDateString()}
+                          <p className="text-sm text-slate-500 mt-1">
+                            {t("code")}:{" "}
+                            <span className="font-mono bg-slate-100 px-1 py-0.5 rounded">
+                              {cls.classCode}
+                            </span>
                           </p>
                         </div>
-                      </Link>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">{t("noClassesYet")}</p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                        <p className="text-xs text-slate-400 mt-4 pt-4 border-t">
+                          {t("created")}:{" "}
+                          {new Date(cls.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  {t("noClassesYet")}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

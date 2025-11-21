@@ -12,6 +12,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "./ui/skeleton";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { User, Mail, Shield, LogOut } from "lucide-react";
 
 export default function UserMenu() {
   const router = useRouter();
@@ -47,41 +48,43 @@ export default function UserMenu() {
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="bg-card">
+      <DropdownMenuContent align="end" className="bg-card w-64">
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <div className="p-2">
-          <div>
-            <strong>Username</strong>: {session.user.name}
-          </div>
-          <div>
-            <strong>Email</strong>: {session.user.email}
-          </div>
-          <div>
-            <strong>Role</strong>: {/* @ts-ignore */}
-            {session.user.role! === "teacher"
+        <DropdownMenuItem>
+          <User className="mr-2 h-4 w-4" />
+          <span>{session.user.name}</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <Mail className="mr-2 h-4 w-4" />
+          <span>{session.user.email}</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <Shield className="mr-2 h-4 w-4" />
+          <span>
+            Role:{" "}
+            {(session.user as any).role === "teacher"
               ? "Teacher"
-              : session.user.role! === "manager"
+              : (session.user as any).role === "manager"
               ? "Manager"
               : "Student"}
-          </div>
-        </div>
-        <DropdownMenuItem asChild>
-          <Button
-            variant="destructive"
-            className="w-full cursor-pointer"
-            onClick={() => {
-              authClient.signOut({
-                fetchOptions: {
-                  onSuccess: () => {
-                    router.push("/");
-                  },
+          </span>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={() => {
+            authClient.signOut({
+              fetchOptions: {
+                onSuccess: () => {
+                  router.push("/");
                 },
-              });
-            }}
-          >
-            Sign Out
-          </Button>
+              },
+            });
+          }}
+          className="cursor-pointer text-destructive focus:text-destructive"
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          <span>Sign Out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

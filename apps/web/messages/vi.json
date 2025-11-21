@@ -234,9 +234,11 @@
     "creating": "Đang tạo...",
     "createClass": "Tạo lớp học",
     "yourClasses": "Lớp học của bạn",
+    "yourAssignments": "Bài tập của bạn",
     "code": "Mã",
     "created": "Được tạo",
-    "noClassesYet": "Chưa có lớp học nào."
+    "noClassesYet": "Chưa có lớp học nào.",
+    "noAssignmentsCreated": "Chưa có bài tập nào được tạo."
   },
   "ClassPage": {
     "classNotFound": "Không tìm thấy lớp học",
@@ -403,5 +405,19 @@
     "noSubmissionsYet": "Chưa có bài nộp nào",
     "close": "Đóng",
     "viewSubmission": "Xem bài nộp"
+  },
+  "TeacherStudents": {
+    "title": "Học sinh của tôi",
+    "description": "Xem tất cả học sinh đã đăng ký lớp của bạn",
+    "totalStudents": "Tổng học sinh",
+    "uniqueStudents": "Học sinh duy nhất trên tất cả lớp",
+    "totalEnrollments": "Tổng số đăng ký",
+    "enrollmentsAcrossClasses": "Tổng số đăng ký lớp học",
+    "studentsList": "Danh sách học sinh",
+    "name": "Tên",
+    "email": "Email",
+    "classes": "Lớp học",
+    "joinedDate": "Ngày tham gia",
+    "noStudents": "Chưa có học sinh đăng ký"
   }
 }

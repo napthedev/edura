@@ -3,6 +3,7 @@ import TeacherDashboard from "./teacher";
 import StudentDashboard from "./student";
 import { headers } from "next/headers";
 import { auth } from "@edura/auth";
+import { DashboardShell } from "@/components/dashboard/shell";
 
 export default async function DashboardPage() {
   const session = await auth.api.getSession({
@@ -16,7 +17,7 @@ export default async function DashboardPage() {
   const role = (session.user as any)?.role!;
 
   return (
-    <>
+    <DashboardShell role={role}>
       {role === "teacher" ? (
         <TeacherDashboard />
       ) : role === "student" ? (
@@ -29,6 +30,6 @@ export default async function DashboardPage() {
       ) : (
         <></>
       )}
-    </>
+    </DashboardShell>
   );
 }
