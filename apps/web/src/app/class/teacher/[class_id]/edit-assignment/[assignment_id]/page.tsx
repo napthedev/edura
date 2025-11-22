@@ -96,7 +96,7 @@ export default function EditAssignmentPage() {
     },
     onSuccess: () => {
       toast.success("Assignment deleted successfully");
-      router.push(`/class/teacher/${classId}`);
+      router.push(`/class/teacher/${classId}/assignments`);
     },
   });
 
@@ -278,7 +278,7 @@ export default function EditAssignmentPage() {
             <Button
               variant="outline"
               onClick={() =>
-                router.push(`/class/teacher/${classId}?tab=assignments`)
+                router.push(`/class/teacher/${classId}/assignments`)
               }
             >
               <ArrowLeft className="w-4 h-4 mr-2" />

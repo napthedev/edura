@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   Megaphone,
@@ -32,8 +32,19 @@ function ClassSidebarContent({
   className?: string;
   isTeacher?: boolean;
 }) {
+  const pathname = usePathname();
   const searchParams = useSearchParams();
-  const currentTab = searchParams.get("tab") || "announcement";
+
+  // Fallback for legacy query param support or default
+  const currentTab = searchParams.get("tab");
+
+  // Extract the last segment of the path to determine the active tab
+  const pathSegments = pathname.split("/");
+  const lastSegment = pathSegments[pathSegments.length - 1];
+
+  // If we are at the root of the class page, default to announcement
+  const activeTab =
+    currentTab || (lastSegment === classId ? "announcement" : lastSegment);
 
   const teacherLinks = [
     {
@@ -125,13 +136,15 @@ function ClassSidebarContent({
         </div>
         {links.map((link) => {
           const Icon = link.icon;
-          const isActive = currentTab === link.value;
+          const isActive = activeTab === link.value;
           return (
             <Link
               key={link.value}
-              href={`/class/${
-                isTeacher ? "teacher" : "student"
-              }/${classId}?tab=${link.value}`}
+              href={
+                isTeacher
+                  ? `/class/teacher/${classId}/${link.value}`
+                  : `/class/student/${classId}/${link.value}`
+              }
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
                 isActive

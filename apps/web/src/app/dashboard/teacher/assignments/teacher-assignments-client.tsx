@@ -30,7 +30,7 @@ export default function TeacherAssignmentsClient() {
           {assignmentsQuery.data.map((assignment) => (
             <Link
               className="block group"
-              href={`/class/teacher/${assignment.classId}?tab=assignments`}
+              href={`/class/teacher/${assignment.classId}/assignments`}
               key={assignment.assignmentId}
             >
               <Card className="shadow-sm border-none hover:shadow-md transition-shadow">

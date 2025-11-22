@@ -79,7 +79,7 @@ export default function UploadLecturePage() {
     },
     onSuccess: () => {
       toast.success(t("youtubeLectureCreated"));
-      router.push(`/class/teacher/${classId}`);
+      router.push(`/class/teacher/${classId}/lectures`);
     },
     onError: (error) => {
       toast.error(`${t("failedToCreateLecture")}: ${error.message}`);
@@ -111,7 +111,7 @@ export default function UploadLecturePage() {
     },
     onSuccess: () => {
       toast.success(t("fileUploaded"));
-      router.push(`/class/teacher/${classId}`);
+      router.push(`/class/teacher/${classId}/lectures`);
     },
     onError: (error) => {
       toast.error(`${t("uploadFailed")}: ${error.message}`);
@@ -252,9 +252,7 @@ export default function UploadLecturePage() {
                           type="button"
                           variant="outline"
                           onClick={() =>
-                            router.push(
-                              `/class/teacher/${classId}?tab=lectures`
-                            )
+                            router.push(`/class/teacher/${classId}/lectures`)
                           }
                         >
                           {t("cancel")}
@@ -362,9 +360,7 @@ export default function UploadLecturePage() {
                           type="button"
                           variant="outline"
                           onClick={() =>
-                            router.push(
-                              `/class/teacher/${classId}?tab=lectures`
-                            )
+                            router.push(`/class/teacher/${classId}/lectures`)
                           }
                         >
                           {t("cancel")}
