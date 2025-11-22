@@ -1,13 +1,10 @@
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
-import { auth } from "@edura/auth";
 import { DashboardShell } from "@/components/dashboard/shell";
 import StudentAssignmentsClient from "./student-assignments-client";
+import { getSession } from "@/lib/server-auth";
 
 export default async function StudentAssignmentsPage() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const session = await getSession();
 
   if (!session?.user) {
     redirect("/login");

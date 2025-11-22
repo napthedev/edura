@@ -4,7 +4,7 @@ import { z } from "zod";
 import { db } from "@edura/db";
 import { classes, lectures } from "@edura/db/schema/education";
 import { eq } from "drizzle-orm";
-import { auth } from "@edura/auth";
+import { getSession } from "@/lib/server-auth";
 
 const uploadSchema = z.object({
   classId: z.string(),
@@ -16,9 +16,7 @@ const uploadSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     // Authenticate user
-    const session = await auth.api.getSession({
-      headers: request.headers,
-    });
+    const session = await getSession();
 
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

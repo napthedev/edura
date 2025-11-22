@@ -1,13 +1,11 @@
 import { put } from "@vercel/blob";
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@edura/auth";
+import { getSession } from "@/lib/server-auth";
 
 export async function POST(request: NextRequest) {
   try {
     // Authenticate user
-    const session = await auth.api.getSession({
-      headers: request.headers,
-    });
+    const session = await getSession();
 
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

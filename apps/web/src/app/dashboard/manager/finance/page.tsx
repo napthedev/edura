@@ -1,24 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { authClient } from "@/lib/auth-client";
+import { useSession } from "@/lib/auth-client";
 import { DashboardShell } from "@/components/dashboard/shell";
 import Loader from "@/components/loader";
 import { redirect } from "next/navigation";
 import FinanceView from "@/components/dashboard/manager/finance-view";
 
 export default function FinancePage() {
-  const [session, setSession] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const getSession = async () => {
-      const res = await authClient.getSession();
-      setSession(res);
-      setLoading(false);
-    };
-    getSession();
-  }, []);
+  const { data: session, isPending: loading } = useSession();
 
   if (loading) {
     return (
@@ -28,7 +17,7 @@ export default function FinancePage() {
     );
   }
 
-  if (!session?.data?.user) {
+  if (!session?.user) {
     redirect("/login");
   }
 

@@ -1,25 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { redirect } from "next/navigation";
-import { authClient } from "@/lib/auth-client";
+import { useSession } from "@/lib/auth-client";
 import { DashboardShell } from "@/components/dashboard/shell";
 import Loader from "@/components/loader";
 import { useTranslations } from "next-intl";
 
 export default function ManagerDashboardPage() {
   const t = useTranslations("Dashboard");
-  const [session, setSession] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const getSession = async () => {
-      const res = await authClient.getSession();
-      setSession(res);
-      setLoading(false);
-    };
-    getSession();
-  }, []);
+  const { data: session, isPending: loading } = useSession();
 
   if (loading) {
     return (
@@ -29,11 +18,11 @@ export default function ManagerDashboardPage() {
     );
   }
 
-  if (!session?.data?.user) {
+  if (!session?.user) {
     redirect("/login");
   }
 
-  const role = (session.data.user as any)?.role;
+  const role = (session.user as any)?.role;
 
   if (role !== "manager") {
     redirect(`/dashboard/${role}` as any);

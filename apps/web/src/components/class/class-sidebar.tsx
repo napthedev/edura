@@ -140,6 +140,7 @@ function ClassSidebarContent({
           return (
             <Link
               key={link.value}
+              // @ts-ignore
               href={
                 isTeacher
                   ? `/class/teacher/${classId}/${link.value}`

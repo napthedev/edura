@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { redirect } from "next/navigation";
-import { authClient } from "@/lib/auth-client";
+import { authClient, useSession } from "@/lib/auth-client";
 import { DashboardShell } from "@/components/dashboard/shell";
 import Loader from "@/components/loader";
 import { Button } from "@/components/ui/button";
@@ -33,22 +33,12 @@ type CreateClassForm = z.infer<typeof createClassSchema>;
 
 export default function TeacherDashboardPage() {
   const t = useTranslations("TeacherDashboard");
-  const [session, setSession] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const getSession = async () => {
-      const res = await authClient.getSession();
-      setSession(res);
-      setLoading(false);
-    };
-    getSession();
-  }, []);
+  const { data: session, isPending: loading } = useSession();
 
   const classesQuery = useQuery({
     queryKey: ["classes"],
     queryFn: () => trpcClient.education.getClasses.query(),
-    enabled: !!session?.data?.user && session.data.user.role === "teacher",
+    enabled: !!session?.user && (session.user as any).role === "teacher",
   });
 
   const createClassMutation = useMutation({
@@ -80,11 +70,11 @@ export default function TeacherDashboardPage() {
     );
   }
 
-  if (!session?.data?.user) {
+  if (!session?.user) {
     redirect("/login");
   }
 
-  const role = (session.data.user as any)?.role;
+  const role = (session.user as any)?.role;
 
   if (role !== "teacher") {
     redirect(`/dashboard/${role}` as any);

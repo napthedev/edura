@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { redirect } from "next/navigation";
-import { authClient } from "@/lib/auth-client";
+import { authClient, useSession } from "@/lib/auth-client";
 import { DashboardShell } from "@/components/dashboard/shell";
 import Loader from "@/components/loader";
 import { JoinClassForm } from "@/components/join-class-form";
@@ -15,22 +15,12 @@ import { useTranslations } from "next-intl";
 
 export default function StudentDashboardPage() {
   const t = useTranslations("StudentDashboard");
-  const [session, setSession] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const getSession = async () => {
-      const res = await authClient.getSession();
-      setSession(res);
-      setLoading(false);
-    };
-    getSession();
-  }, []);
+  const { data: session, isPending: loading } = useSession();
 
   const studentClassesQuery = useQuery({
     queryKey: ["student-classes"],
     queryFn: () => trpcClient.education.getStudentClasses.query(),
-    enabled: !!session?.data?.user && session.data.user.role === "student",
+    enabled: !!session?.user && (session.user as any).role === "student",
   });
 
   if (loading) {
@@ -41,11 +31,11 @@ export default function StudentDashboardPage() {
     );
   }
 
-  if (!session?.data?.user) {
+  if (!session?.user) {
     redirect("/login");
   }
 
-  const role = (session.data.user as any)?.role;
+  const role = (session.user as any)?.role;
 
   if (role !== "student") {
     redirect(`/dashboard/${role}` as any);

@@ -1,22 +1,11 @@
 "use client";
 
 import { redirect } from "next/navigation";
-import { authClient } from "@/lib/auth-client";
-import { useEffect, useState } from "react";
+import { useSession } from "@/lib/auth-client";
 import Loader from "@/components/loader";
 
 export default function DashboardPage() {
-  const [session, setSession] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const getSession = async () => {
-      const res = await authClient.getSession();
-      setSession(res);
-      setLoading(false);
-    };
-    getSession();
-  }, []);
+  const { data: session, isPending: loading } = useSession();
 
   if (loading) {
     return (
@@ -26,11 +15,11 @@ export default function DashboardPage() {
     );
   }
 
-  if (!session?.data?.user) {
+  if (!session?.user) {
     redirect("/login");
   }
 
-  const role = (session.data.user as any)?.role;
+  const role = (session.user as any)?.role;
 
   if (role) {
     redirect(`/dashboard/${role}` as any);

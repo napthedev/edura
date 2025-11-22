@@ -1,10 +1,9 @@
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
-import { auth } from "@edura/auth";
+import { getSession } from "@/lib/server-auth";
 import SignUpForm from "@/app/register/sign-up-form";
 
 export default async function RegisterPage() {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
   if (session?.user) {
     redirect("/dashboard");
   }
