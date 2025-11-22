@@ -26,7 +26,7 @@ function SidebarContent({ role }: { role: "teacher" | "student" | "manager" }) {
 
   const teacherLinks = [
     {
-      href: "/dashboard",
+      href: "/dashboard/teacher",
       label: "Dashboard",
       icon: LayoutDashboard,
     },
@@ -54,7 +54,7 @@ function SidebarContent({ role }: { role: "teacher" | "student" | "manager" }) {
 
   const studentLinks = [
     {
-      href: "/dashboard",
+      href: "/dashboard/student",
       label: "Dashboard",
       icon: LayoutDashboard,
     },
@@ -78,7 +78,7 @@ function SidebarContent({ role }: { role: "teacher" | "student" | "manager" }) {
   // Links matching the design image more closely for "manager" or general view if needed
   const designLinks = [
     {
-      href: "/dashboard/finance",
+      href: "/dashboard/manager/finance",
       label: "Finance",
       icon: LayoutDashboard, // Placeholder
     },
@@ -109,7 +109,10 @@ function SidebarContent({ role }: { role: "teacher" | "student" | "manager" }) {
   return (
     <>
       <div className="flex h-16 items-center px-6 border-b">
-        <Link href="/dashboard" className="flex items-center gap-2">
+        <Link
+          href={`/dashboard/${role}` as any}
+          className="flex items-center gap-2"
+        >
           <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
             <div className="h-3 w-3 rounded-full bg-white" />
           </div>
