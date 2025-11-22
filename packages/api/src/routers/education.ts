@@ -1336,7 +1336,7 @@ export const educationRouter = router({
         className: classes.className,
         submitted: submissions.submissionId,
         submittedAt: submissions.submittedAt,
-        score: submissions.score,
+        grade: submissions.grade,
       })
       .from(enrollments)
       .innerJoin(classes, eq(enrollments.classId, classes.classId))
