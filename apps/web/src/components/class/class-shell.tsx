@@ -8,9 +8,15 @@ interface ClassShellProps {
   children: React.ReactNode;
   classId: string;
   className?: string;
+  isTeacher?: boolean;
 }
 
-export function ClassShell({ children, classId, className }: ClassShellProps) {
+export function ClassShell({
+  children,
+  classId,
+  className,
+  isTeacher = true,
+}: ClassShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -20,6 +26,7 @@ export function ClassShell({ children, classId, className }: ClassShellProps) {
         className={className}
         open={sidebarOpen}
         onOpenChange={setSidebarOpen}
+        isTeacher={isTeacher}
       />
       <div className="pl-0 md:pl-64 transition-all duration-300">
         <TopNav onMenuClick={() => setSidebarOpen(true)} />

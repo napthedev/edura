@@ -11,6 +11,7 @@ import {
   Video,
   Settings,
   ArrowLeft,
+  GraduationCap,
 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 
@@ -19,19 +20,22 @@ interface ClassSidebarProps {
   className?: string;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  isTeacher?: boolean;
 }
 
 function ClassSidebarContent({
   classId,
   className,
+  isTeacher = true,
 }: {
   classId: string;
   className?: string;
+  isTeacher?: boolean;
 }) {
   const searchParams = useSearchParams();
   const currentTab = searchParams.get("tab") || "announcement";
 
-  const links = [
+  const teacherLinks = [
     {
       value: "announcement",
       label: "Announcements",
@@ -64,6 +68,41 @@ function ClassSidebarContent({
     },
   ];
 
+  const studentLinks = [
+    {
+      value: "announcement",
+      label: "Announcements",
+      icon: Megaphone,
+    },
+    {
+      value: "teacher",
+      label: "Teacher",
+      icon: GraduationCap,
+    },
+    {
+      value: "schedule",
+      label: "Schedule",
+      icon: Calendar,
+    },
+    {
+      value: "assignments",
+      label: "Assignments",
+      icon: FileText,
+    },
+    {
+      value: "lectures",
+      label: "Lectures",
+      icon: Video,
+    },
+    {
+      value: "settings",
+      label: "Settings",
+      icon: Settings,
+    },
+  ];
+
+  const links = isTeacher ? teacherLinks : studentLinks;
+
   return (
     <>
       <div className="flex h-16 items-center px-6 border-b">
@@ -90,7 +129,9 @@ function ClassSidebarContent({
           return (
             <Link
               key={link.value}
-              href={`/class/teacher/${classId}?tab=${link.value}`}
+              href={`/class/${
+                isTeacher ? "teacher" : "student"
+              }/${classId}?tab=${link.value}`}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
                 isActive
@@ -113,19 +154,28 @@ export function ClassSidebar({
   className,
   open = false,
   onOpenChange,
+  isTeacher = true,
 }: ClassSidebarProps) {
   return (
     <>
       {/* Desktop Sidebar - Always visible on md and above */}
       <div className="hidden border-r bg-white md:block w-64 min-h-screen fixed left-0 top-0 bottom-0 z-30">
-        <ClassSidebarContent classId={classId} className={className} />
+        <ClassSidebarContent
+          classId={classId}
+          className={className}
+          isTeacher={isTeacher}
+        />
       </div>
 
       {/* Mobile Sidebar - Drawer */}
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent side="left" className="w-64 p-0 border-0">
           <div className="bg-white h-full border-r">
-            <ClassSidebarContent classId={classId} className={className} />
+            <ClassSidebarContent
+              classId={classId}
+              className={className}
+              isTeacher={isTeacher}
+            />
           </div>
         </SheetContent>
       </Sheet>
