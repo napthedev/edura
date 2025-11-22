@@ -113,7 +113,7 @@ function SidebarContent({ role }: { role: "teacher" | "student" | "manager" }) {
           <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
             <div className="h-3 w-3 rounded-full bg-white" />
           </div>
-          <span className="font-bold text-xl text-slate-900">edura</span>
+          <span className="font-bold text-xl text-slate-900">Edura</span>
         </Link>
       </div>
       <div className="flex flex-col gap-2 p-4">
