@@ -66,3 +66,22 @@ edura/
 - `pnpm check-types`: Check TypeScript types across all apps
 - `pnpm db:push`: Push schema changes to database
 - `pnpm db:studio`: Open database studio UI
+
+
+
+
+
+
+
+# Admin user
+
+Send a POST request to `/api/secret/create-manager` with the following JSON body:
+
+```json
+{
+  "email": "manager@example.com",
+  "password": "securepassword123",
+  "name": "Manager Name",
+  "secretKey": "your_super_secret_key"
+}
+```
