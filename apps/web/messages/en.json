@@ -30,7 +30,8 @@
       "students": "Students Managed",
       "teachers": "Teachers Connected",
       "satisfaction": "Centre Satisfaction"
-    }
+    },
+    "trustedSchools": ["ABC School", "Learning Academy", "Bright Future"]
   },
   "DemoVideo": {
     "seeInAction": "See it in action",
@@ -242,7 +243,12 @@
     "noClassesYet": "No classes yet.",
     "noAssignmentsCreated": "No assignments created yet.",
     "schedule": "Schedule",
-    "noSchedulesYet": "No schedules yet."
+    "noSchedulesYet": "No schedules yet.",
+    "totalClasses": "Total Classes",
+    "activeCourses": "Active courses",
+    "totalStudents": "Total Students",
+    "acrossAllClasses": "Across all classes",
+    "classNameRequired": "Class name is required"
   },
   "ClassPage": {
     "classNotFound": "Class not found",
@@ -428,7 +434,9 @@
   },
   "Dashboard": {
     "managerTitle": "Manager Dashboard",
-    "welcomeManager": "Welcome, Manager!"
+    "welcomeManager": "Welcome, Manager!",
+    "customerService": "Customer Service",
+    "customerServiceRequests": "Customer service requests."
   },
   "StudentDashboard": {
     "title": "Student Dashboard",
@@ -439,7 +447,11 @@
     "myClasses": "My Classes",
     "code": "Code",
     "joined": "Joined",
-    "noClassesJoined": "No classes joined yet."
+    "noClassesJoined": "No classes joined yet.",
+    "schedule": "Schedule",
+    "noSchedulesYet": "No schedules yet.",
+    "schedulesDescription": "Your class schedules will appear here once you join a class.",
+    "viewMyClasses": "View My Classes"
   },
   "JoinClass": {
     "title": "Join a Class",

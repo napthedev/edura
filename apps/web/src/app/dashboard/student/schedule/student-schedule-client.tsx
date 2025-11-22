@@ -67,11 +67,11 @@ export default function StudentScheduleClient() {
               <p className="text-muted-foreground mb-4">
                 {t("noSchedulesYet")}
               </p>
-              <p className="text-sm text-muted-foreground mb-4">
-                Your class schedules will appear here once you join a class.
+              <p className="text-muted-foreground mb-4">
+                {t("schedulesDescription")}
               </p>
               <Link href="/dashboard/student/classes">
-                <Button>View My Classes</Button>
+                <Button>{t("viewMyClasses")}</Button>
               </Link>
             </div>
           </CardContent>

@@ -20,7 +20,7 @@ import { useTranslations } from "next-intl";
 
 const joinClassSchema = (t: (key: string) => string) =>
   z.object({
-    classCode: z.string().length(5, t("classCodeLength")),
+    classCode: z.string().length(5, "Class code length"),
   });
 
 type JoinClassFormData = z.infer<ReturnType<typeof joinClassSchema>>;

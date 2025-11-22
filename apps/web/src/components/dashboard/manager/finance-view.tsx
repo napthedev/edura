@@ -38,6 +38,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import { useTranslations } from "next-intl";
 
 // Mock Data
 const financeData = [
@@ -143,6 +144,8 @@ const customerService = [
 ];
 
 export default function FinanceView() {
+  const t = useTranslations("Dashboard");
+
   return (
     <div className="space-y-6">
       {/* Header Section (Mocking the top bar in the image) */}
@@ -379,7 +382,7 @@ export default function FinanceView() {
 
           {/* Customer Service Section */}
           <div className="space-y-4">
-            <h3 className="text-xl font-bold">Customer Service</h3>
+            <h3 className="text-xl font-bold">{t("customerService")}</h3>
             <Card className="border-none shadow-sm">
               <CardContent className="p-0">
                 <div className="divide-y divide-slate-100">

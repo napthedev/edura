@@ -75,15 +75,16 @@ const Hero = () => {
                 {t("trustedBy")}
               </div>
               <div className="flex items-center gap-6 opacity-60">
-                <div className="font-bold text-gray-400 text-lg">
-                  ABC School
-                </div>
-                <div className="font-bold text-gray-400 text-lg">
-                  Learning Academy
-                </div>
-                <div className="font-bold text-gray-400 text-lg">
-                  Bright Future
-                </div>
+                {t
+                  .raw("trustedSchools")
+                  .map((school: string, index: number) => (
+                    <div
+                      key={index}
+                      className="font-bold text-gray-400 text-lg"
+                    >
+                      {school}
+                    </div>
+                  ))}
               </div>
             </div>
           </div>

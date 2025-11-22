@@ -91,7 +91,7 @@ export default function TeacherDashboardPage() {
         <Card className="shadow-sm border-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Classes
+              {t("totalClasses")}
             </CardTitle>
             <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -99,20 +99,24 @@ export default function TeacherDashboardPage() {
             <div className="text-2xl font-bold">
               {classesQuery.data?.length || 0}
             </div>
-            <p className="text-xs text-muted-foreground">Active courses</p>
+            <p className="text-xs text-muted-foreground">
+              {t("activeCourses")}
+            </p>
           </CardContent>
         </Card>
 
         <Card className="shadow-sm border-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Students
+              {t("totalStudents")}
             </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">--</div>
-            <p className="text-xs text-muted-foreground">Across all classes</p>
+            <p className="text-xs text-muted-foreground">
+              {t("acrossAllClasses")}
+            </p>
           </CardContent>
         </Card>
 

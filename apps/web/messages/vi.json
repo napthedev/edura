@@ -30,7 +30,8 @@
       "students": "Học sinh được quản lý",
       "teachers": "Giáo viên kết nối",
       "satisfaction": "Sự hài lòng của trung tâm"
-    }
+    },
+    "trustedSchools": ["ABC School", "Learning Academy", "Bright Future"]
   },
   "DemoVideo": {
     "seeInAction": "Xem hoạt động thực tế",
@@ -242,7 +243,12 @@
     "noClassesYet": "Chưa có lớp học nào.",
     "noAssignmentsCreated": "Chưa có bài tập nào được tạo.",
     "schedule": "Lịch trình",
-    "noSchedulesYet": "Chưa có lịch trình nào."
+    "noSchedulesYet": "Chưa có lịch trình nào.",
+    "totalClasses": "Tổng số lớp học",
+    "activeCourses": "Khóa học đang hoạt động",
+    "totalStudents": "Tổng số học sinh",
+    "acrossAllClasses": "Trên tất cả lớp học",
+    "classNameRequired": "Tên lớp học là bắt buộc"
   },
   "ClassPage": {
     "classNotFound": "Không tìm thấy lớp học",
@@ -428,7 +434,9 @@
   },
   "Dashboard": {
     "managerTitle": "Bảng điều khiển quản lý",
-    "welcomeManager": "Chào mừng, Quản lý!"
+    "welcomeManager": "Chào mừng, Quản lý!",
+    "customerService": "Dịch vụ khách hàng",
+    "customerServiceRequests": "Yêu cầu dịch vụ khách hàng."
   },
   "StudentDashboard": {
     "title": "Bảng điều khiển học sinh",
@@ -439,7 +447,11 @@
     "myClasses": "Lớp học của tôi",
     "code": "Mã",
     "joined": "Đã tham gia",
-    "noClassesJoined": "Chưa tham gia lớp học nào."
+    "noClassesJoined": "Chưa tham gia lớp học nào.",
+    "schedule": "Lịch trình",
+    "noSchedulesYet": "Chưa có lịch trình nào.",
+    "schedulesDescription": "Lịch trình lớp học của bạn sẽ xuất hiện ở đây sau khi bạn tham gia lớp học.",
+    "viewMyClasses": "Xem lớp học của tôi"
   },
   "JoinClass": {
     "title": "Tham gia lớp học",
