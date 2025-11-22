@@ -151,21 +151,6 @@ export default function FinanceView() {
           <h2 className="text-2xl font-bold tracking-tight">M.Deparments</h2>
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
         </div>
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" className="rounded-full">
-            <Search className="h-5 w-5 text-muted-foreground" />
-          </Button>
-          <Button variant="ghost" size="icon" className="rounded-full">
-            <Bell className="h-5 w-5 text-muted-foreground" />
-          </Button>
-          <Button variant="ghost" size="icon" className="rounded-full">
-            <MessageSquare className="h-5 w-5 text-muted-foreground" />
-          </Button>
-          <Avatar className="h-8 w-8">
-            <AvatarImage src="https://github.com/shadcn.png" />
-            <AvatarFallback>CN</AvatarFallback>
-          </Avatar>
-        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
