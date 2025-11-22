@@ -1,7 +1,6 @@
 "use client";
 
 import { useSession } from "@/lib/auth-client";
-import { DashboardShell } from "@/components/dashboard/shell";
 import Loader from "@/components/loader";
 import { redirect } from "next/navigation";
 import FinanceView from "@/components/dashboard/manager/finance-view";
@@ -24,9 +23,5 @@ export default function FinancePage() {
   // Force "manager" role for this page to show the correct sidebar links
   const role = "manager";
 
-  return (
-    <DashboardShell role={role}>
-      <FinanceView />
-    </DashboardShell>
-  );
+  return <FinanceView />;
 }

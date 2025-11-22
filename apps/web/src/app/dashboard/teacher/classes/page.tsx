@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { DashboardShell } from "@/components/dashboard/shell";
 import TeacherClassesClient from "./teacher-classes-client";
 import { getSession } from "@/lib/server-auth";
 
@@ -16,9 +15,5 @@ export default async function TeacherClassesPage() {
     redirect("/dashboard");
   }
 
-  return (
-    <DashboardShell role={role}>
-      <TeacherClassesClient />
-    </DashboardShell>
-  );
+  return <TeacherClassesClient />;
 }

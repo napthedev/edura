@@ -83,17 +83,17 @@ function SidebarContent({ role }: { role: "teacher" | "student" | "manager" }) {
       icon: LayoutDashboard, // Placeholder
     },
     {
-      href: "/dashboard/teachers",
+      href: "/dashboard/manager/teachers",
       label: "Teachers",
       icon: Users,
     },
     {
-      href: "/dashboard/students",
+      href: "/dashboard/manager/students",
       label: "Students",
       icon: GraduationCap,
     },
     {
-      href: "/dashboard/customer-service",
+      href: "/dashboard/manager/customer-service",
       label: "Customer Service",
       icon: HeadphonesIcon,
     },

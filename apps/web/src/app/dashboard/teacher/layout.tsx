@@ -1,7 +1,12 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/server-auth";
+import { DashboardShell } from "@/components/dashboard/shell";
 
-export default async function DashboardPage() {
+export default async function TeacherDashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const session = await getSession();
 
   if (!session?.user) {
@@ -10,13 +15,9 @@ export default async function DashboardPage() {
 
   const role = (session.user as any).role;
 
-  if (role) {
+  if (role !== "teacher") {
     redirect(`/dashboard/${role}` as any);
   }
 
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <p>Unknown role. Please contact support.</p>
-    </div>
-  );
+  return <DashboardShell role="teacher">{children}</DashboardShell>;
 }
