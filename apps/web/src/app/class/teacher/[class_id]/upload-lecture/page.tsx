@@ -1,11 +1,18 @@
 "use client";
 import { useParams, useRouter } from "next/navigation";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { trpcClient } from "@/utils/trpc";
 import Header from "@/components/header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -26,12 +33,14 @@ import { useTranslations } from "next-intl";
 
 const fileUploadSchema = z.object({
   title: z.string().min(1, "Title is required"),
+  moduleId: z.string().optional(),
   description: z.string().optional(),
   lectureDate: z.string().min(1, "Lecture date is required"),
 });
 
 const youtubeSchema = z.object({
   title: z.string().min(1, "Title is required"),
+  moduleId: z.string().optional(),
   description: z.string().optional(),
   url: z.string().url("Please enter a valid URL"),
   lectureDate: z.string().min(1, "Lecture date is required"),
@@ -46,6 +55,13 @@ export default function UploadLecturePage() {
   const router = useRouter();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const t = useTranslations("UploadLecture");
+
+  const modulesQuery = useQuery({
+    queryKey: [["education", "getClassModules"], { classId }],
+    queryFn: async () => {
+      return await trpcClient.education.getClassModules.query({ classId });
+    },
+  });
 
   const fileForm = useForm<FileUploadForm>({
     resolver: zodResolver(fileUploadSchema),
@@ -70,6 +86,7 @@ export default function UploadLecturePage() {
     mutationFn: async (data: YoutubeForm) => {
       return await trpcClient.education.createLecture.mutate({
         classId,
+        moduleId: data.moduleId === "none" ? undefined : data.moduleId,
         title: data.title,
         description: data.description,
         type: "youtube",
@@ -93,6 +110,10 @@ export default function UploadLecturePage() {
       const formData = new FormData();
       formData.append("file", selectedFile);
       formData.append("classId", classId);
+      formData.append(
+        "moduleId",
+        data.moduleId === "none" ? "" : data.moduleId || ""
+      );
       formData.append("title", data.title);
       formData.append("description", data.description || "");
       formData.append("lectureDate", data.lectureDate);
@@ -202,6 +223,42 @@ export default function UploadLecturePage() {
 
                       <FormField
                         control={fileForm.control}
+                        name="moduleId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{t("moduleOptional")}</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue
+                                    placeholder={t("selectModule")}
+                                  />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="none">
+                                  {t("noModule")}
+                                </SelectItem>
+                                {modulesQuery.data?.map((module: any) => (
+                                  <SelectItem
+                                    key={module.moduleId}
+                                    value={module.moduleId}
+                                  >
+                                    {module.title}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={fileForm.control}
                         name="description"
                         render={({ field }) => (
                           <FormItem>
@@ -302,6 +359,42 @@ export default function UploadLecturePage() {
                                 {...field}
                               />
                             </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={youtubeForm.control}
+                        name="moduleId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>{t("moduleOptional")}</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue
+                                    placeholder={t("selectModule")}
+                                  />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="none">
+                                  {t("noModule")}
+                                </SelectItem>
+                                {modulesQuery.data?.map((module: any) => (
+                                  <SelectItem
+                                    key={module.moduleId}
+                                    value={module.moduleId}
+                                  >
+                                    {module.title}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                             <FormMessage />
                           </FormItem>
                         )}

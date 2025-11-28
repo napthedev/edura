@@ -15,7 +15,7 @@ Based on the architectural recommendations and schema enhancements.
 - [ ] **User Profiles**: Create extended profile management UI (DOB, address, etc.).
 
 ## 3. Academic Management (LMS)
-- [ ] **Class Modules UI**: 
+- [x] **Class Modules UI**: 
     - Update Class view to support Module-based layout.
     - Allow teachers to create/reorder modules.
 - [ ] **Question Bank**:
@@ -38,10 +38,10 @@ Based on the architectural recommendations and schema enhancements.
     - Build the "Managing Finance" dashboard using the `transactions` ledger.
 
 ## 5. System & Notifications
-- [ ] **Notification Engine**: 
+- [x] **Notification Engine**: 
     - Create triggers for events (Assignment Graded, Payment Due).
     - Insert into `notifications` table.
-- [ ] **Notification UI**: 
+- [x] **Notification UI**: 
     - Add "Bell" icon to Header.
     - Create dropdown/page for viewing read/unread notifications.
 - [ ] **Audit Logging**: 

@@ -8,6 +8,7 @@ import { getSession } from "@/lib/server-auth";
 
 const uploadSchema = z.object({
   classId: z.string(),
+  moduleId: z.string().optional(),
   title: z.string().min(1),
   description: z.string().optional(),
   lectureDate: z.string(),
@@ -25,6 +26,7 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get("file") as File;
     const classId = formData.get("classId") as string;
+    const moduleId = formData.get("moduleId") as string;
     const title = formData.get("title") as string;
     const description = formData.get("description") as string;
     const lectureDate = formData.get("lectureDate") as string;
@@ -32,6 +34,7 @@ export async function POST(request: NextRequest) {
     // Validate input
     const validation = uploadSchema.safeParse({
       classId,
+      moduleId: moduleId || undefined,
       title,
       description: description || undefined,
       lectureDate,
@@ -99,8 +102,9 @@ export async function POST(request: NextRequest) {
       .values({
         lectureId,
         classId,
+        moduleId: moduleId || null,
         title,
-        description,
+        description: description || "",
         type: "file",
         url: blob.url,
         lectureDate: new Date(lectureDate),

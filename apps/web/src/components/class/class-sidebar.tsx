@@ -13,6 +13,7 @@ import {
   ArrowLeft,
   GraduationCap,
   UserPlus,
+  Layout,
 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 
@@ -54,6 +55,11 @@ function ClassSidebarContent({
       icon: Megaphone,
     },
     {
+      value: "modules",
+      label: "Modules",
+      icon: Layout,
+    },
+    {
       value: "students",
       label: "Students",
       icon: Users,
@@ -90,6 +96,11 @@ function ClassSidebarContent({
       value: "announcement",
       label: "Announcements",
       icon: Megaphone,
+    },
+    {
+      value: "modules",
+      label: "Modules",
+      icon: Layout,
     },
     {
       value: "teacher",

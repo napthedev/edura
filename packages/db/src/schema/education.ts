@@ -46,6 +46,9 @@ export const assignments = pgTable("assignments", {
   classId: text("class_id")
     .notNull()
     .references(() => classes.classId, { onDelete: "cascade" }),
+  moduleId: text("module_id").references(() => classModules.moduleId, {
+    onDelete: "set null",
+  }),
   title: text("title").notNull(),
   description: text("description"),
   assignmentContent: text("assignment_content"),
@@ -102,6 +105,9 @@ export const lectures = pgTable("lectures", {
   classId: text("class_id")
     .notNull()
     .references(() => classes.classId, { onDelete: "cascade" }),
+  moduleId: text("module_id").references(() => classModules.moduleId, {
+    onDelete: "set null",
+  }),
   title: text("title").notNull(),
   description: text("description"),
   type: text("type").notNull(), // 'file' or 'youtube'

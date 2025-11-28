@@ -10,6 +10,7 @@ import {
   schedules,
   classJoinRequests,
   notifications,
+  classModules,
 } from "@edura/db/schema/education";
 import { eq, and, sql } from "drizzle-orm";
 import { user } from "@edura/db/schema/auth";
@@ -638,6 +639,7 @@ export const educationRouter = router({
     .input(
       z.object({
         classId: z.string(),
+        moduleId: z.string().optional(),
         title: z.string().min(1),
         description: z.string().optional(),
         dueDate: z.string().optional(),
@@ -668,6 +670,7 @@ export const educationRouter = router({
         .values({
           assignmentId,
           classId: input.classId,
+          moduleId: input.moduleId,
           title: input.title,
           description: input.description,
           assignmentContent: input.assignmentContent,
@@ -702,6 +705,7 @@ export const educationRouter = router({
     .input(
       z.object({
         assignmentId: z.string(),
+        moduleId: z.string().nullable().optional(),
         title: z.string().min(1).optional(),
         description: z.string().optional(),
         dueDate: z.string().optional(),
@@ -727,6 +731,7 @@ export const educationRouter = router({
       }
 
       const updateData: any = {};
+      if (input.moduleId !== undefined) updateData.moduleId = input.moduleId;
       if (input.title !== undefined) updateData.title = input.title;
       if (input.description !== undefined)
         updateData.description = input.description;
@@ -872,6 +877,7 @@ export const educationRouter = router({
     .input(
       z.object({
         classId: z.string(),
+        moduleId: z.string().optional(),
         title: z.string().min(1),
         description: z.string().optional(),
         type: z.enum(["file", "youtube"]),
@@ -902,6 +908,7 @@ export const educationRouter = router({
         .values({
           lectureId,
           classId: input.classId,
+          moduleId: input.moduleId,
           title: input.title,
           description: input.description,
           type: input.type,
@@ -967,6 +974,7 @@ export const educationRouter = router({
     .input(
       z.object({
         lectureId: z.string(),
+        moduleId: z.string().nullable().optional(),
         title: z.string().min(1).optional(),
         description: z.string().optional(),
         type: z.enum(["file", "youtube"]).optional(),
@@ -992,6 +1000,7 @@ export const educationRouter = router({
       }
 
       const updateData: any = {};
+      if (input.moduleId !== undefined) updateData.moduleId = input.moduleId;
       if (input.title !== undefined) updateData.title = input.title;
       if (input.description !== undefined)
         updateData.description = input.description;
@@ -1635,6 +1644,238 @@ export const educationRouter = router({
       submitted: !!item.submitted,
     }));
   }),
+
+  // --- Modules ---
+
+  createModule: protectedProcedure
+    .input(
+      z.object({
+        classId: z.string(),
+        title: z.string().min(1),
+        description: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Check if teacher owns the class
+      const classData = await ctx.db
+        .select()
+        .from(classes)
+        .where(
+          and(
+            eq(classes.classId, input.classId),
+            eq(classes.teacherId, ctx.session.user.id)
+          )
+        );
+
+      if (classData.length === 0) {
+        throw new Error("Class not found or access denied");
+      }
+
+      // Get max order index
+      const maxOrder = await ctx.db
+        .select({ maxOrder: sql<number>`max(${classModules.orderIndex})` })
+        .from(classModules)
+        .where(eq(classModules.classId, input.classId));
+
+      const nextOrder = (maxOrder[0]?.maxOrder ?? -1) + 1;
+
+      const moduleId = crypto.randomUUID();
+
+      const newModule = await ctx.db
+        .insert(classModules)
+        .values({
+          moduleId,
+          classId: input.classId,
+          title: input.title,
+          description: input.description,
+          orderIndex: nextOrder,
+        })
+        .returning();
+
+      return newModule[0];
+    }),
+
+  updateModule: protectedProcedure
+    .input(
+      z.object({
+        moduleId: z.string(),
+        title: z.string().optional(),
+        description: z.string().optional(),
+        orderIndex: z.number().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Verify ownership via class
+      const moduleData = await ctx.db
+        .select({
+          moduleId: classModules.moduleId,
+          teacherId: classes.teacherId,
+        })
+        .from(classModules)
+        .innerJoin(classes, eq(classModules.classId, classes.classId))
+        .where(eq(classModules.moduleId, input.moduleId));
+
+      if (
+        moduleData.length === 0 ||
+        moduleData[0]?.teacherId !== ctx.session.user.id
+      ) {
+        throw new Error("Module not found or access denied");
+      }
+
+      const updatedModule = await ctx.db
+        .update(classModules)
+        .set({
+          title: input.title,
+          description: input.description,
+          orderIndex: input.orderIndex,
+        })
+        .where(eq(classModules.moduleId, input.moduleId))
+        .returning();
+
+      return updatedModule[0];
+    }),
+
+  deleteModule: protectedProcedure
+    .input(z.object({ moduleId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // Verify ownership
+      const moduleData = await ctx.db
+        .select({
+          moduleId: classModules.moduleId,
+          teacherId: classes.teacherId,
+        })
+        .from(classModules)
+        .innerJoin(classes, eq(classModules.classId, classes.classId))
+        .where(eq(classModules.moduleId, input.moduleId));
+
+      if (
+        moduleData.length === 0 ||
+        moduleData[0]?.teacherId !== ctx.session.user.id
+      ) {
+        throw new Error("Module not found or access denied");
+      }
+
+      await ctx.db
+        .delete(classModules)
+        .where(eq(classModules.moduleId, input.moduleId));
+
+      return { success: true };
+    }),
+
+  getClassModules: protectedProcedure
+    .input(z.object({ classId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      // Check access (teacher or student enrolled)
+      const isTeacher = await ctx.db
+        .select()
+        .from(classes)
+        .where(
+          and(
+            eq(classes.classId, input.classId),
+            eq(classes.teacherId, ctx.session.user.id)
+          )
+        );
+
+      if (isTeacher.length === 0) {
+        const isStudent = await ctx.db
+          .select()
+          .from(enrollments)
+          .where(
+            and(
+              eq(enrollments.classId, input.classId),
+              eq(enrollments.studentId, ctx.session.user.id)
+            )
+          );
+
+        if (isStudent.length === 0) {
+          throw new Error("Access denied");
+        }
+      }
+
+      const modules = await ctx.db
+        .select()
+        .from(classModules)
+        .where(eq(classModules.classId, input.classId))
+        .orderBy(classModules.orderIndex);
+
+      const modulesWithContent = await Promise.all(
+        modules.map(async (module) => {
+          const moduleAssignments = await ctx.db
+            .select()
+            .from(assignments)
+            .where(eq(assignments.moduleId, module.moduleId));
+
+          const moduleLectures = await ctx.db
+            .select()
+            .from(lectures)
+            .where(eq(lectures.moduleId, module.moduleId));
+
+          return {
+            ...module,
+            assignments: moduleAssignments,
+            lectures: moduleLectures,
+          };
+        })
+      );
+
+      return modulesWithContent;
+    }),
+
+  getUnassignedContent: protectedProcedure
+    .input(z.object({ classId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      // Check access
+      const isTeacher = await ctx.db
+        .select()
+        .from(classes)
+        .where(
+          and(
+            eq(classes.classId, input.classId),
+            eq(classes.teacherId, ctx.session.user.id)
+          )
+        );
+
+      if (isTeacher.length === 0) {
+        const isStudent = await ctx.db
+          .select()
+          .from(enrollments)
+          .where(
+            and(
+              eq(enrollments.classId, input.classId),
+              eq(enrollments.studentId, ctx.session.user.id)
+            )
+          );
+
+        if (isStudent.length === 0) {
+          throw new Error("Access denied");
+        }
+      }
+
+      const unassignedAssignments = await ctx.db
+        .select()
+        .from(assignments)
+        .where(
+          and(
+            eq(assignments.classId, input.classId),
+            sql`${assignments.moduleId} IS NULL`
+          )
+        );
+
+      const unassignedLectures = await ctx.db
+        .select()
+        .from(lectures)
+        .where(
+          and(
+            eq(lectures.classId, input.classId),
+            sql`${lectures.moduleId} IS NULL`
+          )
+        );
+
+      return {
+        assignments: unassignedAssignments,
+        lectures: unassignedLectures,
+      };
+    }),
 });
 
 export type EducationRouter = typeof educationRouter;

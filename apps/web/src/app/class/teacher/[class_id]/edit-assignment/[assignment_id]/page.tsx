@@ -7,6 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ArrowLeft, Save, Copy, Trash2 } from "lucide-react";
 import { trpcClient } from "@/utils/trpc";
 import { QuestionEditor } from "@/components/assignment/question-editor";
@@ -38,6 +45,7 @@ type SessionUser = {
 
 const assignmentFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
+  moduleId: z.string().optional(),
   description: z.string().optional(),
   dueDate: z.string().optional(),
   testingDuration: z
@@ -73,12 +81,20 @@ export default function EditAssignmentPage() {
     queryFn: () => trpcClient.education.getAssignment.query({ assignmentId }),
   });
 
+  const modulesQuery = useQuery({
+    queryKey: [["education", "getClassModules"], { classId }],
+    queryFn: async () => {
+      return await trpcClient.education.getClassModules.query({ classId });
+    },
+  });
+
   const updateAssignmentMutation = useMutation({
     mutationFn: async (
       data: AssignmentForm & { assignmentContent: string }
     ) => {
       return await trpcClient.education.updateAssignment.mutate({
         assignmentId,
+        moduleId: data.moduleId === "none" ? undefined : data.moduleId,
         ...data,
       });
     },
@@ -115,6 +131,7 @@ export default function EditAssignmentPage() {
       const assignment = assignmentQuery.data.assignments;
       form.reset({
         title: assignment.title,
+        moduleId: assignment.moduleId || "none",
         description: assignment.description || "",
         dueDate: assignment.dueDate
           ? new Date(assignment.dueDate).toISOString().split("T")[0]
@@ -323,6 +340,39 @@ export default function EditAssignmentPage() {
                             {...field}
                           />
                         </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="moduleId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("moduleOptional")}</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={t("selectModule")} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="none">
+                              {t("noModule")}
+                            </SelectItem>
+                            {modulesQuery.data?.map((module: any) => (
+                              <SelectItem
+                                key={module.moduleId}
+                                value={module.moduleId}
+                              >
+                                {module.title}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}

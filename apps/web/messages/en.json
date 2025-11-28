@@ -311,6 +311,9 @@
     "testingDurationPlaceholder": "e.g. 60",
     "creating": "Creating...",
     "createAssignmentButton": "Create Assignment",
+    "moduleOptional": "Module (Optional)",
+    "selectModule": "Select a module",
+    "noModule": "No Module",
     "cancel": "Cancel",
     "back": "Back"
   },
@@ -358,7 +361,10 @@
     "youtubeLectureCreated": "YouTube lecture created successfully",
     "failedToCreateLecture": "Failed to create lecture",
     "fileUploaded": "File uploaded successfully",
-    "uploadFailed": "Upload failed"
+    "uploadFailed": "Upload failed",
+    "moduleOptional": "Module (Optional)",
+    "selectModule": "Select a module",
+    "noModule": "No Module"
   },
   "CreateAnnouncement": {
     "announcementCreated": "Announcement created successfully",

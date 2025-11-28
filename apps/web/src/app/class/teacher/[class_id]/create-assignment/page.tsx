@@ -26,6 +26,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { authClient } from "@/lib/auth-client";
@@ -45,6 +52,7 @@ type SessionUser = {
 
 const createAssignmentSchema = z.object({
   title: z.string().min(1, "Title is required"),
+  moduleId: z.string().optional(),
   description: z.string().optional(),
   dueDate: z.date().optional(),
   testingDuration: z
@@ -75,6 +83,13 @@ export default function CreateAssignmentPage() {
     staleTime: Infinity,
   });
 
+  const modulesQuery = useQuery({
+    queryKey: [["education", "getClassModules"], { classId }],
+    queryFn: async () => {
+      return await trpcClient.education.getClassModules.query({ classId });
+    },
+  });
+
   const form = useForm<CreateAssignmentForm>({
     resolver: zodResolver(createAssignmentSchema),
     defaultValues: {
@@ -91,6 +106,7 @@ export default function CreateAssignmentPage() {
     ) => {
       return await trpcClient.education.createAssignment.mutate({
         classId,
+        moduleId: data.moduleId === "none" ? undefined : data.moduleId,
         title: data.title,
         description: data.description,
         dueDate: data.dueDate ? data.dueDate.toISOString() : undefined,
@@ -333,6 +349,47 @@ export default function CreateAssignmentPage() {
                         </FormItem>
                       )}
                     />
+                    <FormField
+                      control={form.control}
+                      name="moduleId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("moduleOptional")}</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder={t("selectModule")} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="none">
+                                {t("noModule")}
+                              </SelectItem>
+                              {modulesQuery.data?.map((module: any) => (
+                                <SelectItem
+                                  key={module.moduleId}
+                                  value={module.moduleId}
+                                >
+                                  {module.title}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    {generatedQuestions.length > 0 && (
+                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                        <p className="text-sm text-blue-700">
+                          {generatedQuestions.length}{" "}
+                          {t("questionsGeneratedNote")}
+                        </p>
+                      </div>
+                    )}
                     <div className="flex gap-2">
                       <Button
                         type="submit"
