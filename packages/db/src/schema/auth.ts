@@ -14,8 +14,37 @@ export const user = pgTable("user", {
   image: text("image"),
   // role indicates whether the user is a teacher or student
   role: userRoleEnum("role").notNull().default("student"),
+  // Extended profile fields
+  dateOfBirth: timestamp("date_of_birth"),
+  address: text("address"),
+  grade: text("grade"), // For students only
+  schoolName: text("school_name"),
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updated_at").notNull(),
+});
+
+// Additional emails for user (beyond primary auth email)
+export const userEmails = pgTable("user_emails", {
+  emailId: text("email_id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  email: text("email").notNull(),
+  isPrimary: boolean("is_primary").notNull().default(false),
+  isVerified: boolean("is_verified").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Phone numbers for user
+export const userPhones = pgTable("user_phones", {
+  phoneId: text("phone_id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  phoneNumber: text("phone_number").notNull(),
+  isPrimary: boolean("is_primary").notNull().default(false),
+  label: text("label"), // e.g., "mobile", "home", "work"
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 export const session = pgTable("session", {

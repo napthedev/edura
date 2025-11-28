@@ -6,13 +6,12 @@ Based on the architectural recommendations and schema enhancements.
 - [x] **LMS Structure**: Add `class_modules` for grouping content.
 - [x] **AI Grading**: Add `questions` and `submission_answers` for granular analytics.
 - [x] **Financials**: Add `teacher_rates` for payroll calculation.
-- [ ] **Financials**: Add `discounts_promotions` for invoice management.
 - [x] **System**: Add `notifications` for alerts.
 - [x] **System**: Add `audit_logs` for security.
 
 ## 2. Core User & Role Management
 - [ ] **Zalo Integration**: Add `parent_zalo_id` to user profiles and implement Zalo API integration.
-- [ ] **User Profiles**: Create extended profile management UI (DOB, address, etc.).
+- [x] **User Profiles**: Create extended profile management UI (DOB, address, etc.).
 
 ## 3. Academic Management (LMS)
 - [x] **Class Modules UI**: 
@@ -44,8 +43,6 @@ Based on the architectural recommendations and schema enhancements.
 - [x] **Notification UI**: 
     - Add "Bell" icon to Header.
     - Create dropdown/page for viewing read/unread notifications.
-- [ ] **Audit Logging**: 
-    - Implement TRPC middleware to log critical mutations (Grade Change, Transaction Delete) to `audit_logs`.
 
 # Fix translation error prompt
 fix all the translation rendering errors when using useTranslation() and t("key") that are caused by key not being defined in the en.json and vi.json files

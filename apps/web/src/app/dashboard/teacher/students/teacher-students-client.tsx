@@ -13,7 +13,15 @@ import {
 import Loader from "@/components/loader";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
-import { Users, Mail, Calendar, BookOpen } from "lucide-react";
+import {
+  Users,
+  Mail,
+  Calendar,
+  BookOpen,
+  MapPin,
+  GraduationCap,
+  School,
+} from "lucide-react";
 
 export default function TeacherStudentsClient() {
   const t = useTranslations("TeacherStudents");
@@ -30,6 +38,10 @@ export default function TeacherStudentsClient() {
       userId: string;
       name: string;
       email: string;
+      dateOfBirth: string | null;
+      address: string | null;
+      grade: string | null;
+      schoolName: string | null;
       classes: Array<{
         classId: string;
         className: string;
@@ -47,6 +59,10 @@ export default function TeacherStudentsClient() {
           userId: enrollment.userId,
           name: enrollment.name,
           email: enrollment.email,
+          dateOfBirth: enrollment.dateOfBirth,
+          address: enrollment.address,
+          grade: enrollment.grade,
+          schoolName: enrollment.schoolName,
           classes: [],
           firstEnrolledAt: enrollment.enrolledAt,
         });
@@ -122,13 +138,25 @@ export default function TeacherStudentsClient() {
           {studentsQuery.isLoading ? (
             <Loader />
           ) : uniqueStudents.length > 0 ? (
-            <div className="rounded-lg border overflow-hidden">
+            <div className="rounded-lg border overflow-hidden overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-slate-50 hover:bg-slate-50">
                     <TableHead className="font-semibold">{t("name")}</TableHead>
                     <TableHead className="font-semibold">
                       {t("email")}
+                    </TableHead>
+                    <TableHead className="font-semibold">
+                      {t("gradeLevel")}
+                    </TableHead>
+                    <TableHead className="font-semibold">
+                      {t("schoolName")}
+                    </TableHead>
+                    <TableHead className="font-semibold">
+                      {t("address")}
+                    </TableHead>
+                    <TableHead className="font-semibold">
+                      {t("dateOfBirth")}
                     </TableHead>
                     <TableHead className="font-semibold">
                       {t("classes")}
@@ -152,6 +180,46 @@ export default function TeacherStudentsClient() {
                           <Mail className="h-4 w-4 text-muted-foreground/60" />
                           {student.email}
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        {student.grade ? (
+                          <div className="flex items-center gap-1">
+                            <GraduationCap className="h-4 w-4 text-muted-foreground/60" />
+                            {student.grade}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {student.schoolName ? (
+                          <div className="flex items-center gap-1">
+                            <School className="h-4 w-4 text-muted-foreground/60" />
+                            {student.schoolName}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {student.address ? (
+                          <div className="flex items-center gap-1">
+                            <MapPin className="h-4 w-4 text-muted-foreground/60" />
+                            {student.address}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {student.dateOfBirth ? (
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-4 w-4 text-muted-foreground/60" />
+                            {new Date(student.dateOfBirth).toLocaleDateString()}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">

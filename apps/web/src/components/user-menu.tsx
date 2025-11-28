@@ -12,7 +12,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "./ui/skeleton";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { User, Mail, Shield, LogOut } from "lucide-react";
+import { User, Mail, Shield, LogOut, Settings } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 export default function UserMenu() {
@@ -73,6 +73,12 @@ export default function UserMenu() {
           </span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild className="cursor-pointer">
+          <Link href="/profile">
+            <Settings className="mr-2 h-4 w-4" />
+            <span>{t("profile")}</span>
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => {
             authClient.signOut({

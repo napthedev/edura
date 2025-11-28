@@ -120,6 +120,10 @@ export const educationRouter = router({
           name: user.name,
           email: user.email,
           enrolledAt: enrollments.enrolledAt,
+          dateOfBirth: user.dateOfBirth,
+          address: user.address,
+          grade: user.grade,
+          schoolName: user.schoolName,
         })
         .from(enrollments)
         .innerJoin(user, eq(enrollments.studentId, user.id))
@@ -136,6 +140,10 @@ export const educationRouter = router({
         classId: classes.classId,
         className: classes.className,
         classCode: classes.classCode,
+        dateOfBirth: user.dateOfBirth,
+        address: user.address,
+        grade: user.grade,
+        schoolName: user.schoolName,
       })
       .from(classes)
       .innerJoin(enrollments, eq(classes.classId, enrollments.classId))
@@ -623,6 +631,9 @@ export const educationRouter = router({
           name: user.name,
           email: user.email,
           image: user.image,
+          dateOfBirth: user.dateOfBirth,
+          address: user.address,
+          schoolName: user.schoolName,
         })
         .from(classes)
         .innerJoin(user, eq(classes.teacherId, user.id))
@@ -1876,6 +1887,57 @@ export const educationRouter = router({
         lectures: unassignedLectures,
       };
     }),
+
+  // Manager endpoints - get all teachers with extended profile
+  getAllTeachers: protectedProcedure.query(async ({ ctx }) => {
+    // Check if user is a manager
+    if (ctx.session.user.role !== "manager") {
+      throw new Error("Access denied - manager only");
+    }
+
+    const teachers = await ctx.db
+      .select({
+        userId: user.id,
+        name: user.name,
+        email: user.email,
+        image: user.image,
+        dateOfBirth: user.dateOfBirth,
+        address: user.address,
+        schoolName: user.schoolName,
+        createdAt: user.createdAt,
+      })
+      .from(user)
+      .where(eq(user.role, "teacher"))
+      .orderBy(user.name);
+
+    return teachers;
+  }),
+
+  // Manager endpoints - get all students with extended profile
+  getAllStudents: protectedProcedure.query(async ({ ctx }) => {
+    // Check if user is a manager
+    if (ctx.session.user.role !== "manager") {
+      throw new Error("Access denied - manager only");
+    }
+
+    const students = await ctx.db
+      .select({
+        userId: user.id,
+        name: user.name,
+        email: user.email,
+        image: user.image,
+        dateOfBirth: user.dateOfBirth,
+        address: user.address,
+        grade: user.grade,
+        schoolName: user.schoolName,
+        createdAt: user.createdAt,
+      })
+      .from(user)
+      .where(eq(user.role, "student"))
+      .orderBy(user.name);
+
+    return students;
+  }),
 });
 
 export type EducationRouter = typeof educationRouter;

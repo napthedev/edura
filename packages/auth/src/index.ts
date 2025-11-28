@@ -22,6 +22,26 @@ export const auth = betterAuth({
         required: true,
         input: true,
       },
+      dateOfBirth: {
+        type: "date",
+        required: false,
+        input: true,
+      },
+      address: {
+        type: "string",
+        required: false,
+        input: true,
+      },
+      grade: {
+        type: "string",
+        required: false,
+        input: true,
+      },
+      schoolName: {
+        type: "string",
+        required: false,
+        input: true,
+      },
     },
   },
 });
