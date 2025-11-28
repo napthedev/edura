@@ -1,4 +1,13 @@
-import { pgTable, text, timestamp, integer, unique } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  timestamp,
+  integer,
+  unique,
+  boolean,
+  jsonb,
+  pgEnum,
+} from "drizzle-orm/pg-core";
 import { user } from "./auth";
 
 // Classes table
@@ -99,4 +108,115 @@ export const lectures = pgTable("lectures", {
   url: text("url").notNull(),
   lectureDate: timestamp("lecture_date").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Class Join Requests
+export const classJoinRequests = pgTable(
+  "class_join_requests",
+  {
+    requestId: text("request_id").primaryKey(),
+    classId: text("class_id")
+      .notNull()
+      .references(() => classes.classId, { onDelete: "cascade" }),
+    studentId: text("student_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    status: text("status").notNull().default("pending"), // 'pending', 'approved', 'rejected'
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    // Ensure a student can't have multiple active requests for the same class
+    // We might want to allow re-requesting if rejected, but for now let's keep it simple
+    // and handle logic in the application layer or allow duplicates if status is different?
+    // Actually, a unique constraint here makes sense to prevent spamming.
+    // If rejected, they might need to contact teacher or we delete the request to allow new one.
+    // Let's just add the table and handle logic in API.
+    uniqueStudentClassRequest: unique().on(table.studentId, table.classId),
+  })
+);
+
+// --- New Tables ---
+
+// Class Modules
+export const classModules = pgTable("class_modules", {
+  moduleId: text("module_id").primaryKey(),
+  classId: text("class_id")
+    .notNull()
+    .references(() => classes.classId, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  description: text("description"),
+  orderIndex: integer("order_index").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Questions (Question Bank)
+export const questions = pgTable("questions", {
+  questionId: text("question_id").primaryKey(),
+  subject: text("subject"),
+  difficultyLevel: text("difficulty_level"),
+  questionText: text("question_text").notNull(),
+  correctAnswer: text("correct_answer"),
+  options: jsonb("options"), // JSON for multiple choice
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Submission Answers
+export const submissionAnswers = pgTable("submission_answers", {
+  answerId: text("answer_id").primaryKey(),
+  submissionId: text("submission_id")
+    .notNull()
+    .references(() => submissions.submissionId, { onDelete: "cascade" }),
+  questionId: text("question_id")
+    .notNull()
+    .references(() => questions.questionId, { onDelete: "cascade" }),
+  studentAnswer: jsonb("student_answer"),
+  isCorrect: boolean("is_correct"),
+  pointsAwarded: integer("points_awarded"),
+});
+
+// Teacher Rates
+export const teacherRateTypeEnum = pgEnum("teacher_rate_type", [
+  "HOURLY",
+  "PER_STUDENT",
+  "MONTHLY_FIXED",
+]);
+
+export const teacherRates = pgTable("teacher_rates", {
+  rateId: text("rate_id").primaryKey(),
+  teacherId: text("teacher_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  rateType: teacherRateTypeEnum("rate_type").notNull(),
+  amount: integer("amount").notNull(), // Store in cents/smallest currency unit
+  effectiveDate: timestamp("effective_date").notNull().defaultNow(),
+  isActive: boolean("is_active").default(true),
+});
+
+// Notifications
+export const notifications = pgTable("notifications", {
+  notificationId: text("notification_id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  type: text("type").notNull(), // 'system', 'grade', 'payment'
+  isRead: boolean("is_read").default(false),
+  linkUrl: text("link_url"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Audit Logs
+export const auditLogs = pgTable("audit_logs", {
+  logId: text("log_id").primaryKey(),
+  actorUserId: text("actor_user_id").references(() => user.id, {
+    onDelete: "set null",
+  }),
+  action: text("action").notNull(),
+  entityType: text("entity_type").notNull(),
+  entityId: text("entity_id"),
+  oldValue: jsonb("old_value"),
+  newValue: jsonb("new_value"),
+  timestamp: timestamp("timestamp").notNull().defaultNow(),
 });

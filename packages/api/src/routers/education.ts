@@ -8,6 +8,8 @@ import {
   lectures,
   announcements,
   schedules,
+  classJoinRequests,
+  notifications,
 } from "@edura/db/schema/education";
 import { eq, and, sql } from "drizzle-orm";
 import { user } from "@edura/db/schema/auth";
@@ -293,68 +295,345 @@ export const educationRouter = router({
 
       return { class: classData, enrollment: enrollment[0] };
     }),
+
+  requestJoinClass: protectedProcedure
+    .input(
+      z.object({
+        classCode: z.string().length(5),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Find the class by code
+      const classToJoin = await ctx.db
+        .select()
+        .from(classes)
+        .where(eq(classes.classCode, input.classCode.toUpperCase()));
+
+      if (classToJoin.length === 0) {
+        throw new Error("Class not found");
+      }
+
+      const classData = classToJoin[0]!;
+
+      // Check if student is already enrolled
+      const existingEnrollment = await ctx.db
+        .select()
+        .from(enrollments)
+        .where(
+          and(
+            eq(enrollments.studentId, ctx.session.user.id),
+            eq(enrollments.classId, classData.classId)
+          )
+        );
+
+      if (existingEnrollment.length > 0) {
+        throw new Error("Already enrolled in this class");
+      }
+
+      // Check if request already exists
+      const existingRequest = await ctx.db
+        .select()
+        .from(classJoinRequests)
+        .where(
+          and(
+            eq(classJoinRequests.studentId, ctx.session.user.id),
+            eq(classJoinRequests.classId, classData.classId)
+          )
+        );
+
+      if (existingRequest.length > 0) {
+        const req = existingRequest[0]!;
+        if (req.status === "pending") {
+          throw new Error("Request already pending");
+        } else if (req.status === "approved") {
+          throw new Error("Request already approved (you should be enrolled)");
+        }
+        // If rejected, we might allow re-requesting by updating the existing request or deleting it.
+        // Let's update it to pending.
+        await ctx.db
+          .update(classJoinRequests)
+          .set({ status: "pending", updatedAt: new Date() })
+          .where(eq(classJoinRequests.requestId, req.requestId));
+
+        // Notify teacher
+        await ctx.db.insert(notifications).values({
+          notificationId: crypto.randomUUID(),
+          userId: classData.teacherId,
+          title: "New Class Join Request",
+          message: `${ctx.session.user.name} requested to join ${classData.className}`,
+          type: "class_request",
+          linkUrl: `/class/teacher/${classData.classId}/requests`,
+        });
+
+        return { message: "Request sent" };
+      }
+
+      // Create request
+      await ctx.db.insert(classJoinRequests).values({
+        requestId: crypto.randomUUID(),
+        studentId: ctx.session.user.id,
+        classId: classData.classId,
+        status: "pending",
+      });
+
+      // Notify teacher
+      await ctx.db.insert(notifications).values({
+        notificationId: crypto.randomUUID(),
+        userId: classData.teacherId,
+        title: "New Class Join Request",
+        message: `${ctx.session.user.name} requested to join ${classData.className}`,
+        type: "class_request",
+        linkUrl: `/class/teacher/${classData.classId}/requests`,
+      });
+
+      return { message: "Request sent" };
+    }),
+
+  withdrawJoinRequest: protectedProcedure
+    .input(z.object({ requestId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const request = await ctx.db
+        .select()
+        .from(classJoinRequests)
+        .where(eq(classJoinRequests.requestId, input.requestId));
+
+      if (request.length === 0) {
+        throw new Error("Request not found");
+      }
+
+      if (request[0]!.studentId !== ctx.session.user.id) {
+        throw new Error("Unauthorized");
+      }
+
+      if (request[0]!.status !== "pending") {
+        throw new Error("Cannot withdraw processed request");
+      }
+
+      await ctx.db
+        .delete(classJoinRequests)
+        .where(eq(classJoinRequests.requestId, input.requestId));
+
+      return { message: "Request withdrawn" };
+    }),
+
+  getJoinRequests: protectedProcedure
+    .input(z.object({ classId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      // Verify teacher ownership
+      const classData = await ctx.db
+        .select()
+        .from(classes)
+        .where(eq(classes.classId, input.classId));
+
+      if (
+        classData.length === 0 ||
+        classData[0]!.teacherId !== ctx.session.user.id
+      ) {
+        throw new Error("Unauthorized");
+      }
+
+      return await ctx.db
+        .select({
+          requestId: classJoinRequests.requestId,
+          status: classJoinRequests.status,
+          createdAt: classJoinRequests.createdAt,
+          student: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            image: user.image,
+          },
+        })
+        .from(classJoinRequests)
+        .innerJoin(user, eq(classJoinRequests.studentId, user.id))
+        .where(
+          and(
+            eq(classJoinRequests.classId, input.classId),
+            eq(classJoinRequests.status, "pending")
+          )
+        );
+    }),
+
+  getMyJoinRequests: protectedProcedure.query(async ({ ctx }) => {
+    return await ctx.db
+      .select({
+        requestId: classJoinRequests.requestId,
+        status: classJoinRequests.status,
+        createdAt: classJoinRequests.createdAt,
+        class: {
+          id: classes.classId,
+          name: classes.className,
+          code: classes.classCode,
+        },
+      })
+      .from(classJoinRequests)
+      .innerJoin(classes, eq(classJoinRequests.classId, classes.classId))
+      .where(eq(classJoinRequests.studentId, ctx.session.user.id))
+      .orderBy(classJoinRequests.createdAt);
+  }),
+
+  approveJoinRequest: protectedProcedure
+    .input(z.object({ requestId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const request = await ctx.db
+        .select()
+        .from(classJoinRequests)
+        .where(eq(classJoinRequests.requestId, input.requestId));
+
+      if (request.length === 0) {
+        throw new Error("Request not found");
+      }
+
+      const req = request[0]!;
+
+      // Verify teacher ownership
+      const classData = await ctx.db
+        .select()
+        .from(classes)
+        .where(eq(classes.classId, req.classId));
+
+      if (
+        classData.length === 0 ||
+        classData[0]!.teacherId !== ctx.session.user.id
+      ) {
+        throw new Error("Unauthorized");
+      }
+
+      if (req.status !== "pending") {
+        throw new Error("Request already processed");
+      }
+
+      // Create enrollment
+      await ctx.db.insert(enrollments).values({
+        enrollmentId: crypto.randomUUID(),
+        studentId: req.studentId,
+        classId: req.classId,
+      });
+
+      // Update request status
+      await ctx.db
+        .update(classJoinRequests)
+        .set({ status: "approved", updatedAt: new Date() })
+        .where(eq(classJoinRequests.requestId, input.requestId));
+
+      // Notify student
+      await ctx.db.insert(notifications).values({
+        notificationId: crypto.randomUUID(),
+        userId: req.studentId,
+        title: "Class Request Approved",
+        message: `Your request to join ${
+          classData[0]!.className
+        } has been approved.`,
+        type: "class_approved",
+        linkUrl: `/class/student/${req.classId}`,
+      });
+
+      return { message: "Request approved" };
+    }),
+
+  rejectJoinRequest: protectedProcedure
+    .input(z.object({ requestId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const request = await ctx.db
+        .select()
+        .from(classJoinRequests)
+        .where(eq(classJoinRequests.requestId, input.requestId));
+
+      if (request.length === 0) {
+        throw new Error("Request not found");
+      }
+
+      const req = request[0]!;
+
+      // Verify teacher ownership
+      const classData = await ctx.db
+        .select()
+        .from(classes)
+        .where(eq(classes.classId, req.classId));
+
+      if (
+        classData.length === 0 ||
+        classData[0]!.teacherId !== ctx.session.user.id
+      ) {
+        throw new Error("Unauthorized");
+      }
+
+      if (req.status !== "pending") {
+        throw new Error("Request already processed");
+      }
+
+      // Update request status
+      await ctx.db
+        .update(classJoinRequests)
+        .set({ status: "rejected", updatedAt: new Date() })
+        .where(eq(classJoinRequests.requestId, input.requestId));
+
+      // Notify student
+      await ctx.db.insert(notifications).values({
+        notificationId: crypto.randomUUID(),
+        userId: req.studentId,
+        title: "Class Request Rejected",
+        message: `Your request to join ${
+          classData[0]!.className
+        } has been rejected.`,
+        type: "class_rejected",
+        linkUrl: `/dashboard/student`,
+      });
+
+      return { message: "Request rejected" };
+    }),
+
   getStudentClasses: protectedProcedure.query(async ({ ctx }) => {
     return await ctx.db
       .select({
         classId: classes.classId,
         className: classes.className,
         classCode: classes.classCode,
-        teacherId: classes.teacherId,
-        createdAt: classes.createdAt,
+        teacherName: user.name,
         enrolledAt: enrollments.enrolledAt,
       })
       .from(enrollments)
       .innerJoin(classes, eq(enrollments.classId, classes.classId))
-      .where(eq(enrollments.studentId, ctx.session.user.id));
+      .innerJoin(user, eq(classes.teacherId, user.id))
+      .where(eq(enrollments.studentId, ctx.session.user.id))
+      .orderBy(enrollments.enrolledAt);
   }),
+
+  leaveClass: protectedProcedure
+    .input(z.object({ classId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .delete(enrollments)
+        .where(
+          and(
+            eq(enrollments.classId, input.classId),
+            eq(enrollments.studentId, ctx.session.user.id)
+          )
+        );
+      return { success: true };
+    }),
+
   getClassTeacher: protectedProcedure
     .input(z.object({ classId: z.string() }))
     .query(async ({ ctx, input }) => {
-      const teacherData = await ctx.db
+      const teacher = await ctx.db
         .select({
           id: user.id,
           name: user.name,
           email: user.email,
+          image: user.image,
         })
         .from(classes)
         .innerJoin(user, eq(classes.teacherId, user.id))
         .where(eq(classes.classId, input.classId));
 
-      if (teacherData.length === 0) {
+      if (teacher.length === 0) {
         throw new Error("Teacher not found");
       }
 
-      return teacherData[0];
+      return teacher[0];
     }),
-  leaveClass: protectedProcedure
-    .input(z.object({ classId: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      // Check if the student is enrolled in the class
-      const enrollment = await ctx.db
-        .select()
-        .from(enrollments)
-        .where(
-          and(
-            eq(enrollments.studentId, ctx.session.user.id),
-            eq(enrollments.classId, input.classId)
-          )
-        );
 
-      if (enrollment.length === 0) {
-        throw new Error("Not enrolled in this class");
-      }
-
-      await ctx.db
-        .delete(enrollments)
-        .where(
-          and(
-            eq(enrollments.studentId, ctx.session.user.id),
-            eq(enrollments.classId, input.classId)
-          )
-        );
-
-      return { success: true };
-    }),
   createAssignment: protectedProcedure
     .input(
       z.object({

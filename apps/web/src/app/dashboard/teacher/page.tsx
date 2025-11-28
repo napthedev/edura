@@ -81,11 +81,9 @@ export default function TeacherDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-          {t("title")}
-        </h1>
-      </div>
+      <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+        {t("title")}
+      </h1>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card className="shadow-sm border-none">
@@ -167,51 +165,46 @@ export default function TeacherDashboardPage() {
         </Card>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        <div className="md:col-span-2 space-y-6">
-          <Card className="shadow-sm border-none">
-            <CardHeader>
-              <CardTitle>{t("yourClasses")}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {classesQuery.isLoading ? (
-                <Loader />
-              ) : classesQuery.data && classesQuery.data.length > 0 ? (
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {classesQuery.data.map((cls) => (
-                    <Link
-                      className="block group"
-                      href={`/class/teacher/${cls.classId}`}
-                      key={cls.classId}
-                    >
-                      <div className="border rounded-xl p-5 transition-all hover:shadow-md bg-white h-full flex flex-col justify-between">
-                        <div>
-                          <h3 className="font-semibold text-lg group-hover:text-blue-600 transition-colors">
-                            {cls.className}
-                          </h3>
-                          <p className="text-sm text-slate-500 mt-1">
-                            {t("code")}:{" "}
-                            <span className="font-mono bg-slate-100 px-1 py-0.5 rounded">
-                              {cls.classCode}
-                            </span>
-                          </p>
-                        </div>
-                        <p className="text-xs text-slate-400 mt-4 pt-4 border-t">
-                          {t("created")}:{" "}
-                          {new Date(cls.createdAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </Link>
-                  ))}
+      <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+        {t("yourClasses")}
+      </h1>
+
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {classesQuery.isLoading ? (
+          <Loader />
+        ) : classesQuery.data && classesQuery.data.length > 0 ? (
+          <>
+            {classesQuery.data.map((cls) => (
+              <Link
+                className="block group"
+                href={`/class/teacher/${cls.classId}`}
+                key={cls.classId}
+              >
+                <div className="border rounded-xl p-5 transition-all hover:shadow-md bg-white h-full flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-semibold text-lg group-hover:text-blue-600 transition-colors">
+                      {cls.className}
+                    </h3>
+                    <p className="text-sm text-slate-500 mt-1">
+                      {t("code")}:{" "}
+                      <span className="font-mono bg-slate-100 px-1 py-0.5 rounded">
+                        {cls.classCode}
+                      </span>
+                    </p>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-4 pt-4 border-t">
+                    {t("created")}:{" "}
+                    {new Date(cls.createdAt).toLocaleDateString()}
+                  </p>
                 </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  {t("noClassesYet")}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+              </Link>
+            ))}
+          </>
+        ) : (
+          <div className="text-center py-8 text-muted-foreground">
+            {t("noClassesYet")}
+          </div>
+        )}
       </div>
     </div>
   );

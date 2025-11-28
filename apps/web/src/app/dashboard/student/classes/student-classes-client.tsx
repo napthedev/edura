@@ -23,13 +23,7 @@ export default function StudentClassesClient() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="shadow-sm border-none">
-          <CardContent className="pt-6">
-            <JoinClassForm
-              onClassJoined={() => studentClassesQuery.refetch()}
-            />
-          </CardContent>
-        </Card>
+        <JoinClassForm onClassJoined={() => studentClassesQuery.refetch()} />
 
         {studentClassesQuery.isLoading ? (
           <div className="md:col-span-2 lg:col-span-2">

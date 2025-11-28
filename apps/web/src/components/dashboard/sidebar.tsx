@@ -12,6 +12,7 @@ import {
   Calendar,
   FileText,
   Settings,
+  Clock,
 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 
@@ -64,6 +65,11 @@ function SidebarContent({ role }: { role: "teacher" | "student" | "manager" }) {
       icon: BookOpen,
     },
     {
+      href: "/dashboard/student/requests",
+      label: "Requests",
+      icon: Clock,
+    },
+    {
       href: "/dashboard/student/assignments",
       label: "Assignments",
       icon: FileText,
@@ -77,6 +83,11 @@ function SidebarContent({ role }: { role: "teacher" | "student" | "manager" }) {
 
   // Links matching the design image more closely for "manager" or general view if needed
   const designLinks = [
+    {
+      href: "/dashboard/manager",
+      label: "Dashboard",
+      icon: LayoutDashboard,
+    },
     {
       href: "/dashboard/manager/finance",
       label: "Finance",

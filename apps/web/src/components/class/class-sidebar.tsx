@@ -12,6 +12,7 @@ import {
   Settings,
   ArrowLeft,
   GraduationCap,
+  UserPlus,
 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 
@@ -56,6 +57,11 @@ function ClassSidebarContent({
       value: "students",
       label: "Students",
       icon: Users,
+    },
+    {
+      value: "requests",
+      label: "Requests",
+      icon: UserPlus,
     },
     {
       value: "schedule",

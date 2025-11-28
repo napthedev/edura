@@ -459,6 +459,7 @@
     "enterClassCode": "Enter 5-character class code",
     "joining": "Joining...",
     "joinClass": "Join Class",
+    "requestJoin": "Request to Join",
     "classCodeLength": "Class code must be exactly 5 characters"
   },
   "UserMenu": {

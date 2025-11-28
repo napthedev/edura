@@ -459,6 +459,7 @@
     "enterClassCode": "Nhập mã lớp học 5 ký tự",
     "joining": "Đang tham gia...",
     "joinClass": "Tham gia lớp học",
+    "requestJoin": "Yêu cầu tham gia",
     "classCodeLength": "Mã lớp học phải đúng 5 ký tự"
   },
   "UserMenu": {

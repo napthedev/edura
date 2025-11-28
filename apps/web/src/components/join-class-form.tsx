@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 
 const joinClassSchema = (t: (key: string) => string) =>
   z.object({
@@ -27,9 +28,13 @@ type JoinClassFormData = z.infer<ReturnType<typeof joinClassSchema>>;
 
 interface JoinClassFormProps {
   onClassJoined?: () => void;
+  className?: string;
 }
 
-export function JoinClassForm({ onClassJoined }: JoinClassFormProps = {}) {
+export function JoinClassForm({
+  onClassJoined,
+  className,
+}: JoinClassFormProps = {}) {
   const t = useTranslations("JoinClass");
   const form = useForm<JoinClassFormData>({
     resolver: zodResolver(joinClassSchema(t)),
@@ -40,12 +45,13 @@ export function JoinClassForm({ onClassJoined }: JoinClassFormProps = {}) {
 
   const joinClassMutation = useMutation({
     mutationFn: async (data: JoinClassFormData) => {
-      return await trpcClient.education.joinClass.mutate({
+      return await trpcClient.education.requestJoinClass.mutate({
         classCode: data.classCode.toUpperCase(),
       });
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       form.reset();
+      toast.success(data.message);
       onClassJoined?.();
     },
     onError: (error: Error) => {
@@ -61,7 +67,7 @@ export function JoinClassForm({ onClassJoined }: JoinClassFormProps = {}) {
   };
 
   return (
-    <Card>
+    <Card className={className}>
       <CardHeader>
         <CardTitle>{t("title")}</CardTitle>
       </CardHeader>
@@ -95,7 +101,7 @@ export function JoinClassForm({ onClassJoined }: JoinClassFormProps = {}) {
               disabled={joinClassMutation.isPending}
               className="w-full"
             >
-              {joinClassMutation.isPending ? t("joining") : t("joinClass")}
+              {joinClassMutation.isPending ? t("joining") : t("requestJoin")}
             </Button>
           </form>
         </Form>
