@@ -2,7 +2,6 @@
 import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { trpcClient } from "@/utils/trpc";
-import Header from "@/components/header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -172,309 +171,293 @@ export default function UploadLecturePage() {
   };
 
   return (
-    <div className="min-h-screen">
-      <Header />
-      <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-6">
-          <div className="text-center">
-            <h1 className="text-3xl font-bold">{t("title")}</h1>
-            <p className="text-muted-foreground mt-2">{t("subtitle")}</p>
-          </div>
-
-          <Tabs defaultValue="file" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="file" className="flex items-center gap-2">
-                <Upload className="w-4 h-4" />
-                {t("uploadFile")}
-              </TabsTrigger>
-              <TabsTrigger value="youtube" className="flex items-center gap-2">
-                <LinkIcon className="w-4 h-4" />
-                {t("youtubeLink")}
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="file" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t("uploadFileTitle")}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Form {...fileForm}>
-                    <form
-                      onSubmit={fileForm.handleSubmit(onFileSubmit)}
-                      className="space-y-4"
-                    >
-                      <FormField
-                        control={fileForm.control}
-                        name="title"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t("titleLabel")}</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder={t("enterLectureTitle")}
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={fileForm.control}
-                        name="moduleId"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t("moduleOptional")}</FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue
-                                    placeholder={t("selectModule")}
-                                  />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="none">
-                                  {t("noModule")}
-                                </SelectItem>
-                                {modulesQuery.data?.map((module: any) => (
-                                  <SelectItem
-                                    key={module.moduleId}
-                                    value={module.moduleId}
-                                  >
-                                    {module.title}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={fileForm.control}
-                        name="description"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t("descriptionOptional")}</FormLabel>
-                            <FormControl>
-                              <Textarea
-                                placeholder={t("enterLectureDescription")}
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={fileForm.control}
-                        name="lectureDate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t("lectureDate")}</FormLabel>
-                            <FormControl>
-                              <Input type="date" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <div className="space-y-2">
-                        <FormLabel>{t("file")}</FormLabel>
-                        <Input
-                          type="file"
-                          accept=".pdf,image/*"
-                          onChange={handleFileChange}
-                          className="file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 h-[50px] file:h-10"
-                        />
-                        {selectedFile && (
-                          <p className="text-sm text-muted-foreground">
-                            {t("selectedFile")}: {selectedFile.name} (
-                            {(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() =>
-                            router.push(`/class/teacher/${classId}/lectures`)
-                          }
-                        >
-                          {t("cancel")}
-                        </Button>
-                        <Button
-                          type="submit"
-                          disabled={
-                            uploadFileMutation.isPending || !selectedFile
-                          }
-                        >
-                          {uploadFileMutation.isPending ? (
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          ) : (
-                            <Upload className="w-4 h-4 mr-2" />
-                          )}
-                          {uploadFileMutation.isPending
-                            ? ""
-                            : t("uploadLecture")}
-                        </Button>
-                      </div>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="youtube" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t("addYoutubeVideo")}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Form {...youtubeForm}>
-                    <form
-                      onSubmit={youtubeForm.handleSubmit(onYoutubeSubmit)}
-                      className="space-y-4"
-                    >
-                      <FormField
-                        control={youtubeForm.control}
-                        name="title"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Title</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="Enter lecture title"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={youtubeForm.control}
-                        name="moduleId"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t("moduleOptional")}</FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue
-                                    placeholder={t("selectModule")}
-                                  />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="none">
-                                  {t("noModule")}
-                                </SelectItem>
-                                {modulesQuery.data?.map((module: any) => (
-                                  <SelectItem
-                                    key={module.moduleId}
-                                    value={module.moduleId}
-                                  >
-                                    {module.title}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={youtubeForm.control}
-                        name="description"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Description (Optional)</FormLabel>
-                            <FormControl>
-                              <Textarea
-                                placeholder="Enter lecture description"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={youtubeForm.control}
-                        name="url"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t("youtubeUrl")}</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder={t("youtubeUrlPlaceholder")}
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={youtubeForm.control}
-                        name="lectureDate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Lecture Date</FormLabel>
-                            <FormControl>
-                              <Input type="date" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() =>
-                            router.push(`/class/teacher/${classId}/lectures`)
-                          }
-                        >
-                          {t("cancel")}
-                        </Button>
-                        <Button
-                          type="submit"
-                          disabled={createLectureMutation.isPending}
-                        >
-                          {createLectureMutation.isPending
-                            ? t("creating")
-                            : t("addLecture")}
-                        </Button>
-                      </div>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
+    <div className="space-y-6 max-w-2xl">
+      <div className="text-center">
+        <h1 className="text-3xl font-bold">{t("title")}</h1>
+        <p className="text-muted-foreground mt-2">{t("subtitle")}</p>
       </div>
+
+      <Tabs defaultValue="file" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="file" className="flex items-center gap-2">
+            <Upload className="w-4 h-4" />
+            {t("uploadFile")}
+          </TabsTrigger>
+          <TabsTrigger value="youtube" className="flex items-center gap-2">
+            <LinkIcon className="w-4 h-4" />
+            {t("youtubeLink")}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="file" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("uploadFileTitle")}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Form {...fileForm}>
+                <form
+                  onSubmit={fileForm.handleSubmit(onFileSubmit)}
+                  className="space-y-4"
+                >
+                  <FormField
+                    control={fileForm.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("titleLabel")}</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder={t("enterLectureTitle")}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={fileForm.control}
+                    name="moduleId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("moduleOptional")}</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={t("selectModule")} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="none">
+                              {t("noModule")}
+                            </SelectItem>
+                            {modulesQuery.data?.map((module: any) => (
+                              <SelectItem
+                                key={module.moduleId}
+                                value={module.moduleId}
+                              >
+                                {module.title}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={fileForm.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("descriptionOptional")}</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder={t("enterLectureDescription")}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={fileForm.control}
+                    name="lectureDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("lectureDate")}</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="space-y-2">
+                    <FormLabel>{t("file")}</FormLabel>
+                    <Input
+                      type="file"
+                      accept=".pdf,image/*"
+                      onChange={handleFileChange}
+                      className="file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 h-[50px] file:h-10"
+                    />
+                    {selectedFile && (
+                      <p className="text-sm text-muted-foreground">
+                        {t("selectedFile")}: {selectedFile.name} (
+                        {(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() =>
+                        router.push(`/class/teacher/${classId}/lectures`)
+                      }
+                    >
+                      {t("cancel")}
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={uploadFileMutation.isPending || !selectedFile}
+                    >
+                      {uploadFileMutation.isPending ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <Upload className="w-4 h-4 mr-2" />
+                      )}
+                      {uploadFileMutation.isPending ? "" : t("uploadLecture")}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="youtube" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("addYoutubeVideo")}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Form {...youtubeForm}>
+                <form
+                  onSubmit={youtubeForm.handleSubmit(onYoutubeSubmit)}
+                  className="space-y-4"
+                >
+                  <FormField
+                    control={youtubeForm.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Title</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter lecture title" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={youtubeForm.control}
+                    name="moduleId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("moduleOptional")}</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={t("selectModule")} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="none">
+                              {t("noModule")}
+                            </SelectItem>
+                            {modulesQuery.data?.map((module: any) => (
+                              <SelectItem
+                                key={module.moduleId}
+                                value={module.moduleId}
+                              >
+                                {module.title}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={youtubeForm.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description (Optional)</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Enter lecture description"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={youtubeForm.control}
+                    name="url"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("youtubeUrl")}</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder={t("youtubeUrlPlaceholder")}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={youtubeForm.control}
+                    name="lectureDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Lecture Date</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() =>
+                        router.push(`/class/teacher/${classId}/lectures`)
+                      }
+                    >
+                      {t("cancel")}
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={createLectureMutation.isPending}
+                    >
+                      {createLectureMutation.isPending
+                        ? t("creating")
+                        : t("addLecture")}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

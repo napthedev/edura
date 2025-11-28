@@ -85,7 +85,7 @@ export default function AnnouncementList({
       <div className="space-y-4">
         {[...Array(3)].map((_, i) => (
           <Card key={i} className="animate-pulse">
-            <CardContent className="p-6">
+            <CardContent className="p-4">
               <div className="flex items-start space-x-4">
                 <div className="w-10 h-10 bg-muted rounded-full"></div>
                 <div className="flex-1 space-y-2">
@@ -104,7 +104,7 @@ export default function AnnouncementList({
   if (error) {
     return (
       <Card>
-        <CardContent className="p-6">
+        <CardContent className="p-4">
           <p className="text-center text-muted-foreground">
             {t("failedToLoadAnnouncements")}
           </p>
@@ -116,7 +116,7 @@ export default function AnnouncementList({
   if (!announcements || announcements.length === 0) {
     return (
       <Card>
-        <CardContent className="p-6">
+        <CardContent className="p-4">
           <p className="text-center text-muted-foreground">
             {t("noAnnouncementsYet")}
           </p>
@@ -126,10 +126,13 @@ export default function AnnouncementList({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
       {announcements.map(({ announcement, creator }: Announcement) => (
-        <Card key={announcement.announcementId} className="overflow-hidden">
-          <CardContent className="p-6">
+        <Card
+          key={announcement.announcementId}
+          className="overflow-hidden h-fit"
+        >
+          <CardContent className="p-4">
             <div className="flex items-start space-x-4">
               <Avatar className="w-10 h-10">
                 <AvatarImage
@@ -146,17 +149,12 @@ export default function AnnouncementList({
               </Avatar>
 
               <div className="flex-1 min-w-0">
-                <div className="flex items-center space-x-2 mb-2">
+                <div className="flex items-center justify-between mb-1">
                   <h3 className="font-semibold text-lg">
                     {announcement.title}
                   </h3>
-                  <Badge variant="secondary" className="text-xs">
-                    {formatDistanceToNow(new Date(announcement.createdAt), {
-                      addSuffix: true,
-                    })}
-                  </Badge>
                   {isTeacher && (
-                    <div className="flex gap-1 ml-auto">
+                    <div className="flex gap-1">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -206,6 +204,11 @@ export default function AnnouncementList({
                     </div>
                   )}
                 </div>
+                <Badge variant="secondary" className="text-xs mb-2">
+                  {formatDistanceToNow(new Date(announcement.createdAt), {
+                    addSuffix: true,
+                  })}
+                </Badge>
 
                 <p className="text-sm text-muted-foreground mb-3">
                   {t("postedBy")} {creator.name}

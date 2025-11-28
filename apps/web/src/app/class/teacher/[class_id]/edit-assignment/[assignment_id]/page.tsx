@@ -2,7 +2,6 @@
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import Header from "@/components/header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -263,215 +262,193 @@ export default function EditAssignmentPage() {
   };
 
   if (sessionQuery.isLoading || assignmentQuery.isLoading) {
-    return (
-      <div className="min-h-screen">
-        <Header />
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
-          <Loader />
-        </div>
-      </div>
-    );
+    return <Loader />;
   }
 
   if (assignmentQuery.error) {
     return (
-      <div className="min-h-screen">
-        <Header />
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
-          <p>
-            {t("errorLoadingAssignment")}: {assignmentQuery.error.message}
-          </p>
-        </div>
+      <div className="text-center">
+        <p>
+          {t("errorLoadingAssignment")}: {assignmentQuery.error.message}
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen">
-      <Header />
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-6">
-          <div className="flex items-center gap-4 flex-wrap">
-            <Button
-              variant="outline"
-              onClick={() =>
-                router.push(`/class/teacher/${classId}/assignments`)
-              }
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              {t("back")}
-            </Button>
-            <h1 className="text-3xl font-bold">{t("title")}</h1>
-            <Button
-              variant="outline"
-              onClick={handleCopyAssignmentUrl}
-              className="flex items-center gap-2"
-            >
-              <Copy className="w-4 h-4" />
-              {t("copyAssignmentUrl")}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDeleteAssignment}
-              disabled={deleteAssignmentMutation.isPending}
-              className="flex items-center gap-2"
-            >
-              <Trash2 className="w-4 h-4" />
-              {t("deleteAssignment")}
-            </Button>
-          </div>
+    <div className="space-y-6 max-w-4xl">
+      <div className="flex items-center gap-4 flex-wrap">
+        <Button
+          variant="outline"
+          onClick={() => router.push(`/class/teacher/${classId}/assignments`)}
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          {t("back")}
+        </Button>
+        <h1 className="text-3xl font-bold">{t("title")}</h1>
+        <Button
+          variant="outline"
+          onClick={handleCopyAssignmentUrl}
+          className="flex items-center gap-2"
+        >
+          <Copy className="w-4 h-4" />
+          {t("copyAssignmentUrl")}
+        </Button>
+        <Button
+          variant="destructive"
+          onClick={handleDeleteAssignment}
+          disabled={deleteAssignmentMutation.isPending}
+          className="flex items-center gap-2"
+        >
+          <Trash2 className="w-4 h-4" />
+          {t("deleteAssignment")}
+        </Button>
+      </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("assignmentDetails")}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Form {...form}>
-                <form className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="title"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("titleLabel")}</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder={t("assignmentTitlePlaceholder")}
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="moduleId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("moduleOptional")}</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder={t("selectModule")} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="none">
-                              {t("noModule")}
-                            </SelectItem>
-                            {modulesQuery.data?.map((module: any) => (
-                              <SelectItem
-                                key={module.moduleId}
-                                value={module.moduleId}
-                              >
-                                {module.title}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("descriptionOptional")}</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder={t("assignmentDescriptionPlaceholder")}
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="dueDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("dueDateOptional")}</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="testingDuration"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t("testingDurationOptional")}</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            placeholder={t("testingDurationPlaceholder")}
-                            {...field}
-                            onChange={(e) =>
-                              field.onChange(
-                                e.target.value
-                                  ? parseInt(e.target.value)
-                                  : undefined
-                              )
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                {t("questionsCount")} ({questions.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {questions.map((question) => (
-                <QuestionEditor
-                  key={question.id}
-                  question={question}
-                  onUpdate={handleUpdateQuestion}
-                  onDelete={() => handleDeleteQuestion(question.id)}
-                  fieldErrors={fieldErrors}
-                />
-              ))}
-
-              <AddQuestion
-                onAdd={handleAddQuestion}
-                nextIndex={questions.length + 1}
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("assignmentDetails")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form className="space-y-4">
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("titleLabel")}</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder={t("assignmentTitlePlaceholder")}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </CardContent>
-          </Card>
+              <FormField
+                control={form.control}
+                name="moduleId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("moduleOptional")}</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t("selectModule")} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="none">{t("noModule")}</SelectItem>
+                        {modulesQuery.data?.map((module: any) => (
+                          <SelectItem
+                            key={module.moduleId}
+                            value={module.moduleId}
+                          >
+                            {module.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("descriptionOptional")}</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder={t("assignmentDescriptionPlaceholder")}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="dueDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("dueDateOptional")}</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="testingDuration"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("testingDurationOptional")}</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder={t("testingDurationPlaceholder")}
+                        {...field}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value
+                              ? parseInt(e.target.value)
+                              : undefined
+                          )
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
 
-          <div className="flex justify-end">
-            <Button
-              onClick={form.handleSubmit(handleSave)}
-              disabled={updateAssignmentMutation.isPending}
-              className="flex items-center gap-2"
-            >
-              <Save className="w-4 h-4" />
-              {updateAssignmentMutation.isPending
-                ? t("saving")
-                : t("saveAssignment")}
-            </Button>
-          </div>
-        </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {t("questionsCount")} ({questions.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {questions.map((question) => (
+            <QuestionEditor
+              key={question.id}
+              question={question}
+              onUpdate={handleUpdateQuestion}
+              onDelete={() => handleDeleteQuestion(question.id)}
+              fieldErrors={fieldErrors}
+            />
+          ))}
+
+          <AddQuestion
+            onAdd={handleAddQuestion}
+            nextIndex={questions.length + 1}
+          />
+        </CardContent>
+      </Card>
+
+      <div className="flex justify-end">
+        <Button
+          onClick={form.handleSubmit(handleSave)}
+          disabled={updateAssignmentMutation.isPending}
+          className="flex items-center gap-2"
+        >
+          <Save className="w-4 h-4" />
+          {updateAssignmentMutation.isPending
+            ? t("saving")
+            : t("saveAssignment")}
+        </Button>
       </div>
     </div>
   );
