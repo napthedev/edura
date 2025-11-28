@@ -10,6 +10,7 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { useRouter } from "next/navigation";
+import { LogIn, UserPlus } from "lucide-react";
 
 export default function SignInForm() {
   const router = useRouter();
@@ -117,7 +118,14 @@ export default function SignInForm() {
                     className="w-full"
                     disabled={!state.canSubmit || state.isSubmitting}
                   >
-                    {state.isSubmitting ? t("submitting") : t("signIn")}
+                    {state.isSubmitting ? (
+                      t("submitting")
+                    ) : (
+                      <>
+                        <LogIn className="h-4 w-4 mr-2" />
+                        {t("signIn")}
+                      </>
+                    )}
                   </Button>
                 )}
               </form.Subscribe>
@@ -129,6 +137,7 @@ export default function SignInForm() {
                 onClick={() => router.push("/register" as any)}
                 className="text-black"
               >
+                <UserPlus className="h-4 w-4 mr-2" />
                 {t("needAccount")}
               </Button>
             </div>

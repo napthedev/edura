@@ -18,6 +18,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+import { DoorOpen, UserPlus } from "lucide-react";
 
 const joinClassSchema = (t: (key: string) => string) =>
   z.object({
@@ -69,7 +70,10 @@ export function JoinClassForm({
   return (
     <Card className={className}>
       <CardHeader>
-        <CardTitle>{t("title")}</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <DoorOpen className="h-5 w-5" />
+          {t("title")}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -101,7 +105,14 @@ export function JoinClassForm({
               disabled={joinClassMutation.isPending}
               className="w-full"
             >
-              {joinClassMutation.isPending ? t("joining") : t("requestJoin")}
+              {joinClassMutation.isPending ? (
+                t("joining")
+              ) : (
+                <>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  {t("requestJoin")}
+                </>
+              )}
             </Button>
           </form>
         </Form>

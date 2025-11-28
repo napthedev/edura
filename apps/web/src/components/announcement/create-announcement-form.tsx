@@ -9,7 +9,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Upload, X, Image as ImageIcon, Loader2 } from "lucide-react";
+import {
+  Upload,
+  X,
+  Image as ImageIcon,
+  Loader2,
+  Megaphone,
+  Plus,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -121,11 +128,17 @@ export default function CreateAnnouncementForm({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button>{t("createAnnouncement")}</Button>
+        <Button>
+          <Plus className="h-4 w-4 mr-2" />
+          {t("createAnnouncement")}
+        </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{t("createAnnouncement")}</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <Megaphone className="h-5 w-5" />
+            {t("createAnnouncement")}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

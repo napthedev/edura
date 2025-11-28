@@ -15,6 +15,7 @@ import type { AssignmentContent, Question } from "@/lib/assignment-types";
 import Loader from "@/components/loader";
 import { MathJaxProvider, LaTeXRenderer } from "@/components/latex-renderer";
 import { useTranslations } from "next-intl";
+import { ArrowLeft, Send, FileQuestion } from "lucide-react";
 
 export default function DoAssignmentPage() {
   const params = useParams();
@@ -84,6 +85,7 @@ export default function DoAssignmentPage() {
             className="mt-4"
             variant="outline"
           >
+            <ArrowLeft className="h-4 w-4 mr-2" />
             {t("goBack")}
           </Button>
         </div>
@@ -157,7 +159,10 @@ export default function DoAssignmentPage() {
             {/* Assignment Content */}
             <Card>
               <CardHeader>
-                <CardTitle>{t("assignmentQuestions")}</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <FileQuestion className="h-5 w-5" />
+                  {t("assignmentQuestions")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 {assignmentContent && assignmentContent.questions.length > 0 ? (
@@ -190,9 +195,14 @@ export default function DoAssignmentPage() {
                 onClick={handleSubmit}
                 disabled={submitMutation.isPending}
               >
-                {submitMutation.isPending
-                  ? t("submitting")
-                  : t("submitAssignment")}
+                {submitMutation.isPending ? (
+                  t("submitting")
+                ) : (
+                  <>
+                    <Send className="h-4 w-4 mr-2" />
+                    {t("submitAssignment")}
+                  </>
+                )}
               </Button>
             </div>
           </div>

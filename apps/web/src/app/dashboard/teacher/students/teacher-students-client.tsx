@@ -89,7 +89,8 @@ export default function TeacherStudentsClient() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+            <Users className="h-6 w-6" />
             {t("title")}
           </h1>
           <p className="text-muted-foreground mt-1">{t("description")}</p>

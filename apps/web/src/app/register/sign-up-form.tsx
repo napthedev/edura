@@ -11,6 +11,7 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { UserPlus, LogIn } from "lucide-react";
 
 export default function SignUpForm() {
   const router = useRouter();
@@ -191,7 +192,14 @@ export default function SignUpForm() {
                     className="w-full"
                     disabled={!state.canSubmit || state.isSubmitting}
                   >
-                    {state.isSubmitting ? t("submitting") : t("signUp")}
+                    {state.isSubmitting ? (
+                      t("submitting")
+                    ) : (
+                      <>
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        {t("signUp")}
+                      </>
+                    )}
                   </Button>
                 )}
               </form.Subscribe>
@@ -204,6 +212,7 @@ export default function SignUpForm() {
                   onClick={() => router.push("/login")}
                   className="text-black"
                 >
+                  <LogIn className="h-4 w-4 mr-2" />
                   {t("haveAccount")}
                 </Button>
               </Link>

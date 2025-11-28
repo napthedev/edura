@@ -33,7 +33,8 @@ export default function StudentsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+            <GraduationCap className="h-6 w-6" />
             {t("title")}
           </h1>
           <p className="text-muted-foreground mt-1">{t("description")}</p>
@@ -61,7 +62,10 @@ export default function StudentsPage() {
 
       <Card className="shadow-sm border-none">
         <CardHeader>
-          <CardTitle>{t("studentsList")}</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            {t("studentsList")}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {studentsQuery.isLoading ? (

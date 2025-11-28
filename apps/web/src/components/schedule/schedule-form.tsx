@@ -16,6 +16,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useTranslations } from "next-intl";
+import { CalendarPlus, Plus } from "lucide-react";
 
 interface CreateScheduleFormProps {
   classId: string;
@@ -107,11 +108,17 @@ export default function CreateScheduleForm({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button>{t("createSchedule")}</Button>
+        <Button>
+          <Plus className="h-4 w-4 mr-2" />
+          {t("createSchedule")}
+        </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>{t("createSchedule")}</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <CalendarPlus className="h-5 w-5" />
+            {t("createSchedule")}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

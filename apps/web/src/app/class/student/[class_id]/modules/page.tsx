@@ -11,7 +11,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Video } from "lucide-react";
+import { FileText, Video, Folder } from "lucide-react";
 import { format } from "date-fns";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -36,11 +36,15 @@ export default function StudentModulesPage() {
 
   return (
     <div className="space-y-6 p-6">
-      <h1 className="text-2xl font-bold">{t("title")}</h1>
+      <h1 className="text-2xl font-bold flex items-center gap-2">
+        <Folder className="h-6 w-6" />
+        {t("title")}
+      </h1>
 
       {modules.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-10 text-muted-foreground">
+            <Folder className="h-12 w-12 mb-4 opacity-20" />
             <p>{t("noModulesAvailable")}</p>
           </CardContent>
         </Card>

@@ -22,7 +22,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { Users, BookOpen, Plus } from "lucide-react";
+import {
+  Users,
+  BookOpen,
+  Plus,
+  LayoutDashboard,
+  FolderOpen,
+} from "lucide-react";
 
 const createClassSchema = z.object({
   className: z.string().min(1, "Class name is required"),
@@ -81,7 +87,8 @@ export default function TeacherDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+      <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+        <LayoutDashboard className="h-6 w-6" />
         {t("title")}
       </h1>
 
@@ -120,7 +127,10 @@ export default function TeacherDashboardPage() {
 
         <Card className="shadow-sm border-none sticky top-24">
           <CardHeader>
-            <CardTitle>{t("createNewClass")}</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Plus className="h-5 w-5" />
+              {t("createNewClass")}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -165,7 +175,8 @@ export default function TeacherDashboardPage() {
         </Card>
       </div>
 
-      <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+      <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+        <BookOpen className="h-6 w-6" />
         {t("yourClasses")}
       </h1>
 
@@ -201,8 +212,9 @@ export default function TeacherDashboardPage() {
             ))}
           </>
         ) : (
-          <div className="text-center py-8 text-muted-foreground">
-            {t("noClassesYet")}
+          <div className="text-center py-12 text-muted-foreground">
+            <FolderOpen className="h-12 w-12 mx-auto mb-4 opacity-30" />
+            <p>{t("noClassesYet")}</p>
           </div>
         )}
       </div>

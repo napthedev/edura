@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, Megaphone, AlertCircle } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -104,10 +104,9 @@ export default function AnnouncementList({
   if (error) {
     return (
       <Card>
-        <CardContent className="p-4">
-          <p className="text-center text-muted-foreground">
-            {t("failedToLoadAnnouncements")}
-          </p>
+        <CardContent className="p-8 text-center text-muted-foreground">
+          <AlertCircle className="h-12 w-12 mx-auto mb-4 opacity-20" />
+          <p>{t("failedToLoadAnnouncements")}</p>
         </CardContent>
       </Card>
     );
@@ -116,10 +115,9 @@ export default function AnnouncementList({
   if (!announcements || announcements.length === 0) {
     return (
       <Card>
-        <CardContent className="p-4">
-          <p className="text-center text-muted-foreground">
-            {t("noAnnouncementsYet")}
-          </p>
+        <CardContent className="p-8 text-center text-muted-foreground">
+          <Megaphone className="h-12 w-12 mx-auto mb-4 opacity-20" />
+          <p>{t("noAnnouncementsYet")}</p>
         </CardContent>
       </Card>
     );

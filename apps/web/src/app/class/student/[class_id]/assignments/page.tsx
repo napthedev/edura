@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Loader from "@/components/loader";
 import { useTranslations } from "next-intl";
+import { FileText, Eye, Pencil } from "lucide-react";
 
 export default function AssignmentsPage() {
   const params = useParams();
@@ -22,7 +23,8 @@ export default function AssignmentsPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">
+        <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+          <FileText className="h-6 w-6" />
           {t("assignments")}
         </h2>
       </div>
@@ -102,9 +104,17 @@ export default function AssignmentsPage() {
                           router.push(route as any);
                         }}
                       >
-                        {assignment.submitted
-                          ? t("viewSubmission")
-                          : t("takeAssignment")}
+                        {assignment.submitted ? (
+                          <>
+                            <Eye className="h-4 w-4 mr-2" />
+                            {t("viewSubmission")}
+                          </>
+                        ) : (
+                          <>
+                            <Pencil className="h-4 w-4 mr-2" />
+                            {t("takeAssignment")}
+                          </>
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -112,9 +122,10 @@ export default function AssignmentsPage() {
               )}
             </div>
           ) : (
-            <p className="text-muted-foreground">
-              {t("noAssignmentsAvailable")}
-            </p>
+            <div className="text-center py-12 text-muted-foreground">
+              <FileText className="h-12 w-12 mx-auto mb-4 opacity-20" />
+              <p>{t("noAssignmentsAvailable")}</p>
+            </div>
           )}
         </CardContent>
       </Card>

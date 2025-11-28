@@ -288,12 +288,59 @@ Edura follows a **modern, card-based design language** with Material Design infl
 - **Muted/Cool Color Palette**: Primarily white, light grays, and soft tech blue accents. Avoids harsh contrasts or neon colors.
 - **Clean Typography**: Simple, sans-serif typefaces (Inter/Roboto/Poppins-inspired) prioritize readability and hierarchy.
 
+### Icons - IMPORTANT
+
+**⚠️ Always use icons liberally throughout the UI to enhance visual communication and user experience.**
+
+Edura uses **Lucide React** (`lucide-react`) as the primary icon library. Icons should be used extensively to:
+
+- **Accompany buttons and actions**: Every button should have a relevant icon (e.g., `<Plus />` for create, `<Trash2 />` for delete, `<Pencil />` for edit)
+- **Enhance navigation items**: Sidebar links, tabs, and menu items should always have icons
+- **Indicate status and states**: Use icons for loading, success, error, warning states
+- **Label form fields**: Add icons to input fields where contextually appropriate
+- **Empty states**: Use large illustrative icons for empty state messages
+- **Cards and list items**: Include icons to visually categorize content types
+
+**Usage Pattern:**
+
+```typescript
+import { Plus, Trash2, Pencil, BookOpen, Users, Calendar } from "lucide-react";
+
+// In buttons
+<Button>
+  <Plus className="size-4" />
+  {t("createClass")}
+</Button>
+
+// In navigation
+<Link>
+  <BookOpen className="size-4" />
+  <span>{t("lectures")}</span>
+</Link>
+
+// Standard icon sizes
+// - size-4 (16px) - Default for inline icons, buttons, nav items
+// - size-5 (20px) - Slightly larger emphasis
+// - size-6 (24px) - Card headers, section titles
+// - size-8 or larger - Empty states, hero sections
+```
+
+**Icon Guidelines:**
+
+- ✅ Use `className="size-4"` (or appropriate size) for consistent sizing
+- ✅ Place icons before text labels in buttons and links
+- ✅ Use semantic icons that clearly represent the action/content
+- ✅ Add icons to table headers, card titles, and section headings
+- ❌ Don't use icons without purpose - they should aid comprehension
+- ❌ Don't mix icon libraries - stick to Lucide React
+
 ### UI Components & Implementation
 
 - Uses `shadcn/ui` (Radix UI components) with TailwindCSS for theming
 - Component customization via `apps/web/src/components/ui/` (50+ components including badge, button, dialog, card, calendar, form, etc.)
 - Dark mode support via `next-themes` provider in `apps/web/src/components/theme-provider.tsx`
 - Toast notifications via `sonner` library for user feedback
+- **Icon library**: `lucide-react` - Use icons extensively throughout the UI
 
 ### Layout & Spacing
 

@@ -23,6 +23,8 @@ import {
   Edit,
   ArrowRightLeft,
   X,
+  Folder,
+  FolderPlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -121,13 +123,17 @@ export default function TeacherModulesPage() {
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{t("title")}</h1>
+        <h1 className="text-2xl font-bold flex items-center gap-2">
+          <Folder className="h-6 w-6" />
+          {t("title")}
+        </h1>
         <CreateModuleDialog classId={classId} />
       </div>
 
       {modules.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-10 text-muted-foreground">
+            <FolderPlus className="h-12 w-12 mb-4 opacity-20" />
             <p>{t("noModulesCreated")}</p>
             <p className="text-sm">{t("createModuleHint")}</p>
           </CardContent>

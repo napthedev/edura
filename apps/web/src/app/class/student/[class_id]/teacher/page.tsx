@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import Loader from "@/components/loader";
 import { useTranslations } from "next-intl";
-import { Mail, Calendar, MapPin, School } from "lucide-react";
+import { Mail, Calendar, MapPin, School, User } from "lucide-react";
 
 export default function TeacherPage() {
   const params = useParams();
@@ -28,7 +28,10 @@ export default function TeacherPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">{t("teacher")}</h2>
+        <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+          <User className="h-6 w-6" />
+          {t("teacher")}
+        </h2>
       </div>
       <Card>
         <CardHeader>

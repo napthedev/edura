@@ -11,7 +11,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Copy, Edit, Trash2 } from "lucide-react";
+import { Copy, Edit, Trash2, Settings } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 import {
@@ -104,7 +104,10 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">{t("settings")}</h2>
+        <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+          <Settings className="h-6 w-6" />
+          {t("settings")}
+        </h2>
       </div>
 
       <Card>

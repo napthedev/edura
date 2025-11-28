@@ -5,7 +5,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Loader2, Check, X } from "lucide-react";
+import { Loader2, Check, X, UserPlus, Inbox } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { useParams } from "next/navigation";
@@ -67,12 +67,16 @@ export default function ClassRequestsPage() {
 
   return (
     <div className="space-y-6 p-6">
-      <h1 className="text-2xl font-bold">{t("title")}</h1>
+      <h1 className="text-2xl font-bold flex items-center gap-2">
+        <UserPlus className="h-6 w-6" />
+        {t("title")}
+      </h1>
 
       {requests?.length === 0 ? (
         <Card>
           <CardContent className="p-8 text-center text-muted-foreground">
-            {t("noPendingRequests")}
+            <Inbox className="h-12 w-12 mx-auto mb-4 opacity-20" />
+            <p>{t("noPendingRequests")}</p>
           </CardContent>
         </Card>
       ) : (

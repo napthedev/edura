@@ -13,7 +13,7 @@ import Header from "@/components/header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield } from "lucide-react";
+import { Shield, User } from "lucide-react";
 
 export default function ProfilePage() {
   const t = useTranslations("Profile");
@@ -69,7 +69,8 @@ export default function ProfilePage() {
       <Header />
 
       <main className="container mx-auto px-4 py-8 max-w-4xl">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 mb-6">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 mb-6 flex items-center gap-2">
+          <User className="h-6 w-6" />
           {t("title")}
         </h1>
 

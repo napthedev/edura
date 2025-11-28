@@ -12,6 +12,7 @@ import Loader from "@/components/loader";
 import type { AssignmentContent, Question } from "@/lib/assignment-types";
 import { MathJaxProvider, LaTeXRenderer } from "@/components/latex-renderer";
 import { useTranslations } from "next-intl";
+import { ArrowLeft, FileCheck } from "lucide-react";
 
 export default function ViewSubmissionPage() {
   const params = useParams();
@@ -81,6 +82,7 @@ export default function ViewSubmissionPage() {
             className="mt-4"
             variant="outline"
           >
+            <ArrowLeft className="h-4 w-4 mr-2" />
             {t("goBack")}
           </Button>
         </div>
@@ -170,7 +172,8 @@ export default function ViewSubmissionPage() {
             {/* Submission Content */}
             <Card>
               <CardHeader>
-                <CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <FileCheck className="h-5 w-5" />
                   {isTeacherView ? t("studentSubmission") : t("yourSubmission")}
                 </CardTitle>
               </CardHeader>
@@ -196,6 +199,7 @@ export default function ViewSubmissionPage() {
             {/* Back Button */}
             <div className="flex justify-start">
               <Button onClick={() => router.back()} variant="outline">
+                <ArrowLeft className="h-4 w-4 mr-2" />
                 {t("backToClass")}
               </Button>
             </div>

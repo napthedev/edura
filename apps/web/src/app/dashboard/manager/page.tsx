@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import Loader from "@/components/loader";
 import { useTranslations } from "next-intl";
+import { LayoutDashboard } from "lucide-react";
 
 export default function ManagerDashboardPage() {
   const t = useTranslations("Dashboard");
@@ -29,7 +30,10 @@ export default function ManagerDashboardPage() {
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold">{t("managerTitle")}</h1>
+      <h1 className="text-2xl font-bold flex items-center gap-2">
+        <LayoutDashboard className="h-6 w-6" />
+        {t("managerTitle")}
+      </h1>
       <p>{t("welcomeManager")}</p>
     </div>
   );

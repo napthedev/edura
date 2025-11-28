@@ -9,7 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { trpcClient } from "@/utils/trpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { BookOpen, Clock } from "lucide-react";
+import { BookOpen, Clock, LayoutDashboard, FolderOpen } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 export default function StudentDashboardPage() {
@@ -42,7 +42,8 @@ export default function StudentDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+      <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+        <LayoutDashboard className="h-6 w-6" />
         {t("title")}
       </h1>
 
@@ -84,7 +85,8 @@ export default function StudentDashboardPage() {
         />
       </div>
 
-      <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+      <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+        <BookOpen className="h-6 w-6" />
         {t("myClasses")}
       </h1>
 
@@ -120,8 +122,9 @@ export default function StudentDashboardPage() {
             ))}
           </>
         ) : (
-          <div className="text-center py-8 text-muted-foreground">
-            {t("noClassesJoined")}
+          <div className="text-center py-12 text-muted-foreground">
+            <FolderOpen className="h-12 w-12 mx-auto mb-4 opacity-30" />
+            <p>{t("noClassesJoined")}</p>
           </div>
         )}
       </div>

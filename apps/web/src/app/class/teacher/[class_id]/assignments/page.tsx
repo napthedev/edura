@@ -5,7 +5,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { trpcClient } from "@/utils/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Copy, Edit, Trash2, BarChart3 } from "lucide-react";
+import { Copy, Edit, Trash2, BarChart3, FileText, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 import {
@@ -66,7 +66,8 @@ export default function AssignmentsPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">
+        <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+          <FileText className="h-6 w-6" />
           {t("assignments")}
         </h2>
       </div>
@@ -80,6 +81,7 @@ export default function AssignmentsPage() {
               router.push(`/class/teacher/${classId}/create-assignment`)
             }
           >
+            <Plus className="h-4 w-4 mr-2" />
             {t("createAssignment")}
           </Button>
         </CardHeader>
@@ -197,7 +199,10 @@ export default function AssignmentsPage() {
               )}
             </div>
           ) : (
-            <p className="text-muted-foreground">{t("noAssignmentsCreated")}</p>
+            <div className="text-center py-12 text-muted-foreground">
+              <FileText className="h-12 w-12 mx-auto mb-4 opacity-20" />
+              <p>{t("noAssignmentsCreated")}</p>
+            </div>
           )}
         </CardContent>
       </Card>

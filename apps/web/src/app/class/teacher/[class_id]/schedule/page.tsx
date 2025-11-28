@@ -8,6 +8,7 @@ import CreateScheduleForm from "@/components/schedule/schedule-form";
 import ScheduleCalendar from "@/components/schedule/schedule-calendar";
 import Loader from "@/components/loader";
 import { useTranslations } from "next-intl";
+import { Calendar } from "lucide-react";
 
 export default function SchedulePage() {
   const params = useParams();
@@ -22,7 +23,10 @@ export default function SchedulePage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">{t("schedule")}</h2>
+        <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+          <Calendar className="h-6 w-6" />
+          {t("schedule")}
+        </h2>
       </div>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">

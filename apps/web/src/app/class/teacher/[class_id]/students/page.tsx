@@ -37,7 +37,10 @@ export default function StudentsPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">{t("students")}</h2>
+        <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+          <Users className="h-6 w-6" />
+          {t("students")}
+        </h2>
       </div>
       <Card>
         <CardHeader>

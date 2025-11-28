@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Loader from "@/components/loader";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { Video } from "lucide-react";
 
 export default function LecturesPage() {
   const params = useParams();
@@ -20,7 +21,10 @@ export default function LecturesPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">{t("lectures")}</h2>
+        <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+          <Video className="h-6 w-6" />
+          {t("lectures")}
+        </h2>
       </div>
       <Card>
         <CardHeader>
@@ -76,7 +80,10 @@ export default function LecturesPage() {
               )}
             </div>
           ) : (
-            <p className="text-muted-foreground">{t("noLecturesAvailable")}</p>
+            <div className="text-center py-12 text-muted-foreground">
+              <Video className="h-12 w-12 mx-auto mb-4 opacity-20" />
+              <p>{t("noLecturesAvailable")}</p>
+            </div>
           )}
         </CardContent>
       </Card>

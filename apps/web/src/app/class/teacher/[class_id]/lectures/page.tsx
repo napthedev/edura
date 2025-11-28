@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import Loader from "@/components/loader";
 import { useTranslations } from "next-intl";
+import { Video, Upload } from "lucide-react";
 
 export default function LecturesPage() {
   const params = useParams();
@@ -24,7 +25,10 @@ export default function LecturesPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">{t("lectures")}</h2>
+        <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+          <Video className="h-6 w-6" />
+          {t("lectures")}
+        </h2>
       </div>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
@@ -36,6 +40,7 @@ export default function LecturesPage() {
               router.push(`/class/teacher/${classId}/upload-lecture`)
             }
           >
+            <Upload className="h-4 w-4 mr-2" />
             {t("uploadLecture")}
           </Button>
         </CardHeader>
@@ -87,7 +92,10 @@ export default function LecturesPage() {
               )}
             </div>
           ) : (
-            <p className="text-muted-foreground">{t("noLecturesUploaded")}</p>
+            <div className="text-center py-12 text-muted-foreground">
+              <Video className="h-12 w-12 mx-auto mb-4 opacity-20" />
+              <p>{t("noLecturesUploaded")}</p>
+            </div>
           )}
         </CardContent>
       </Card>
