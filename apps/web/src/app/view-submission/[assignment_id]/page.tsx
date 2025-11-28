@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import Loader from "@/components/loader";
 import type { AssignmentContent, Question } from "@/lib/assignment-types";
 import { MathJaxProvider, LaTeXRenderer } from "@/components/latex-renderer";
+import { useTranslations } from "next-intl";
 
 export default function ViewSubmissionPage() {
   const params = useParams();
@@ -18,6 +19,7 @@ export default function ViewSubmissionPage() {
   const assignmentId = params.assignment_id as string;
   const submissionId = searchParams.get("submissionId");
   const router = useRouter();
+  const t = useTranslations("ViewSubmission");
 
   const { data: session, isPending: sessionPending } = authClient.useSession();
 
@@ -79,7 +81,7 @@ export default function ViewSubmissionPage() {
             className="mt-4"
             variant="outline"
           >
-            Go Back
+            {t("goBack")}
           </Button>
         </div>
       </div>
@@ -115,18 +117,23 @@ export default function ViewSubmissionPage() {
               <CardHeader>
                 <CardTitle className="text-2xl">{assignment.title}</CardTitle>
                 <div className="text-sm text-muted-foreground space-y-1">
-                  <p>Class: {classData.className}</p>
+                  <p>
+                    {t("class")}: {classData.className}
+                  </p>
                   {isTeacherView && student && (
                     <p>
-                      Student: {student.name} ({student.email})
+                      {t("student")}: {student.name} ({student.email})
                     </p>
                   )}
                   <p>
-                    Submitted:{" "}
+                    {t("submitted")}:{" "}
                     {new Date(submission.submittedAt).toLocaleString()}
                   </p>
                   {assignment.dueDate && (
-                    <p>Due: {new Date(assignment.dueDate).toLocaleString()}</p>
+                    <p>
+                      {t("due")}:{" "}
+                      {new Date(assignment.dueDate).toLocaleString()}
+                    </p>
                   )}
                 </div>
                 <div className="flex items-center gap-4 mt-4">
@@ -134,21 +141,21 @@ export default function ViewSubmissionPage() {
                     variant="secondary"
                     className="text-green-700 bg-green-100"
                   >
-                    ✅ Submitted
+                    {t("submittedBadge")}
                   </Badge>
                   {submission.grade !== null ? (
                     <Badge
                       variant="outline"
                       className="text-blue-700 border-blue-300"
                     >
-                      Grade: {submission.grade}/100
+                      {t("grade")}: {submission.grade}/100
                     </Badge>
                   ) : (
                     <Badge
                       variant="outline"
                       className="text-gray-600 border-gray-300"
                     >
-                      Not graded yet
+                      {t("notGradedYet")}
                     </Badge>
                   )}
                 </div>
@@ -164,7 +171,7 @@ export default function ViewSubmissionPage() {
             <Card>
               <CardHeader>
                 <CardTitle>
-                  {isTeacherView ? "Student Submission" : "Your Submission"}
+                  {isTeacherView ? t("studentSubmission") : t("yourSubmission")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -174,15 +181,13 @@ export default function ViewSubmissionPage() {
                       <SubmittedQuestionCard
                         key={question.id}
                         question={question}
-                        answer={
-                          submissionAnswers[question.id] || "No answer provided"
-                        }
+                        answer={submissionAnswers[question.id] || t("noAnswer")}
                       />
                     ))}
                   </div>
                 ) : (
                   <p className="text-muted-foreground">
-                    No questions available for this assignment.
+                    {t("noQuestionsAvailable")}
                   </p>
                 )}
               </CardContent>
@@ -191,7 +196,7 @@ export default function ViewSubmissionPage() {
             {/* Back Button */}
             <div className="flex justify-start">
               <Button onClick={() => router.back()} variant="outline">
-                Back to Class
+                {t("backToClass")}
               </Button>
             </div>
           </div>
@@ -208,6 +213,7 @@ function SubmittedQuestionCard({
   question: Question;
   answer: string;
 }) {
+  const t = useTranslations("ViewSubmission");
   const isCorrect =
     answer.trim().toLowerCase() ===
     question.correctAnswer?.trim().toLowerCase();
@@ -215,7 +221,9 @@ function SubmittedQuestionCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Question {question.index}</CardTitle>
+        <CardTitle className="text-lg">
+          {t("question")} {question.index}
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
@@ -233,7 +241,7 @@ function SubmittedQuestionCard({
           }`}
         >
           <p className="text-sm font-medium text-muted-foreground mb-2">
-            Answer:
+            {t("answer")}:
           </p>
           {question.type === "simple" && (
             <p
@@ -260,7 +268,7 @@ function SubmittedQuestionCard({
                   </LaTeXRenderer>
                 </>
               ) : (
-                "No answer"
+                t("noAnswer")
               )}
             </p>
           )}
@@ -272,10 +280,10 @@ function SubmittedQuestionCard({
               }`}
             >
               {answer === "true"
-                ? "True"
+                ? t("true")
                 : answer === "false"
-                ? "False"
-                : "No answer"}
+                ? t("false")
+                : t("noAnswer")}
             </p>
           )}
 
@@ -283,7 +291,7 @@ function SubmittedQuestionCard({
           {!isCorrect && question.correctAnswer && (
             <div className="mt-2 p-2 bg-green-100 rounded border border-green-300">
               <p className="text-sm font-medium text-green-800 mb-1">
-                Correct Answer:
+                {t("correctAnswer")}:
               </p>
               {question.type === "simple" && (
                 <p className="text-green-800 whitespace-pre-wrap">
@@ -302,7 +310,7 @@ function SubmittedQuestionCard({
               )}
               {question.type === "truefalse" && (
                 <p className="text-green-800 font-medium">
-                  {question.correctAnswer === "true" ? "True" : "False"}
+                  {question.correctAnswer === "true" ? t("true") : t("false")}
                 </p>
               )}
             </div>

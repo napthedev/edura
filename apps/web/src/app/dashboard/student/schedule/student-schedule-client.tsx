@@ -85,7 +85,7 @@ export default function StudentScheduleClient() {
                   <CardTitle>{classSchedule.className}</CardTitle>
                   <Link href={`/class/student/${classSchedule.classId}`}>
                     <Button variant="outline" size="sm">
-                      View Class
+                      {t("viewMyClasses")}
                     </Button>
                   </Link>
                 </div>

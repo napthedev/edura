@@ -46,3 +46,7 @@ Based on the architectural recommendations and schema enhancements.
     - Create dropdown/page for viewing read/unread notifications.
 - [ ] **Audit Logging**: 
     - Implement TRPC middleware to log critical mutations (Grade Change, Transaction Delete) to `audit_logs`.
+
+# Fix translation error prompt
+fix all the translation rendering errors when using useTranslation() and t("key") that are caused by key not being defined in the en.json and vi.json files
+also, check for any hard coded strings then apply translation to them, update en.json and vi.json accordingly

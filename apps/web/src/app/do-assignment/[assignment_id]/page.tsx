@@ -14,11 +14,13 @@ import { useState } from "react";
 import type { AssignmentContent, Question } from "@/lib/assignment-types";
 import Loader from "@/components/loader";
 import { MathJaxProvider, LaTeXRenderer } from "@/components/latex-renderer";
+import { useTranslations } from "next-intl";
 
 export default function DoAssignmentPage() {
   const params = useParams();
   const assignmentId = params.assignment_id as string;
   const router = useRouter();
+  const t = useTranslations("DoAssignment");
 
   const { data: session, isPending: sessionPending } = authClient.useSession();
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -37,11 +39,11 @@ export default function DoAssignmentPage() {
         submissionContent,
       }),
     onSuccess: () => {
-      toast.success("Assignment submitted successfully!");
+      toast.success(t("assignmentSubmittedSuccess"));
       router.push("/dashboard");
     },
     onError: (error) => {
-      toast.error(`Failed to submit assignment: ${error.message}`);
+      toast.error(`${t("failedToSubmit")}: ${error.message}`);
     },
   });
 
@@ -53,7 +55,7 @@ export default function DoAssignmentPage() {
 
   // Redirect if not a student
   if (!sessionPending && session && (session.user as any).role !== "student") {
-    toast.error("Access denied: Only students can take assignments");
+    toast.error(t("accessDeniedStudentsOnly"));
     router.push("/dashboard");
     return null;
   }
@@ -82,7 +84,7 @@ export default function DoAssignmentPage() {
             className="mt-4"
             variant="outline"
           >
-            Go Back
+            {t("goBack")}
           </Button>
         </div>
       </div>
@@ -109,9 +111,7 @@ export default function DoAssignmentPage() {
     );
 
     if (unanswered.length > 0) {
-      toast.error(
-        `Please answer all questions. ${unanswered.length} unanswered.`
-      );
+      toast.error(t("pleaseAnswerAllQuestions", { count: unanswered.length }));
       return;
     }
 
@@ -130,12 +130,20 @@ export default function DoAssignmentPage() {
               <CardHeader>
                 <CardTitle className="text-2xl">{assignment.title}</CardTitle>
                 <div className="text-sm text-muted-foreground">
-                  <p>Class: {classData.className}</p>
+                  <p>
+                    {t("class")}: {classData.className}
+                  </p>
                   {assignment.dueDate && (
-                    <p>Due: {new Date(assignment.dueDate).toLocaleString()}</p>
+                    <p>
+                      {t("due")}:{" "}
+                      {new Date(assignment.dueDate).toLocaleString()}
+                    </p>
                   )}
                   {assignment.testingDuration && (
-                    <p>Duration: {assignment.testingDuration} minutes</p>
+                    <p>
+                      {t("duration")}: {assignment.testingDuration}{" "}
+                      {t("minutes")}
+                    </p>
                   )}
                 </div>
               </CardHeader>
@@ -149,7 +157,7 @@ export default function DoAssignmentPage() {
             {/* Assignment Content */}
             <Card>
               <CardHeader>
-                <CardTitle>Assignment Questions</CardTitle>
+                <CardTitle>{t("assignmentQuestions")}</CardTitle>
               </CardHeader>
               <CardContent>
                 {assignmentContent && assignmentContent.questions.length > 0 ? (
@@ -170,7 +178,7 @@ export default function DoAssignmentPage() {
                   </div>
                 ) : (
                   <p className="text-muted-foreground">
-                    No questions available for this assignment.
+                    {t("noQuestionsAvailable")}
                   </p>
                 )}
               </CardContent>
@@ -183,8 +191,8 @@ export default function DoAssignmentPage() {
                 disabled={submitMutation.isPending}
               >
                 {submitMutation.isPending
-                  ? "Submitting..."
-                  : "Submit Assignment"}
+                  ? t("submitting")
+                  : t("submitAssignment")}
               </Button>
             </div>
           </div>

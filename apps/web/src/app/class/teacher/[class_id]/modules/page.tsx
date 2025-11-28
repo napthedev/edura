@@ -33,11 +33,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 export default function TeacherModulesPage() {
   const params = useParams();
   const classId = params.class_id as string;
   const queryClient = useQueryClient();
+  const t = useTranslations("Modules");
 
   // State for MoveContentDialog
   const [moveDialogOpen, setMoveDialogOpen] = useState(false);
@@ -63,7 +65,7 @@ export default function TeacherModulesPage() {
       });
     },
     onSuccess: () => {
-      toast.success("Assignment removed from module");
+      toast.success(t("assignmentRemovedFromModule"));
       queryClient.invalidateQueries({
         queryKey: [["education", "getClassModules"], { classId }],
       });
@@ -81,7 +83,7 @@ export default function TeacherModulesPage() {
       });
     },
     onSuccess: () => {
-      toast.success("Lecture removed from module");
+      toast.success(t("lectureRemovedFromModule"));
       queryClient.invalidateQueries({
         queryKey: [["education", "getClassModules"], { classId }],
       });
@@ -92,9 +94,7 @@ export default function TeacherModulesPage() {
   });
 
   const handleRemoveContent = (id: string, type: "assignment" | "lecture") => {
-    if (
-      confirm("Are you sure you want to remove this content from the module?")
-    ) {
+    if (confirm(t("confirmRemoveContent"))) {
       if (type === "assignment") {
         updateAssignmentMutation.mutate(id);
       } else {
@@ -121,17 +121,15 @@ export default function TeacherModulesPage() {
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Modules</h1>
+        <h1 className="text-2xl font-bold">{t("title")}</h1>
         <CreateModuleDialog classId={classId} />
       </div>
 
       {modules.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-10 text-muted-foreground">
-            <p>No modules created yet.</p>
-            <p className="text-sm">
-              Create a module to organize your class content.
-            </p>
+            <p>{t("noModulesCreated")}</p>
+            <p className="text-sm">{t("createModuleHint")}</p>
           </CardContent>
         </Card>
       ) : (
@@ -166,11 +164,11 @@ export default function TeacherModulesPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem>
                           <Edit className="w-4 h-4 mr-2" />
-                          Edit Module
+                          {t("editModule")}
                         </DropdownMenuItem>
                         <DropdownMenuItem className="text-destructive">
                           <Trash2 className="w-4 h-4 mr-2" />
-                          Delete Module
+                          {t("deleteModule")}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -181,7 +179,7 @@ export default function TeacherModulesPage() {
                     {module.assignments.length === 0 &&
                       module.lectures.length === 0 && (
                         <p className="text-sm text-muted-foreground italic">
-                          No content in this module.
+                          {t("noContentInModule")}
                         </p>
                       )}
 
@@ -194,7 +192,7 @@ export default function TeacherModulesPage() {
                         <div className="flex-1">
                           <p className="font-medium">{lecture.title}</p>
                           <p className="text-xs text-muted-foreground">
-                            Lecture •{" "}
+                            {t("lecture")} •{" "}
                             {format(new Date(lecture.lectureDate), "PPP")}
                           </p>
                         </div>
@@ -220,7 +218,7 @@ export default function TeacherModulesPage() {
                                 }
                               >
                                 <ArrowRightLeft className="w-4 h-4 mr-2" />
-                                Move to...
+                                {t("moveTo")}
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() =>
@@ -232,7 +230,7 @@ export default function TeacherModulesPage() {
                                 className="text-destructive"
                               >
                                 <X className="w-4 h-4 mr-2" />
-                                Remove from Module
+                                {t("removeFromModule")}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -249,10 +247,10 @@ export default function TeacherModulesPage() {
                         <div className="flex-1">
                           <p className="font-medium">{assignment.title}</p>
                           <p className="text-xs text-muted-foreground">
-                            Assignment • Due{" "}
+                            {t("assignment")} • {t("due")}{" "}
                             {assignment.dueDate
                               ? format(new Date(assignment.dueDate), "PPP")
-                              : "No due date"}
+                              : t("noDueDate")}
                           </p>
                         </div>
                         <div className="opacity-0 group-hover:opacity-100 transition-opacity">
@@ -277,7 +275,7 @@ export default function TeacherModulesPage() {
                                 }
                               >
                                 <ArrowRightLeft className="w-4 h-4 mr-2" />
-                                Move to...
+                                {t("moveTo")}
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() =>
@@ -289,7 +287,7 @@ export default function TeacherModulesPage() {
                                 className="text-destructive"
                               >
                                 <X className="w-4 h-4 mr-2" />
-                                Remove from Module
+                                {t("removeFromModule")}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>

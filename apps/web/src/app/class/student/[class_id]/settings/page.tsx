@@ -31,6 +31,7 @@ export default function SettingsPage() {
   const classId = params.class_id as string;
   const router = useRouter();
   const t = useTranslations("StudentClassPage");
+  const ts = useTranslations("ClassPageSettings");
 
   const classQuery = useQuery({
     queryKey: ["class", classId],
@@ -64,7 +65,7 @@ export default function SettingsPage() {
   }
 
   if (!classQuery.data) {
-    return <div>Class not found</div>;
+    return <div>{ts("classInformation")}</div>;
   }
 
   const classData = classQuery.data;
@@ -77,10 +78,8 @@ export default function SettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Class Information</CardTitle>
-          <CardDescription>
-            View your class details and settings.
-          </CardDescription>
+          <CardTitle>{ts("classInformation")}</CardTitle>
+          <CardDescription>{ts("viewClassDetails")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between p-4 border rounded-lg">
@@ -100,10 +99,8 @@ export default function SettingsPage() {
 
       <Card className="border-red-200">
         <CardHeader>
-          <CardTitle className="text-red-600">Danger Zone</CardTitle>
-          <CardDescription>
-            Irreversible actions for this class.
-          </CardDescription>
+          <CardTitle className="text-red-600">{ts("dangerZone")}</CardTitle>
+          <CardDescription>{ts("irreversibleActions")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between p-4 border border-red-200 rounded-lg bg-red-50">

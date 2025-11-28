@@ -21,6 +21,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useTranslations } from "next-intl";
 
 interface Schedule {
   scheduleId: string;
@@ -49,16 +50,17 @@ export default function ScheduleCalendar({
   const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(
     null
   );
+  const t = useTranslations("ScheduleCalendar");
 
   const deleteMutation = useMutation({
     mutationFn: (scheduleId: string) =>
       trpcClient.education.deleteSchedule.mutate({ scheduleId }),
     onSuccess: () => {
-      toast.success("Schedule deleted successfully");
+      toast.success(t("scheduleDeletedSuccess"));
       onScheduleUpdate?.();
     },
     onError: (error) => {
-      toast.error(`Failed to delete schedule: ${error.message}`);
+      toast.error(`${t("failedToDeleteSchedule")}: ${error.message}`);
     },
   });
 
@@ -157,7 +159,7 @@ export default function ScheduleCalendar({
                           rel="noopener noreferrer"
                           className="text-sm text-blue-600 hover:underline"
                         >
-                          Join Meeting
+                          {t("joinMeeting")}
                         </a>
                       </div>
                     )}
@@ -178,15 +180,16 @@ export default function ScheduleCalendar({
                             <AlertDialogContent>
                               <AlertDialogHeader>
                                 <AlertDialogTitle>
-                                  Delete Schedule
+                                  {t("deleteSchedule")}
                                 </AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Are you sure you want to delete this schedule?
-                                  This action cannot be undone.
+                                  {t("deleteScheduleDescription")}
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogCancel>
+                                  {t("cancel")}
+                                </AlertDialogCancel>
                                 <AlertDialogAction
                                   onClick={() =>
                                     deleteMutation.mutate(schedule.scheduleId)
@@ -194,8 +197,8 @@ export default function ScheduleCalendar({
                                   className="bg-destructive text-white hover:bg-destructive/90"
                                 >
                                   {deleteMutation.isPending
-                                    ? "Deleting..."
-                                    : "Delete"}
+                                    ? "..."
+                                    : t("delete")}
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -207,9 +210,7 @@ export default function ScheduleCalendar({
                 ))}
               </div>
             ) : (
-              <p className="text-muted-foreground">
-                No schedules for this date.
-              </p>
+              <p className="text-muted-foreground">{t("noSchedules")}</p>
             )
           ) : (
             <p className="text-muted-foreground">

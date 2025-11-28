@@ -17,6 +17,7 @@ import { Plus, FileText, Video } from "lucide-react";
 import { toast } from "sonner";
 import Loader from "@/components/loader";
 import { format } from "date-fns";
+import { useTranslations } from "next-intl";
 
 interface AddExistingContentDialogProps {
   classId: string;
@@ -31,6 +32,7 @@ export function AddExistingContentDialog({
   const [selectedAssignments, setSelectedAssignments] = useState<string[]>([]);
   const [selectedLectures, setSelectedLectures] = useState<string[]>([]);
   const queryClient = useQueryClient();
+  const t = useTranslations("AddExistingContent");
 
   const unassignedQuery = useQuery({
     queryKey: [["education", "getUnassignedContent"], { classId }],
@@ -69,7 +71,7 @@ export function AddExistingContentDialog({
 
       await Promise.all(promises);
 
-      toast.success("Content added to module successfully");
+      toast.success(t("contentAddedSuccess"));
       setOpen(false);
       setSelectedAssignments([]);
       setSelectedLectures([]);
@@ -80,7 +82,7 @@ export function AddExistingContentDialog({
         queryKey: [["education", "getUnassignedContent"], { classId }],
       });
     } catch (error) {
-      toast.error("Failed to add content");
+      toast.error(t("failedToAddContent"));
     }
   };
 
@@ -106,30 +108,27 @@ export function AddExistingContentDialog({
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <Plus className="w-4 h-4 mr-2" />
-          Add Content
+          {t("addContent")}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add Existing Content to Module</DialogTitle>
+          <DialogTitle>{t("addExistingContentToModule")}</DialogTitle>
         </DialogHeader>
 
         {isLoading ? (
           <Loader />
         ) : !hasContent ? (
           <div className="py-8 text-center text-muted-foreground">
-            <p>No unassigned content available.</p>
-            <p className="text-sm">
-              Create assignments or lectures first, or remove them from other
-              modules.
-            </p>
+            <p>{t("noUnassignedContent")}</p>
+            <p className="text-sm">{t("noUnassignedContentHint")}</p>
           </div>
         ) : (
           <div className="space-y-6">
             {data.assignments.length > 0 && (
               <div className="space-y-3">
                 <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wider">
-                  Assignments
+                  {t("assignments")}
                 </h3>
                 <div className="space-y-2">
                   {data.assignments.map((assignment: any) => (
@@ -155,10 +154,10 @@ export function AddExistingContentDialog({
                           {assignment.title}
                         </Label>
                         <p className="text-xs text-muted-foreground pl-6">
-                          Due:{" "}
+                          {t("due")}:{" "}
                           {assignment.dueDate
                             ? format(new Date(assignment.dueDate), "PPP")
-                            : "No due date"}
+                            : t("noDueDate")}
                         </p>
                       </div>
                     </div>
@@ -170,7 +169,7 @@ export function AddExistingContentDialog({
             {data.lectures.length > 0 && (
               <div className="space-y-3">
                 <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wider">
-                  Lectures
+                  {t("lectures")}
                 </h3>
                 <div className="space-y-2">
                   {data.lectures.map((lecture: any) => (
@@ -209,7 +208,7 @@ export function AddExistingContentDialog({
                   selectedLectures.length === 0
                 }
               >
-                Add Selected (
+                {t("addSelected")} (
                 {selectedAssignments.length + selectedLectures.length})
               </Button>
             </div>

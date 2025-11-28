@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 const createModuleSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -41,6 +42,7 @@ interface CreateModuleDialogProps {
 export function CreateModuleDialog({ classId }: CreateModuleDialogProps) {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
+  const t = useTranslations("CreateModule");
 
   const form = useForm<CreateModuleForm>({
     resolver: zodResolver(createModuleSchema),
@@ -58,7 +60,7 @@ export function CreateModuleDialog({ classId }: CreateModuleDialogProps) {
       });
     },
     onSuccess: () => {
-      toast.success("Module created successfully");
+      toast.success(t("moduleCreatedSuccess"));
       setOpen(false);
       form.reset();
       queryClient.invalidateQueries({
@@ -66,7 +68,7 @@ export function CreateModuleDialog({ classId }: CreateModuleDialogProps) {
       });
     },
     onError: (error) => {
-      toast.error(`Failed to create module: ${error.message}`);
+      toast.error(`${t("failedToCreateModule")}: ${error.message}`);
     },
   });
 
@@ -79,12 +81,12 @@ export function CreateModuleDialog({ classId }: CreateModuleDialogProps) {
       <DialogTrigger asChild>
         <Button>
           <Plus className="w-4 h-4 mr-2" />
-          Create Module
+          {t("createModule")}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create New Module</DialogTitle>
+          <DialogTitle>{t("createNewModule")}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -93,9 +95,12 @@ export function CreateModuleDialog({ classId }: CreateModuleDialogProps) {
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Title</FormLabel>
+                  <FormLabel>{t("title")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Module title" {...field} />
+                    <Input
+                      placeholder={t("moduleTitlePlaceholder")}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -106,9 +111,12 @@ export function CreateModuleDialog({ classId }: CreateModuleDialogProps) {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description (Optional)</FormLabel>
+                  <FormLabel>{t("descriptionOptional")}</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Module description" {...field} />
+                    <Textarea
+                      placeholder={t("moduleDescriptionPlaceholder")}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -120,10 +128,10 @@ export function CreateModuleDialog({ classId }: CreateModuleDialogProps) {
                 variant="outline"
                 onClick={() => setOpen(false)}
               >
-                Cancel
+                {t("cancel")}
               </Button>
               <Button type="submit" disabled={createModuleMutation.isPending}>
-                {createModuleMutation.isPending ? "Creating..." : "Create"}
+                {createModuleMutation.isPending ? t("creating") : t("create")}
               </Button>
             </div>
           </form>

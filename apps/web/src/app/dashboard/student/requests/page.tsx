@@ -8,8 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { useTranslations } from "next-intl";
 
 export default function StudentRequestsPage() {
+  const t = useTranslations("StudentRequests");
   const {
     data: requests,
     isLoading,
@@ -46,12 +48,12 @@ export default function StudentRequestsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Class Join Requests</h1>
+      <h1 className="text-3xl font-bold">{t("title")}</h1>
 
       {requests?.length === 0 ? (
         <Card>
           <CardContent className="p-8 text-center text-muted-foreground">
-            No requests found.
+            {t("noRequests")}
           </CardContent>
         </Card>
       ) : (
@@ -62,10 +64,10 @@ export default function StudentRequestsPage() {
                 <div>
                   <h3 className="font-semibold text-lg">{req.class.name}</h3>
                   <p className="text-sm text-muted-foreground">
-                    Code: {req.class.code}
+                    {t("code")}: {req.class.code}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Requested on {format(new Date(req.createdAt), "PPP")}
+                    {t("requestedOn")} {format(new Date(req.createdAt), "PPP")}
                   </p>
                 </div>
                 <div className="flex items-center gap-4">
@@ -78,7 +80,7 @@ export default function StudentRequestsPage() {
                         : "secondary"
                     }
                   >
-                    {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
+                    {t(req.status)}
                   </Badge>
 
                   {req.status === "pending" && (
@@ -89,8 +91,8 @@ export default function StudentRequestsPage() {
                       disabled={withdrawMutation.isPending}
                     >
                       {withdrawMutation.isPending
-                        ? "Withdrawing..."
-                        : "Withdraw"}
+                        ? t("withdrawing")
+                        : t("withdraw")}
                     </Button>
                   )}
                 </div>

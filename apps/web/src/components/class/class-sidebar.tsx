@@ -16,6 +16,7 @@ import {
   Layout,
 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { useTranslations } from "next-intl";
 
 interface ClassSidebarProps {
   classId: string;
@@ -36,6 +37,7 @@ function ClassSidebarContent({
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const t = useTranslations("ClassSidebar");
 
   // Fallback for legacy query param support or default
   const currentTab = searchParams.get("tab");
@@ -51,42 +53,42 @@ function ClassSidebarContent({
   const teacherLinks = [
     {
       value: "announcement",
-      label: "Announcements",
+      label: t("announcements"),
       icon: Megaphone,
     },
     {
       value: "modules",
-      label: "Modules",
+      label: t("modules"),
       icon: Layout,
     },
     {
       value: "students",
-      label: "Students",
+      label: t("students"),
       icon: Users,
     },
     {
       value: "requests",
-      label: "Requests",
+      label: t("requests"),
       icon: UserPlus,
     },
     {
       value: "schedule",
-      label: "Schedule",
+      label: t("schedule"),
       icon: Calendar,
     },
     {
       value: "assignments",
-      label: "Assignments",
+      label: t("assignments"),
       icon: FileText,
     },
     {
       value: "lectures",
-      label: "Lectures",
+      label: t("lectures"),
       icon: Video,
     },
     {
       value: "settings",
-      label: "Settings",
+      label: t("settings"),
       icon: Settings,
     },
   ];
@@ -94,37 +96,37 @@ function ClassSidebarContent({
   const studentLinks = [
     {
       value: "announcement",
-      label: "Announcements",
+      label: t("announcements"),
       icon: Megaphone,
     },
     {
       value: "modules",
-      label: "Modules",
+      label: t("modules"),
       icon: Layout,
     },
     {
       value: "teacher",
-      label: "Teacher",
+      label: t("teacher"),
       icon: GraduationCap,
     },
     {
       value: "schedule",
-      label: "Schedule",
+      label: t("schedule"),
       icon: Calendar,
     },
     {
       value: "assignments",
-      label: "Assignments",
+      label: t("assignments"),
       icon: FileText,
     },
     {
       value: "lectures",
-      label: "Lectures",
+      label: t("lectures"),
       icon: Video,
     },
     {
       value: "settings",
-      label: "Settings",
+      label: t("settings"),
       icon: Settings,
     },
   ];
@@ -139,7 +141,7 @@ function ClassSidebarContent({
           className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors"
         >
           <ArrowLeft className="h-5 w-5" />
-          <span className="font-medium">Back to Dashboard</span>
+          <span className="font-medium">{t("backToDashboard")}</span>
         </Link>
       </div>
       <div className="flex flex-col gap-2 p-4">

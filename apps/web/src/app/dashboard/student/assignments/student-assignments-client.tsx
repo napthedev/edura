@@ -15,6 +15,7 @@ import {
 
 export default function StudentAssignmentsClient() {
   const t = useTranslations("StudentDashboard");
+  const ta = useTranslations("StudentAssignments");
   const assignmentsQuery = useQuery({
     queryKey: ["studentAssignments"],
     queryFn: () => trpcClient.education.getStudentAssignments.query(),
@@ -31,7 +32,7 @@ export default function StudentAssignmentsClient() {
       return (
         <div className="flex items-center gap-1 text-green-600">
           <CheckCircle2 className="h-4 w-4" />
-          <span className="text-xs font-medium">Submitted</span>
+          <span className="text-xs font-medium">{ta("submitted")}</span>
         </div>
       );
     }
@@ -39,14 +40,14 @@ export default function StudentAssignmentsClient() {
       return (
         <div className="flex items-center gap-1 text-red-600">
           <Clock className="h-4 w-4" />
-          <span className="text-xs font-medium">Overdue</span>
+          <span className="text-xs font-medium">{ta("overdue")}</span>
         </div>
       );
     }
     return (
       <div className="flex items-center gap-1 text-slate-500">
         <Clock className="h-4 w-4" />
-        <span className="text-xs font-medium">Pending</span>
+        <span className="text-xs font-medium">{ta("pending")}</span>
       </div>
     );
   };
@@ -55,7 +56,7 @@ export default function StudentAssignmentsClient() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-          All Assignments
+          {ta("allAssignments")}
         </h1>
       </div>
 
@@ -109,7 +110,7 @@ export default function StudentAssignmentsClient() {
                     </div>
                     <div className="mt-4 pt-4 border-t">
                       <p className="text-xs text-slate-400">
-                        Posted:{" "}
+                        {ta("posted")}:{" "}
                         {new Date(assignment.createdAt).toLocaleDateString()}
                       </p>
                     </div>
@@ -122,9 +123,7 @@ export default function StudentAssignmentsClient() {
       ) : (
         <div className="text-center py-12">
           <FileText className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-          <p className="text-muted-foreground mb-4">
-            No assignments yet. Assignments from your classes will appear here.
-          </p>
+          <p className="text-muted-foreground mb-4">{ta("noAssignmentsYet")}</p>
         </div>
       )}
     </div>

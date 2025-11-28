@@ -41,6 +41,7 @@ export default function SettingsPage() {
   const classId = params.class_id as string;
   const router = useRouter();
   const t = useTranslations("ClassPage");
+  const ts = useTranslations("ClassPageSettings");
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [newClassName, setNewClassName] = useState("");
 
@@ -53,23 +54,23 @@ export default function SettingsPage() {
     mutationFn: (newName: string) =>
       trpcClient.education.renameClass.mutate({ classId, newName }),
     onSuccess: () => {
-      toast.success("Class renamed successfully");
+      toast.success(ts("classRenamedSuccess"));
       setRenameDialogOpen(false);
       classQuery.refetch();
     },
     onError: (error) => {
-      toast.error(`Failed to rename class: ${error.message}`);
+      toast.error(`${ts("failedToRename")}: ${error.message}`);
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: () => trpcClient.education.deleteClass.mutate({ classId }),
     onSuccess: () => {
-      toast.success("Class deleted successfully");
+      toast.success(ts("classDeletedSuccess"));
       router.push("/dashboard");
     },
     onError: (error) => {
-      toast.error(`Failed to delete class: ${error.message}`);
+      toast.error(`${ts("failedToDelete")}: ${error.message}`);
     },
   });
 
@@ -108,10 +109,8 @@ export default function SettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Class Information</CardTitle>
-          <CardDescription>
-            Manage your class details and settings.
-          </CardDescription>
+          <CardTitle>{ts("classInformation")}</CardTitle>
+          <CardDescription>{ts("manageClassDetails")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between p-4 border rounded-lg">
@@ -131,7 +130,7 @@ export default function SettingsPage() {
             <div>
               <p className="font-medium">{t("renameClass")}</p>
               <p className="text-sm text-muted-foreground">
-                Change the name of your class.
+                {ts("changeClassName")}
               </p>
             </div>
             <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
@@ -181,10 +180,8 @@ export default function SettingsPage() {
 
       <Card className="border-red-200">
         <CardHeader>
-          <CardTitle className="text-red-600">Danger Zone</CardTitle>
-          <CardDescription>
-            Irreversible actions for this class.
-          </CardDescription>
+          <CardTitle className="text-red-600">{ts("dangerZone")}</CardTitle>
+          <CardDescription>{ts("irreversibleActions")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between p-4 border border-red-200 rounded-lg bg-red-50">

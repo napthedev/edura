@@ -15,6 +15,7 @@ import {
   Clock,
 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { useTranslations } from "next-intl";
 
 interface SidebarProps {
   role: "teacher" | "student" | "manager";
@@ -24,31 +25,32 @@ interface SidebarProps {
 
 function SidebarContent({ role }: { role: "teacher" | "student" | "manager" }) {
   const pathname = usePathname();
+  const t = useTranslations("DashboardSidebar");
 
   const teacherLinks = [
     {
       href: "/dashboard/teacher",
-      label: "Dashboard",
+      label: t("dashboard"),
       icon: LayoutDashboard,
     },
     {
       href: "/dashboard/teacher/classes",
-      label: "Classes",
+      label: t("classes"),
       icon: BookOpen,
     },
     {
       href: "/dashboard/teacher/students",
-      label: "Students",
+      label: t("students"),
       icon: Users,
     },
     {
       href: "/dashboard/teacher/assignments",
-      label: "Assignments",
+      label: t("assignments"),
       icon: FileText,
     },
     {
       href: "/dashboard/teacher/schedule",
-      label: "Schedule",
+      label: t("schedule"),
       icon: Calendar,
     },
   ];
@@ -56,27 +58,27 @@ function SidebarContent({ role }: { role: "teacher" | "student" | "manager" }) {
   const studentLinks = [
     {
       href: "/dashboard/student",
-      label: "Dashboard",
+      label: t("dashboard"),
       icon: LayoutDashboard,
     },
     {
       href: "/dashboard/student/classes",
-      label: "My Classes",
+      label: t("myClasses"),
       icon: BookOpen,
     },
     {
       href: "/dashboard/student/requests",
-      label: "Requests",
+      label: t("requests"),
       icon: Clock,
     },
     {
       href: "/dashboard/student/assignments",
-      label: "Assignments",
+      label: t("assignments"),
       icon: FileText,
     },
     {
       href: "/dashboard/student/schedule",
-      label: "Schedule",
+      label: t("schedule"),
       icon: Calendar,
     },
   ];
@@ -85,27 +87,27 @@ function SidebarContent({ role }: { role: "teacher" | "student" | "manager" }) {
   const designLinks = [
     {
       href: "/dashboard/manager",
-      label: "Dashboard",
+      label: t("dashboard"),
       icon: LayoutDashboard,
     },
     {
       href: "/dashboard/manager/finance",
-      label: "Finance",
+      label: t("finance"),
       icon: LayoutDashboard, // Placeholder
     },
     {
       href: "/dashboard/manager/teachers",
-      label: "Teachers",
+      label: t("teachers"),
       icon: Users,
     },
     {
       href: "/dashboard/manager/students",
-      label: "Students",
+      label: t("students"),
       icon: GraduationCap,
     },
     {
       href: "/dashboard/manager/customer-service",
-      label: "Customer Service",
+      label: t("customerService"),
       icon: HeadphonesIcon,
     },
   ];

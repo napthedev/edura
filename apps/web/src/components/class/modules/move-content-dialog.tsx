@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 interface MoveContentDialogProps {
   classId: string;
@@ -43,6 +44,7 @@ export function MoveContentDialog({
     currentModuleId || "unassigned"
   );
   const queryClient = useQueryClient();
+  const t = useTranslations("MoveContent");
 
   // Reset state when dialog opens/changes item
   useEffect(() => {
@@ -79,7 +81,7 @@ export function MoveContentDialog({
         await updateLectureMutation.mutateAsync(moduleId);
       }
 
-      toast.success("Content moved successfully");
+      toast.success(t("contentMovedSuccess"));
       onOpenChange(false);
       queryClient.invalidateQueries({
         queryKey: [["education", "getClassModules"], { classId }],
@@ -88,7 +90,7 @@ export function MoveContentDialog({
         queryKey: [["education", "getUnassignedContent"], { classId }],
       });
     } catch (error) {
-      toast.error("Failed to move content");
+      toast.error(t("failedToMoveContent"));
     }
   };
 
@@ -96,20 +98,22 @@ export function MoveContentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Move Content</DialogTitle>
+          <DialogTitle>{t("moveContent")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label>Select Module</Label>
+            <Label>{t("selectModule")}</Label>
             <Select
               value={targetModuleId}
               onValueChange={(value) => setTargetModuleId(value)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select a module" />
+                <SelectValue placeholder={t("selectModule")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="unassigned">(Remove from Module)</SelectItem>
+                <SelectItem value="unassigned">
+                  {t("removeFromModule")}
+                </SelectItem>
                 {modules.map((module) => (
                   <SelectItem key={module.moduleId} value={module.moduleId}>
                     {module.title}
@@ -119,7 +123,7 @@ export function MoveContentDialog({
             </Select>
           </div>
           <div className="flex justify-end">
-            <Button onClick={handleMove}>Move</Button>
+            <Button onClick={handleMove}>{t("move")}</Button>
           </div>
         </div>
       </DialogContent>

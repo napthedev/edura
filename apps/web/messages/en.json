@@ -248,9 +248,13 @@
     "activeCourses": "Active courses",
     "totalStudents": "Total Students",
     "acrossAllClasses": "Across all classes",
-    "classNameRequired": "Class name is required"
+    "classNameRequired": "Class name is required",
+    "goToClasses": "Go to Classes",
+    "viewClass": "View Class",
+    "createSchedulesHint": "You can create schedules for each class from the class page."
   },
   "ClassPage": {
+    "settings": "Settings",
     "classNotFound": "Class not found",
     "classCode": "Class Code",
     "copyCode": "Copy Code",
@@ -334,7 +338,10 @@
     "saveAssignment": "Save Assignment",
     "errorLoadingAssignment": "Error loading assignment",
     "confirmDeleteAssignment": "Are you sure you want to delete this assignment?",
-    "back": "Back"
+    "back": "Back",
+    "moduleOptional": "Module (Optional)",
+    "selectModule": "Select a module",
+    "noModule": "No Module"
   },
   "UploadLecture": {
     "title": "Upload Lecture",
@@ -367,6 +374,7 @@
     "noModule": "No Module"
   },
   "CreateAnnouncement": {
+    "editAnnouncement": "Edit Announcement",
     "announcementCreated": "Announcement created successfully",
     "failedToCreateAnnouncement": "Failed to create announcement",
     "onlyImageFilesAllowed": "Only image files are allowed",
@@ -387,7 +395,9 @@
     "creating": "Creating...",
     "createAnnouncementButton": "Create Announcement",
     "updating": "Updating...",
-    "updateAnnouncement": "Update Announcement"
+    "updateAnnouncement": "Update Announcement",
+    "announcementUpdated": "Announcement updated successfully",
+    "failedToUpdateAnnouncement": "Failed to update announcement"
   },
   "ScheduleForm": {
     "scheduleCreated": "Schedule created successfully",
@@ -413,6 +423,16 @@
     "editSchedule": "Edit Schedule",
     "updating": "Updating...",
     "updateSchedule": "Update Schedule"
+  },
+  "ScheduleCalendar": {
+    "scheduleDeletedSuccess": "Schedule deleted successfully",
+    "failedToDeleteSchedule": "Failed to delete schedule",
+    "deleteSchedule": "Delete Schedule",
+    "deleteScheduleDescription": "Are you sure you want to delete this schedule? This action cannot be undone.",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "joinMeeting": "Join Meeting",
+    "noSchedules": "No schedules for this date"
   },
   "AssignmentMetricsDialog": {
     "metricsFor": "Metrics for",
@@ -477,6 +497,7 @@
     "signOut": "Sign Out"
   },
   "StudentClassPage": {
+    "settings": "Settings",
     "classCode": "Class Code",
     "created": "Created",
     "copyCode": "Copy Code",
@@ -522,5 +543,186 @@
     "announcementDeleted": "Announcement deleted successfully",
     "failedToDeleteAnnouncement": "Failed to delete announcement",
     "postedBy": "Posted by"
+  },
+  "ClassSidebar": {
+    "backToDashboard": "Back to Dashboard",
+    "announcements": "Announcements",
+    "modules": "Modules",
+    "students": "Students",
+    "requests": "Requests",
+    "schedule": "Schedule",
+    "assignments": "Assignments",
+    "lectures": "Lectures",
+    "settings": "Settings",
+    "teacher": "Teacher",
+    "class": "Class"
+  },
+  "DashboardSidebar": {
+    "dashboard": "Dashboard",
+    "classes": "Classes",
+    "myClasses": "My Classes",
+    "students": "Students",
+    "assignments": "Assignments",
+    "schedule": "Schedule",
+    "requests": "Requests",
+    "finance": "Finance",
+    "teachers": "Teachers",
+    "customerService": "Customer Service"
+  },
+  "DoAssignment": {
+    "class": "Class",
+    "due": "Due",
+    "duration": "Duration",
+    "minutes": "minutes",
+    "assignmentQuestions": "Assignment Questions",
+    "noQuestionsAvailable": "No questions available for this assignment.",
+    "submitting": "Submitting...",
+    "submitAssignment": "Submit Assignment",
+    "question": "Question",
+    "enterYourAnswer": "Enter your answer",
+    "true": "True",
+    "false": "False",
+    "goBack": "Go Back",
+    "assignmentSubmittedSuccess": "Assignment submitted successfully!",
+    "failedToSubmit": "Failed to submit assignment",
+    "accessDeniedStudentsOnly": "Access denied: Only students can take assignments",
+    "pleaseAnswerAllQuestions": "Please answer all questions. {count} unanswered."
+  },
+  "ViewSubmission": {
+    "class": "Class",
+    "student": "Student",
+    "submitted": "Submitted",
+    "due": "Due",
+    "submittedBadge": "✅ Submitted",
+    "grade": "Grade",
+    "notGradedYet": "Not graded yet",
+    "studentSubmission": "Student Submission",
+    "yourSubmission": "Your Submission",
+    "noQuestionsAvailable": "No questions available for this assignment.",
+    "backToClass": "Back to Class",
+    "question": "Question",
+    "answer": "Answer",
+    "noAnswer": "No answer",
+    "correctAnswer": "Correct Answer",
+    "goBack": "Go Back",
+    "true": "True",
+    "false": "False"
+  },
+  "LecturePage": {
+    "back": "Back",
+    "download": "Download",
+    "delete": "Delete",
+    "deleteLecture": "Delete Lecture",
+    "deleteLectureDescription": "Are you sure you want to delete this lecture? This action cannot be undone.",
+    "cancel": "Cancel",
+    "deleting": "Deleting...",
+    "lectureNotFound": "Lecture not found",
+    "file": "File",
+    "youtubeVideo": "YouTube Video",
+    "class": "Class",
+    "date": "Date",
+    "uploaded": "Uploaded",
+    "content": "Content",
+    "downloadFile": "Download File",
+    "unableToPreview": "Unable to preview this YouTube video.",
+    "openInYoutube": "Open in YouTube",
+    "lectureDeletedSuccess": "Lecture deleted successfully",
+    "failedToDeleteLecture": "Failed to delete lecture"
+  },
+  "ClassPageSettings": {
+    "classInformation": "Class Information",
+    "manageClassDetails": "Manage your class details and settings.",
+    "viewClassDetails": "View your class details and settings.",
+    "changeClassName": "Change the name of your class.",
+    "dangerZone": "Danger Zone",
+    "irreversibleActions": "Irreversible actions for this class.",
+    "classRenamedSuccess": "Class renamed successfully",
+    "failedToRename": "Failed to rename class",
+    "classDeletedSuccess": "Class deleted successfully",
+    "failedToDelete": "Failed to delete class"
+  },
+  "JoinRequests": {
+    "title": "Join Requests",
+    "noPendingRequests": "No pending requests.",
+    "requestedOn": "Requested on",
+    "reject": "Reject",
+    "approve": "Approve"
+  },
+  "StudentRequests": {
+    "title": "Class Join Requests",
+    "noRequests": "No requests found.",
+    "code": "Code",
+    "requestedOn": "Requested on",
+    "withdrawing": "Withdrawing...",
+    "withdraw": "Withdraw",
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected"
+  },
+  "Modules": {
+    "title": "Modules",
+    "noModulesAvailable": "No modules available yet.",
+    "noModulesCreated": "No modules created yet.",
+    "createModuleHint": "Create a module to organize your class content.",
+    "noContentInModule": "No content in this module.",
+    "lecture": "Lecture",
+    "assignment": "Assignment",
+    "due": "Due",
+    "noDueDate": "No due date",
+    "editModule": "Edit Module",
+    "deleteModule": "Delete Module",
+    "moveTo": "Move to...",
+    "removeFromModule": "Remove from Module",
+    "assignmentRemovedFromModule": "Assignment removed from module",
+    "lectureRemovedFromModule": "Lecture removed from module",
+    "confirmRemoveContent": "Are you sure you want to remove this content from the module?"
+  },
+  "CreateModule": {
+    "createModule": "Create Module",
+    "createNewModule": "Create New Module",
+    "title": "Title",
+    "moduleTitlePlaceholder": "Module title",
+    "descriptionOptional": "Description (Optional)",
+    "moduleDescriptionPlaceholder": "Module description",
+    "cancel": "Cancel",
+    "creating": "Creating...",
+    "create": "Create",
+    "moduleCreatedSuccess": "Module created successfully",
+    "failedToCreateModule": "Failed to create module",
+    "titleRequired": "Title is required"
+  },
+  "AddExistingContent": {
+    "addContent": "Add Content",
+    "addExistingContentToModule": "Add Existing Content to Module",
+    "noUnassignedContent": "No unassigned content available.",
+    "noUnassignedContentHint": "Create assignments or lectures first, or remove them from other modules.",
+    "assignments": "Assignments",
+    "lectures": "Lectures",
+    "due": "Due",
+    "noDueDate": "No due date",
+    "addSelected": "Add Selected",
+    "contentAddedSuccess": "Content added to module successfully",
+    "failedToAddContent": "Failed to add content"
+  },
+  "MoveContent": {
+    "moveContent": "Move Content",
+    "selectModule": "Select Module",
+    "removeFromModule": "(Remove from Module)",
+    "move": "Move",
+    "contentMovedSuccess": "Content moved successfully",
+    "failedToMoveContent": "Failed to move content"
+  },
+  "StudentAssignments": {
+    "allAssignments": "All Assignments",
+    "submitted": "Submitted",
+    "overdue": "Overdue",
+    "pending": "Pending",
+    "posted": "Posted",
+    "noAssignmentsYet": "No assignments yet. Assignments from your classes will appear here."
+  },
+  "TeacherAssignments": {
+    "submissions": "submissions",
+    "created": "Created",
+    "createAssignment": "Create Assignment"
   }
 }

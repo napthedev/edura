@@ -248,9 +248,13 @@
     "activeCourses": "Khóa học đang hoạt động",
     "totalStudents": "Tổng số học sinh",
     "acrossAllClasses": "Trên tất cả lớp học",
-    "classNameRequired": "Tên lớp học là bắt buộc"
+    "classNameRequired": "Tên lớp học là bắt buộc",
+    "goToClasses": "Đi đến Lớp học",
+    "viewClass": "Xem lớp học",
+    "createSchedulesHint": "Bạn có thể tạo lịch trình cho mỗi lớp từ trang lớp học."
   },
   "ClassPage": {
+    "settings": "Cài đặt",
     "classNotFound": "Không tìm thấy lớp học",
     "classCode": "Mã lớp học",
     "copyCode": "Sao chép mã",
@@ -311,6 +315,9 @@
     "testingDurationPlaceholder": "ví dụ: 60",
     "creating": "Đang tạo...",
     "createAssignmentButton": "Tạo bài tập",
+    "moduleOptional": "Module (Tùy chọn)",
+    "selectModule": "Chọn module",
+    "noModule": "Không có Module",
     "cancel": "Hủy",
     "back": "Quay lại"
   },
@@ -331,7 +338,10 @@
     "saveAssignment": "Lưu bài tập",
     "errorLoadingAssignment": "Lỗi tải bài tập",
     "confirmDeleteAssignment": "Bạn có chắc chắn muốn xóa bài tập này?",
-    "back": "Quay lại"
+    "back": "Quay lại",
+    "moduleOptional": "Module (Tùy chọn)",
+    "selectModule": "Chọn module",
+    "noModule": "Không có Module"
   },
   "UploadLecture": {
     "title": "Tải lên bài giảng",
@@ -358,9 +368,13 @@
     "youtubeLectureCreated": "Đã tạo bài giảng YouTube thành công",
     "failedToCreateLecture": "Không thể tạo bài giảng",
     "fileUploaded": "Đã tải lên tệp thành công",
-    "uploadFailed": "Tải lên thất bại"
+    "uploadFailed": "Tải lên thất bại",
+    "moduleOptional": "Module (Tùy chọn)",
+    "selectModule": "Chọn module",
+    "noModule": "Không có Module"
   },
   "CreateAnnouncement": {
+    "editAnnouncement": "Chỉnh sửa thông báo",
     "announcementCreated": "Đã tạo thông báo thành công",
     "failedToCreateAnnouncement": "Không thể tạo thông báo",
     "onlyImageFilesAllowed": "Chỉ cho phép tệp hình ảnh",
@@ -381,7 +395,9 @@
     "creating": "Đang tạo...",
     "createAnnouncementButton": "Tạo thông báo",
     "updating": "Đang cập nhật...",
-    "updateAnnouncement": "Cập nhật thông báo"
+    "updateAnnouncement": "Cập nhật thông báo",
+    "announcementUpdated": "Đã cập nhật thông báo thành công",
+    "failedToUpdateAnnouncement": "Không thể cập nhật thông báo"
   },
   "ScheduleForm": {
     "scheduleCreated": "Đã tạo lịch trình thành công",
@@ -407,6 +423,16 @@
     "editSchedule": "Chỉnh sửa lịch trình",
     "updating": "Đang cập nhật...",
     "updateSchedule": "Cập nhật lịch trình"
+  },
+  "ScheduleCalendar": {
+    "scheduleDeletedSuccess": "Đã xóa lịch trình thành công",
+    "failedToDeleteSchedule": "Không thể xóa lịch trình",
+    "deleteSchedule": "Xóa lịch trình",
+    "deleteScheduleDescription": "Bạn có chắc chắn muốn xóa lịch trình này? Hành động này không thể hoàn tác.",
+    "delete": "Xóa",
+    "cancel": "Hủy",
+    "joinMeeting": "Tham gia cuộc họp",
+    "noSchedules": "Không có lịch trình nào cho ngày này"
   },
   "AssignmentMetricsDialog": {
     "metricsFor": "Thống kê cho",
@@ -471,6 +497,7 @@
     "signOut": "Đăng xuất"
   },
   "StudentClassPage": {
+    "settings": "Cài đặt",
     "classCode": "Mã lớp học",
     "created": "Được tạo",
     "copyCode": "Sao chép mã",
@@ -517,5 +544,186 @@
     "announcementDeleted": "Đã xóa thông báo thành công",
     "failedToDeleteAnnouncement": "Không thể xóa thông báo",
     "postedBy": "Đăng bởi"
+  },
+  "ClassSidebar": {
+    "backToDashboard": "Quay lại Bảng điều khiển",
+    "announcements": "Thông báo",
+    "modules": "Mô-đun",
+    "students": "Học sinh",
+    "requests": "Yêu cầu",
+    "schedule": "Lịch trình",
+    "assignments": "Bài tập",
+    "lectures": "Bài giảng",
+    "settings": "Cài đặt",
+    "teacher": "Giáo viên",
+    "class": "Lớp học"
+  },
+  "DashboardSidebar": {
+    "dashboard": "Bảng điều khiển",
+    "classes": "Lớp học",
+    "myClasses": "Lớp học của tôi",
+    "students": "Học sinh",
+    "assignments": "Bài tập",
+    "schedule": "Lịch trình",
+    "requests": "Yêu cầu",
+    "finance": "Tài chính",
+    "teachers": "Giáo viên",
+    "customerService": "Dịch vụ khách hàng"
+  },
+  "DoAssignment": {
+    "class": "Lớp",
+    "due": "Hạn nộp",
+    "duration": "Thời gian",
+    "minutes": "phút",
+    "assignmentQuestions": "Câu hỏi bài tập",
+    "noQuestionsAvailable": "Không có câu hỏi nào cho bài tập này.",
+    "submitting": "Đang nộp...",
+    "submitAssignment": "Nộp bài tập",
+    "question": "Câu hỏi",
+    "enterYourAnswer": "Nhập câu trả lời của bạn",
+    "true": "Đúng",
+    "false": "Sai",
+    "goBack": "Quay lại",
+    "assignmentSubmittedSuccess": "Nộp bài tập thành công!",
+    "failedToSubmit": "Không thể nộp bài tập",
+    "accessDeniedStudentsOnly": "Truy cập bị từ chối: Chỉ học sinh mới có thể làm bài tập",
+    "pleaseAnswerAllQuestions": "Vui lòng trả lời tất cả câu hỏi. {count} câu chưa trả lời."
+  },
+  "ViewSubmission": {
+    "class": "Lớp",
+    "student": "Học sinh",
+    "submitted": "Đã nộp",
+    "due": "Hạn nộp",
+    "submittedBadge": "✅ Đã nộp",
+    "grade": "Điểm",
+    "notGradedYet": "Chưa chấm điểm",
+    "studentSubmission": "Bài nộp của học sinh",
+    "yourSubmission": "Bài nộp của bạn",
+    "noQuestionsAvailable": "Không có câu hỏi nào cho bài tập này.",
+    "backToClass": "Quay lại lớp",
+    "question": "Câu hỏi",
+    "answer": "Câu trả lời",
+    "noAnswer": "Không có câu trả lời",
+    "correctAnswer": "Đáp án đúng",
+    "goBack": "Quay lại",
+    "true": "Đúng",
+    "false": "Sai"
+  },
+  "LecturePage": {
+    "back": "Quay lại",
+    "download": "Tải xuống",
+    "delete": "Xóa",
+    "deleteLecture": "Xóa bài giảng",
+    "deleteLectureDescription": "Bạn có chắc chắn muốn xóa bài giảng này? Hành động này không thể hoàn tác.",
+    "cancel": "Hủy",
+    "deleting": "Đang xóa...",
+    "lectureNotFound": "Không tìm thấy bài giảng",
+    "file": "Tệp",
+    "youtubeVideo": "Video YouTube",
+    "class": "Lớp",
+    "date": "Ngày",
+    "uploaded": "Đã tải lên",
+    "content": "Nội dung",
+    "downloadFile": "Tải xuống tệp",
+    "unableToPreview": "Không thể xem trước video YouTube này.",
+    "openInYoutube": "Mở trong YouTube",
+    "lectureDeletedSuccess": "Đã xóa bài giảng thành công",
+    "failedToDeleteLecture": "Không thể xóa bài giảng"
+  },
+  "ClassPageSettings": {
+    "classInformation": "Thông tin lớp học",
+    "manageClassDetails": "Quản lý chi tiết và cài đặt lớp học của bạn.",
+    "viewClassDetails": "Xem chi tiết và cài đặt lớp học của bạn.",
+    "changeClassName": "Thay đổi tên lớp học của bạn.",
+    "dangerZone": "Vùng nguy hiểm",
+    "irreversibleActions": "Các hành động không thể hoàn tác cho lớp học này.",
+    "classRenamedSuccess": "Đã đổi tên lớp học thành công",
+    "failedToRename": "Không thể đổi tên lớp học",
+    "classDeletedSuccess": "Đã xóa lớp học thành công",
+    "failedToDelete": "Không thể xóa lớp học"
+  },
+  "JoinRequests": {
+    "title": "Yêu cầu tham gia",
+    "noPendingRequests": "Không có yêu cầu đang chờ.",
+    "requestedOn": "Yêu cầu vào",
+    "reject": "Từ chối",
+    "approve": "Chấp nhận"
+  },
+  "StudentRequests": {
+    "title": "Yêu cầu tham gia lớp học",
+    "noRequests": "Không tìm thấy yêu cầu nào.",
+    "code": "Mã",
+    "requestedOn": "Yêu cầu vào",
+    "withdrawing": "Đang rút...",
+    "withdraw": "Rút yêu cầu",
+    "pending": "Đang chờ",
+    "approved": "Đã chấp nhận",
+    "rejected": "Đã từ chối"
+  },
+  "Modules": {
+    "title": "Mô-đun",
+    "noModulesAvailable": "Chưa có mô-đun nào.",
+    "noModulesCreated": "Chưa tạo mô-đun nào.",
+    "createModuleHint": "Tạo mô-đun để sắp xếp nội dung lớp học của bạn.",
+    "noContentInModule": "Không có nội dung trong mô-đun này.",
+    "lecture": "Bài giảng",
+    "assignment": "Bài tập",
+    "due": "Hạn nộp",
+    "noDueDate": "Không có hạn nộp",
+    "editModule": "Chỉnh sửa mô-đun",
+    "deleteModule": "Xóa mô-đun",
+    "moveTo": "Di chuyển đến...",
+    "removeFromModule": "Xóa khỏi mô-đun",
+    "assignmentRemovedFromModule": "Đã xóa bài tập khỏi mô-đun",
+    "lectureRemovedFromModule": "Đã xóa bài giảng khỏi mô-đun",
+    "confirmRemoveContent": "Bạn có chắc chắn muốn xóa nội dung này khỏi mô-đun?"
+  },
+  "CreateModule": {
+    "createModule": "Tạo mô-đun",
+    "createNewModule": "Tạo mô-đun mới",
+    "title": "Tiêu đề",
+    "moduleTitlePlaceholder": "Tiêu đề mô-đun",
+    "descriptionOptional": "Mô tả (Tùy chọn)",
+    "moduleDescriptionPlaceholder": "Mô tả mô-đun",
+    "cancel": "Hủy",
+    "creating": "Đang tạo...",
+    "create": "Tạo",
+    "moduleCreatedSuccess": "Đã tạo mô-đun thành công",
+    "failedToCreateModule": "Không thể tạo mô-đun",
+    "titleRequired": "Tiêu đề là bắt buộc"
+  },
+  "AddExistingContent": {
+    "addContent": "Thêm nội dung",
+    "addExistingContentToModule": "Thêm nội dung có sẵn vào mô-đun",
+    "noUnassignedContent": "Không có nội dung chưa được gán.",
+    "noUnassignedContentHint": "Tạo bài tập hoặc bài giảng trước, hoặc xóa chúng khỏi các mô-đun khác.",
+    "assignments": "Bài tập",
+    "lectures": "Bài giảng",
+    "due": "Hạn nộp",
+    "noDueDate": "Không có hạn nộp",
+    "addSelected": "Thêm đã chọn",
+    "contentAddedSuccess": "Đã thêm nội dung vào mô-đun thành công",
+    "failedToAddContent": "Không thể thêm nội dung"
+  },
+  "MoveContent": {
+    "moveContent": "Di chuyển nội dung",
+    "selectModule": "Chọn mô-đun",
+    "removeFromModule": "(Xóa khỏi mô-đun)",
+    "move": "Di chuyển",
+    "contentMovedSuccess": "Đã di chuyển nội dung thành công",
+    "failedToMoveContent": "Không thể di chuyển nội dung"
+  },
+  "StudentAssignments": {
+    "allAssignments": "Tất cả bài tập",
+    "submitted": "Đã nộp",
+    "overdue": "Quá hạn",
+    "pending": "Đang chờ",
+    "posted": "Đã đăng",
+    "noAssignmentsYet": "Chưa có bài tập nào. Bài tập từ các lớp của bạn sẽ xuất hiện ở đây."
+  },
+  "TeacherAssignments": {
+    "submissions": "bài nộp",
+    "created": "Đã tạo",
+    "createAssignment": "Tạo bài tập"
   }
 }

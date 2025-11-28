@@ -14,10 +14,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Video } from "lucide-react";
 import { format } from "date-fns";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 export default function StudentModulesPage() {
   const params = useParams();
   const classId = params.class_id as string;
+  const t = useTranslations("Modules");
 
   const modulesQuery = useQuery({
     queryKey: [["education", "getClassModules"], { classId }],
@@ -34,12 +36,12 @@ export default function StudentModulesPage() {
 
   return (
     <div className="space-y-6 p-6">
-      <h1 className="text-2xl font-bold">Modules</h1>
+      <h1 className="text-2xl font-bold">{t("title")}</h1>
 
       {modules.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-10 text-muted-foreground">
-            <p>No modules available yet.</p>
+            <p>{t("noModulesAvailable")}</p>
           </CardContent>
         </Card>
       ) : (
@@ -64,7 +66,7 @@ export default function StudentModulesPage() {
                     {module.assignments.length === 0 &&
                       module.lectures.length === 0 && (
                         <p className="text-sm text-muted-foreground italic">
-                          No content in this module.
+                          {t("noContentInModule")}
                         </p>
                       )}
 
@@ -78,7 +80,7 @@ export default function StudentModulesPage() {
                         <div className="flex-1">
                           <p className="font-medium">{lecture.title}</p>
                           <p className="text-xs text-muted-foreground">
-                            Lecture •{" "}
+                            {t("lecture")} •{" "}
                             {format(new Date(lecture.lectureDate), "PPP")}
                           </p>
                         </div>
@@ -95,10 +97,10 @@ export default function StudentModulesPage() {
                         <div className="flex-1">
                           <p className="font-medium">{assignment.title}</p>
                           <p className="text-xs text-muted-foreground">
-                            Assignment • Due{" "}
+                            {t("assignment")} • {t("due")}{" "}
                             {assignment.dueDate
                               ? format(new Date(assignment.dueDate), "PPP")
-                              : "No due date"}
+                              : t("noDueDate")}
                           </p>
                         </div>
                       </Link>

@@ -21,11 +21,13 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import Loader from "@/components/loader";
+import { useTranslations } from "next-intl";
 
 export default function LecturePage() {
   const params = useParams();
   const lectureId = params.lecture_id as string;
   const router = useRouter();
+  const t = useTranslations("LecturePage");
 
   const lectureQuery = useQuery({
     queryKey: ["lecture", lectureId],
@@ -35,11 +37,11 @@ export default function LecturePage() {
   const deleteMutation = useMutation({
     mutationFn: () => trpcClient.education.deleteLecture.mutate({ lectureId }),
     onSuccess: () => {
-      toast.success("Lecture deleted successfully");
+      toast.success(t("lectureDeletedSuccess"));
       router.back();
     },
     onError: (error) => {
-      toast.error(`Failed to delete lecture: ${error.message}`);
+      toast.error(`${t("failedToDeleteLecture")}: ${error.message}`);
     },
   });
 
@@ -76,7 +78,7 @@ export default function LecturePage() {
       <div className="min-h-screen">
         <Header />
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center text-red-500">Lecture not found</div>
+          <div className="text-center text-red-500">{t("lectureNotFound")}</div>
         </div>
       </div>
     );
@@ -108,7 +110,7 @@ export default function LecturePage() {
               className="flex items-center gap-2"
             >
               <ArrowLeft className="w-4 h-4" />
-              Back
+              {t("back")}
             </Button>
             <div className="flex gap-2">
               {lecture.type === "file" && (
@@ -117,7 +119,7 @@ export default function LecturePage() {
                   className="flex items-center gap-2"
                 >
                   <Download className="w-4 h-4" />
-                  Download
+                  {t("download")}
                 </Button>
               )}
               <AlertDialog>
@@ -127,24 +129,23 @@ export default function LecturePage() {
                     className="flex items-center gap-2"
                   >
                     <Trash2 className="w-4 h-4" />
-                    Delete
+                    {t("delete")}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Lecture</AlertDialogTitle>
+                    <AlertDialogTitle>{t("deleteLecture")}</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Are you sure you want to delete this lecture? This action
-                      cannot be undone.
+                      {t("deleteLectureDescription")}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={handleDelete}
                       className="bg-destructive text-white hover:bg-destructive/90"
                     >
-                      {deleteMutation.isPending ? "Deleting..." : "Delete"}
+                      {deleteMutation.isPending ? t("deleting") : t("delete")}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
@@ -162,14 +163,17 @@ export default function LecturePage() {
                   <CardTitle className="text-2xl">{lecture.title}</CardTitle>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <Badge variant="outline">
-                      {lecture.type === "file" ? "File" : "YouTube Video"}
+                      {lecture.type === "file" ? t("file") : t("youtubeVideo")}
                     </Badge>
-                    <span>Class: {classData.className}</span>
                     <span>
-                      Date: {new Date(lecture.lectureDate).toLocaleDateString()}
+                      {t("class")}: {classData.className}
                     </span>
                     <span>
-                      Uploaded:{" "}
+                      {t("date")}:{" "}
+                      {new Date(lecture.lectureDate).toLocaleDateString()}
+                    </span>
+                    <span>
+                      {t("uploaded")}:{" "}
                       {new Date(lecture.createdAt).toLocaleDateString()}
                     </span>
                   </div>
@@ -188,7 +192,7 @@ export default function LecturePage() {
           {/* Content Preview */}
           <Card>
             <CardHeader>
-              <CardTitle>Content</CardTitle>
+              <CardTitle>{t("content")}</CardTitle>
             </CardHeader>
             <CardContent>
               {lecture.type === "file" ? (
@@ -213,7 +217,7 @@ export default function LecturePage() {
                   <div className="text-center">
                     <Button onClick={handleDownload} variant="outline">
                       <Download className="w-4 h-4 mr-2" />
-                      Download File
+                      {t("downloadFile")}
                     </Button>
                   </div>
                 </div>
@@ -230,7 +234,7 @@ export default function LecturePage() {
               ) : (
                 <div className="text-center py-8">
                   <p className="text-muted-foreground mb-4">
-                    Unable to preview this YouTube video.
+                    {t("unableToPreview")}
                   </p>
                   <Button asChild>
                     <a
@@ -238,7 +242,7 @@ export default function LecturePage() {
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      Open in YouTube
+                      {t("openInYoutube")}
                     </a>
                   </Button>
                 </div>

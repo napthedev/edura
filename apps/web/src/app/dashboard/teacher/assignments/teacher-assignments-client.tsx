@@ -10,6 +10,7 @@ import { FileText, Calendar, BookOpen } from "lucide-react";
 
 export default function TeacherAssignmentsClient() {
   const t = useTranslations("TeacherDashboard");
+  const ta = useTranslations("TeacherAssignments");
   const assignmentsQuery = useQuery({
     queryKey: ["teacherAssignments"],
     queryFn: () => trpcClient.education.getTeacherAssignments.query(),
@@ -65,14 +66,16 @@ export default function TeacherAssignmentsClient() {
                         )}
                         <div className="flex items-center gap-2">
                           <FileText className="h-4 w-4" />
-                          <span>{assignment.submissionCount} submissions</span>
+                          <span>
+                            {assignment.submissionCount} {ta("submissions")}
+                          </span>
                         </div>
                       </div>
                     </div>
                   </div>
                   <div className="mt-4 pt-4 border-t">
                     <p className="text-xs text-slate-400">
-                      Created:{" "}
+                      {ta("created")}:{" "}
                       {new Date(assignment.createdAt).toLocaleDateString()}
                     </p>
                   </div>
@@ -88,7 +91,7 @@ export default function TeacherAssignmentsClient() {
             {t("noAssignmentsCreated")}
           </p>
           <Link href="/dashboard/teacher/classes">
-            <Button variant="outline">Create Assignment</Button>
+            <Button variant="outline">{ta("createAssignment")}</Button>
           </Link>
         </div>
       )}

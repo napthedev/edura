@@ -67,12 +67,12 @@ export default function TeacherScheduleClient() {
                 {t("noSchedulesYet")}
               </p>
               <p className="text-sm text-muted-foreground mb-4">
-                You can create schedules for each class from the class page.
+                {t("createSchedulesHint")}
               </p>
               <Link href="/dashboard/teacher/classes">
                 <Button>
                   <Plus className="mr-2 h-4 w-4" />
-                  Go to Classes
+                  {t("goToClasses")}
                 </Button>
               </Link>
             </div>
@@ -87,7 +87,7 @@ export default function TeacherScheduleClient() {
                   <CardTitle>{classSchedule.className}</CardTitle>
                   <Link href={`/class/teacher/${classSchedule.classId}`}>
                     <Button variant="outline" size="sm">
-                      View Class
+                      {t("viewClass")}
                     </Button>
                   </Link>
                 </div>

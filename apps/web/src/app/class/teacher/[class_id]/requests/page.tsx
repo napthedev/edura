@@ -9,10 +9,12 @@ import { Loader2, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 export default function ClassRequestsPage() {
   const params = useParams();
   const classId = params.class_id as string;
+  const t = useTranslations("JoinRequests");
 
   const {
     data: requests,
@@ -65,12 +67,12 @@ export default function ClassRequestsPage() {
 
   return (
     <div className="space-y-6 p-6">
-      <h1 className="text-2xl font-bold">Join Requests</h1>
+      <h1 className="text-2xl font-bold">{t("title")}</h1>
 
       {requests?.length === 0 ? (
         <Card>
           <CardContent className="p-8 text-center text-muted-foreground">
-            No pending requests.
+            {t("noPendingRequests")}
           </CardContent>
         </Card>
       ) : (
@@ -93,7 +95,8 @@ export default function ClassRequestsPage() {
                       {req.student.email}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Requested on {format(new Date(req.createdAt), "PPP")}
+                      {t("requestedOn")}{" "}
+                      {format(new Date(req.createdAt), "PPP")}
                     </p>
                   </div>
                 </div>
@@ -113,7 +116,7 @@ export default function ClassRequestsPage() {
                     ) : (
                       <X className="h-4 w-4 mr-1" />
                     )}
-                    Reject
+                    {t("reject")}
                   </Button>
                   <Button
                     size="sm"
@@ -129,7 +132,7 @@ export default function ClassRequestsPage() {
                     ) : (
                       <Check className="h-4 w-4 mr-1" />
                     )}
-                    Approve
+                    {t("approve")}
                   </Button>
                 </div>
               </CardContent>
