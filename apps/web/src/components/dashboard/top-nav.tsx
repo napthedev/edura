@@ -1,9 +1,10 @@
 "use client";
 
-import { Bell, MessageSquare, Search, Menu } from "lucide-react";
+import { MessageSquare, Search, Menu } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import UserMenu from "@/components/user-menu";
 import LanguageSwitcher from "@/components/language-switcher";
+import { NotificationDropdown } from "@/components/notification/notification-dropdown";
 
 interface TopNavProps {
   onMenuClick?: () => void;
@@ -33,10 +34,7 @@ export function TopNav({ onMenuClick }: TopNavProps) {
         <button className="relative rounded-full p-2 text-slate-500 hover:bg-slate-100">
           <Search className="h-5 w-5 md:hidden" />
         </button>
-        <button className="relative rounded-full p-2 text-slate-500 hover:bg-slate-100">
-          <Bell className="h-5 w-5" />
-          <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />
-        </button>
+        <NotificationDropdown />
         <button className="relative rounded-full p-2 text-slate-500 hover:bg-slate-100">
           <MessageSquare className="h-5 w-5" />
         </button>

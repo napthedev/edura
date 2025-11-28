@@ -1,5 +1,6 @@
 import { protectedProcedure, publicProcedure, router } from "../index";
 import { educationRouter } from "./education";
+import { notificationRouter } from "./notification";
 
 export const appRouter = router({
   healthCheck: publicProcedure.query(() => {
@@ -12,5 +13,6 @@ export const appRouter = router({
     };
   }),
   education: educationRouter,
+  notification: notificationRouter,
 });
 export type AppRouter = typeof appRouter;
