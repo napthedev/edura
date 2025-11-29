@@ -9,10 +9,18 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import Loader from "@/components/loader";
-import type { AssignmentContent, Question } from "@/lib/assignment-types";
+import type {
+  AssignmentContent,
+  Question,
+  WrittenAssignmentContent,
+  WrittenSubmissionContent,
+} from "@/lib/assignment-types";
 import { MathJaxProvider, LaTeXRenderer } from "@/components/latex-renderer";
 import { useTranslations } from "next-intl";
-import { ArrowLeft, FileCheck } from "lucide-react";
+import { ArrowLeft, FileCheck, Upload, MessageSquare } from "lucide-react";
+import { FilePreview } from "@/components/assignment/file-preview";
+import { GradingPanel } from "@/components/assignment/grading-panel";
+import { RichTextDisplay } from "@/components/assignment/rich-text-editor";
 
 export default function ViewSubmissionPage() {
   const params = useParams();
@@ -21,6 +29,7 @@ export default function ViewSubmissionPage() {
   const submissionId = searchParams.get("submissionId");
   const router = useRouter();
   const t = useTranslations("ViewSubmission");
+  const tWritten = useTranslations("WrittenAssignment");
 
   const { data: session, isPending: sessionPending } = authClient.useSession();
 
@@ -94,16 +103,33 @@ export default function ViewSubmissionPage() {
   const { submission, assignment, class: classData } = data;
   const student = isTeacherView ? (data as any).student : null;
 
-  let assignmentContent: AssignmentContent | null = null;
+  // Determine assignment type
+  const isWrittenAssignment = (assignment as any).assignmentType === "written";
+
+  // Parse content based on assignment type
+  let quizContent: AssignmentContent | null = null;
+  let writtenAssignmentContent: WrittenAssignmentContent | null = null;
   let submissionAnswers: Record<string, string> = {};
+  let writtenSubmissionContent: WrittenSubmissionContent | null = null;
 
   try {
-    assignmentContent = assignment.assignmentContent
-      ? JSON.parse(assignment.assignmentContent)
-      : null;
-    submissionAnswers = submission.submissionContent
-      ? JSON.parse(submission.submissionContent)
-      : {};
+    if (assignment.assignmentContent) {
+      const parsed = JSON.parse(assignment.assignmentContent);
+      if (isWrittenAssignment) {
+        writtenAssignmentContent = parsed as WrittenAssignmentContent;
+      } else {
+        quizContent = parsed as AssignmentContent;
+      }
+    }
+
+    if (submission.submissionContent) {
+      const parsedSubmission = JSON.parse(submission.submissionContent);
+      if (isWrittenAssignment) {
+        writtenSubmissionContent = parsedSubmission as WrittenSubmissionContent;
+      } else {
+        submissionAnswers = parsedSubmission;
+      }
+    }
   } catch (error) {
     console.error("Failed to parse content:", error);
   }
@@ -160,6 +186,11 @@ export default function ViewSubmissionPage() {
                       {t("notGradedYet")}
                     </Badge>
                   )}
+                  {isWrittenAssignment && (
+                    <Badge variant="outline">
+                      {tWritten("writtenAssignment")}
+                    </Badge>
+                  )}
                 </div>
               </CardHeader>
               {assignment.description && (
@@ -169,32 +200,119 @@ export default function ViewSubmissionPage() {
               )}
             </Card>
 
-            {/* Submission Content */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileCheck className="h-5 w-5" />
-                  {isTeacherView ? t("studentSubmission") : t("yourSubmission")}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {assignmentContent && assignmentContent.questions.length > 0 ? (
-                  <div className="space-y-6">
-                    {assignmentContent.questions.map((question: Question) => (
-                      <SubmittedQuestionCard
-                        key={question.id}
-                        question={question}
-                        answer={submissionAnswers[question.id] || t("noAnswer")}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">
-                    {t("noQuestionsAvailable")}
-                  </p>
+            {/* Written Assignment Content */}
+            {isWrittenAssignment && (
+              <>
+                {/* Teacher's Instructions (for context) */}
+                {writtenAssignmentContent && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">
+                        {tWritten("instructions")}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {writtenAssignmentContent.instructions && (
+                        <RichTextDisplay
+                          content={writtenAssignmentContent.instructions}
+                        />
+                      )}
+                      {writtenAssignmentContent.attachments &&
+                        writtenAssignmentContent.attachments.length > 0 && (
+                          <div className="space-y-2">
+                            <p className="text-sm font-medium">
+                              {tWritten("teacherAttachments")}
+                            </p>
+                            <FilePreview
+                              files={writtenAssignmentContent.attachments}
+                            />
+                          </div>
+                        )}
+                    </CardContent>
+                  </Card>
                 )}
-              </CardContent>
-            </Card>
+
+                {/* Student's Submission */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Upload className="h-5 w-5" />
+                      {isTeacherView
+                        ? t("studentSubmission")
+                        : t("yourSubmission")}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {writtenSubmissionContent &&
+                    writtenSubmissionContent.files.length > 0 ? (
+                      <FilePreview files={writtenSubmissionContent.files} />
+                    ) : (
+                      <p className="text-muted-foreground">
+                        {tWritten("noFilesUploaded")}
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Teacher Grading Panel */}
+                {isTeacherView && submissionId && (
+                  <GradingPanel
+                    submissionId={submissionId}
+                    currentGrade={submission.grade}
+                    currentFeedback={(submission as any).feedback}
+                    assignmentId={assignmentId}
+                  />
+                )}
+
+                {/* Student: Display feedback if graded */}
+                {!isTeacherView && (submission as any).feedback && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <MessageSquare className="h-5 w-5" />
+                        {tWritten("teacherFeedback")}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <RichTextDisplay content={(submission as any).feedback} />
+                    </CardContent>
+                  </Card>
+                )}
+              </>
+            )}
+
+            {/* Quiz Assignment Content */}
+            {!isWrittenAssignment && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileCheck className="h-5 w-5" />
+                    {isTeacherView
+                      ? t("studentSubmission")
+                      : t("yourSubmission")}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {quizContent && quizContent.questions.length > 0 ? (
+                    <div className="space-y-6">
+                      {quizContent.questions.map((question: Question) => (
+                        <SubmittedQuestionCard
+                          key={question.id}
+                          question={question}
+                          answer={
+                            submissionAnswers[question.id] || t("noAnswer")
+                          }
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">
+                      {t("noQuestionsAvailable")}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Back Button */}
             <div className="flex justify-start">

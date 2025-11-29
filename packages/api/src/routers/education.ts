@@ -753,6 +753,7 @@ export const educationRouter = router({
         description: z.string().optional(),
         dueDate: z.string().optional(),
         testingDuration: z.number().min(1).optional(),
+        assignmentType: z.enum(["quiz", "written"]).default("quiz"),
         assignmentContent: z.string().optional(),
       })
     )
@@ -782,9 +783,11 @@ export const educationRouter = router({
           moduleId: input.moduleId,
           title: input.title,
           description: input.description,
+          assignmentType: input.assignmentType,
           assignmentContent: input.assignmentContent,
           dueDate: input.dueDate ? new Date(input.dueDate) : null,
-          testingDuration: input.testingDuration,
+          testingDuration:
+            input.assignmentType === "quiz" ? input.testingDuration : null,
         })
         .returning();
 
@@ -818,6 +821,7 @@ export const educationRouter = router({
         title: z.string().min(1).optional(),
         description: z.string().optional(),
         dueDate: z.string().optional(),
+        assignmentType: z.enum(["quiz", "written"]).optional(),
         assignmentContent: z.string().optional(),
         testingDuration: z.number().min(1).optional(),
       })
@@ -846,6 +850,8 @@ export const educationRouter = router({
         updateData.description = input.description;
       if (input.dueDate !== undefined)
         updateData.dueDate = input.dueDate ? new Date(input.dueDate) : null;
+      if (input.assignmentType !== undefined)
+        updateData.assignmentType = input.assignmentType;
       if (input.assignmentContent !== undefined)
         updateData.assignmentContent = input.assignmentContent;
       if (input.testingDuration !== undefined)
@@ -961,12 +967,15 @@ export const educationRouter = router({
         throw new Error("You have already submitted this assignment");
       }
 
-      // Calculate grade
+      // Calculate grade - only auto-grade quiz assignments
       const assignment = assignmentData[0]!.assignment;
-      const grade = gradeSubmission(
-        assignment.assignmentContent,
-        input.submissionContent
-      );
+      const isWrittenAssignment = assignment.assignmentType === "written";
+      const grade = isWrittenAssignment
+        ? null // Written assignments require manual grading
+        : gradeSubmission(
+            assignment.assignmentContent,
+            input.submissionContent
+          );
 
       // Create submission
       const submission = await ctx.db
@@ -2723,6 +2732,59 @@ export const educationRouter = router({
         .update(classes)
         .set({ tuitionRate: input.tuitionRate })
         .where(eq(classes.classId, input.classId));
+
+      return { success: true };
+    }),
+
+  // Grade written submission (teacher only)
+  gradeWrittenSubmission: protectedProcedure
+    .input(
+      z.object({
+        submissionId: z.string(),
+        grade: z.number().min(0).max(100),
+        feedback: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Check if user is a teacher
+      if (ctx.session.user.role !== "teacher") {
+        throw new Error("Access denied: Only teachers can grade submissions");
+      }
+
+      // Get the submission and verify teacher owns the class
+      const submissionData = await ctx.db
+        .select({
+          submission: submissions,
+          assignment: assignments,
+          class: classes,
+        })
+        .from(submissions)
+        .innerJoin(
+          assignments,
+          eq(submissions.assignmentId, assignments.assignmentId)
+        )
+        .innerJoin(classes, eq(assignments.classId, classes.classId))
+        .where(eq(submissions.submissionId, input.submissionId));
+
+      if (submissionData.length === 0) {
+        throw new Error("Submission not found");
+      }
+
+      const data = submissionData[0]!;
+
+      // Verify teacher owns the class
+      if (data.class.teacherId !== ctx.session.user.id) {
+        throw new Error("Access denied: You do not own this class");
+      }
+
+      // Update the submission with grade and feedback
+      await ctx.db
+        .update(submissions)
+        .set({
+          grade: input.grade,
+          feedback: input.feedback || null,
+        })
+        .where(eq(submissions.submissionId, input.submissionId));
 
       return { success: true };
     }),

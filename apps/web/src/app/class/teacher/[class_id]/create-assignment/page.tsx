@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, FileText, Brain, PenLine, Upload } from "lucide-react";
 import { trpcClient } from "@/utils/trpc";
 import { useMutation } from "@tanstack/react-query";
 import {
@@ -37,9 +37,17 @@ import { format } from "date-fns";
 import { authClient } from "@/lib/auth-client";
 import { useQuery } from "@tanstack/react-query";
 import { GenerateQuestions } from "@/components/assignment/generate-questions";
-import type { Question } from "@/lib/assignment-types";
+import { FileUploader } from "@/components/assignment/file-uploader";
+import { RichTextEditor } from "@/components/assignment/rich-text-editor";
+import type {
+  Question,
+  AssignmentType,
+  FileAttachment,
+  WrittenAssignmentContent,
+} from "@/lib/assignment-types";
 import Loader from "@/components/loader";
 import { useTranslations } from "next-intl";
+import { Label } from "@/components/ui/label";
 
 type SessionUser = {
   id: string;
@@ -66,11 +74,20 @@ export default function CreateAssignmentPage() {
   const params = useParams();
   const classId = params.class_id as string;
   const router = useRouter();
+  const [assignmentType, setAssignmentType] = useState<AssignmentType | null>(
+    null
+  );
   const [showForm, setShowForm] = useState(false);
   const [showAIGeneration, setShowAIGeneration] = useState(false);
   const [generatedQuestions, setGeneratedQuestions] = useState<Question[]>([]);
   const [date, setDate] = useState<Date | undefined>(undefined);
+  // Written assignment state
+  const [writtenInstructions, setWrittenInstructions] = useState("");
+  const [writtenAttachments, setWrittenAttachments] = useState<
+    FileAttachment[]
+  >([]);
   const t = useTranslations("CreateAssignment");
+  const tWritten = useTranslations("WrittenAssignment");
 
   const sessionQuery = useQuery({
     queryKey: ["session"],
@@ -101,7 +118,10 @@ export default function CreateAssignmentPage() {
 
   const createAssignmentMutation = useMutation({
     mutationFn: async (
-      data: CreateAssignmentForm & { assignmentContent?: string }
+      data: CreateAssignmentForm & {
+        assignmentContent?: string;
+        assignmentType?: AssignmentType;
+      }
     ) => {
       return await trpcClient.education.createAssignment.mutate({
         classId,
@@ -109,7 +129,9 @@ export default function CreateAssignmentPage() {
         title: data.title,
         description: data.description,
         dueDate: data.dueDate ? data.dueDate.toISOString() : undefined,
-        testingDuration: data.testingDuration,
+        testingDuration:
+          data.assignmentType === "quiz" ? data.testingDuration : undefined,
+        assignmentType: data.assignmentType || "quiz",
         assignmentContent: data.assignmentContent,
       });
     },
@@ -137,13 +159,22 @@ export default function CreateAssignmentPage() {
   }
 
   const handleManualInput = () => {
+    setAssignmentType("quiz");
     setShowForm(true);
     setShowAIGeneration(false);
   };
 
   const handleAIGeneration = () => {
+    setAssignmentType("quiz");
     setShowAIGeneration(true);
     setShowForm(false);
+  };
+
+  const handleWrittenAssignment = () => {
+    setAssignmentType("written");
+    setShowForm(true);
+    setShowAIGeneration(false);
+    setGeneratedQuestions([]);
   };
 
   const handleQuestionsGenerated = (questions: Question[]) => {
@@ -156,14 +187,32 @@ export default function CreateAssignmentPage() {
     setShowAIGeneration(false);
   };
 
+  const handleCancel = () => {
+    setShowForm(false);
+    setShowAIGeneration(false);
+    setAssignmentType(null);
+    setGeneratedQuestions([]);
+    setWrittenInstructions("");
+    setWrittenAttachments([]);
+    form.reset();
+  };
+
   const onSubmit = (data: CreateAssignmentForm) => {
-    const assignmentContent =
-      generatedQuestions.length > 0
-        ? JSON.stringify({ questions: generatedQuestions })
-        : undefined;
+    let assignmentContent: string | undefined;
+
+    if (assignmentType === "written") {
+      const content: WrittenAssignmentContent = {
+        instructions: writtenInstructions,
+        attachments: writtenAttachments,
+      };
+      assignmentContent = JSON.stringify(content);
+    } else if (generatedQuestions.length > 0) {
+      assignmentContent = JSON.stringify({ questions: generatedQuestions });
+    }
 
     createAssignmentMutation.mutate({
       ...data,
+      assignmentType: assignmentType || "quiz",
       assignmentContent,
     });
   };
@@ -181,29 +230,71 @@ export default function CreateAssignmentPage() {
         <h1 className="text-3xl font-bold">{t("title")}</h1>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("chooseAssignmentType")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={handleManualInput}
-            >
-              {t("manuallyInputQuestions")}
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={handleAIGeneration}
-            >
-              {t("generateQuestionsAI")}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {!assignmentType && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("chooseAssignmentType")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2">
+              {/* Quiz Assignment Options */}
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-muted-foreground">
+                  {t("quizAssignment")}
+                </p>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start h-auto py-4"
+                  onClick={handleManualInput}
+                >
+                  <PenLine className="w-5 h-5 mr-3" />
+                  <div className="text-left">
+                    <p className="font-medium">{t("manuallyInputQuestions")}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {t("manualInputDescription")}
+                    </p>
+                  </div>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start h-auto py-4"
+                  onClick={handleAIGeneration}
+                >
+                  <Brain className="w-5 h-5 mr-3" />
+                  <div className="text-left">
+                    <p className="font-medium">{t("generateQuestionsAI")}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {t("aiGenerationDescription")}
+                    </p>
+                  </div>
+                </Button>
+              </div>
+
+              {/* Written Assignment Option */}
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-muted-foreground">
+                  {tWritten("writtenAssignment")}
+                </p>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start h-auto py-4"
+                  onClick={handleWrittenAssignment}
+                >
+                  <Upload className="w-5 h-5 mr-3" />
+                  <div className="text-left">
+                    <p className="font-medium">
+                      {tWritten("writtenAssignment")}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {tWritten("writtenAssignmentDescription")}
+                    </p>
+                  </div>
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {showAIGeneration && (
         <GenerateQuestions
@@ -215,7 +306,11 @@ export default function CreateAssignmentPage() {
       {showForm && (
         <Card>
           <CardHeader>
-            <CardTitle>{t("createAssignment")}</CardTitle>
+            <CardTitle>
+              {assignmentType === "written"
+                ? tWritten("createWrittenAssignment")
+                : t("createAssignment")}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -305,30 +400,57 @@ export default function CreateAssignmentPage() {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="testingDuration"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("testingDurationOptional")}</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder={t("testingDurationPlaceholder")}
-                          {...field}
-                          onChange={(e) =>
-                            field.onChange(
-                              e.target.value
-                                ? parseInt(e.target.value)
-                                : undefined
-                            )
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+
+                {/* Written assignment specific fields */}
+                {assignmentType === "written" && (
+                  <>
+                    <div className="space-y-2">
+                      <Label>{tWritten("instructions")}</Label>
+                      <RichTextEditor
+                        content={writtenInstructions}
+                        onChange={setWrittenInstructions}
+                        placeholder={tWritten("instructionsPlaceholder")}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>{tWritten("attachments")}</Label>
+                      <FileUploader
+                        uploadedFiles={writtenAttachments}
+                        onFilesChange={setWrittenAttachments}
+                        uploadEndpoint="/api/upload/assignment"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* Quiz specific fields */}
+                {assignmentType === "quiz" && (
+                  <FormField
+                    control={form.control}
+                    name="testingDuration"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("testingDurationOptional")}</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder={t("testingDurationPlaceholder")}
+                            {...field}
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value
+                                  ? parseInt(e.target.value)
+                                  : undefined
+                              )
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
                 <FormField
                   control={form.control}
                   name="moduleId"
@@ -360,7 +482,7 @@ export default function CreateAssignmentPage() {
                     </FormItem>
                   )}
                 />
-                {generatedQuestions.length > 0 && (
+                {generatedQuestions.length > 0 && assignmentType === "quiz" && (
                   <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
                     <p className="text-sm text-blue-700">
                       {generatedQuestions.length} {t("questionsGeneratedNote")}
@@ -379,10 +501,7 @@ export default function CreateAssignmentPage() {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => {
-                      setShowForm(false);
-                      setGeneratedQuestions([]);
-                    }}
+                    onClick={handleCancel}
                   >
                     {t("cancel")}
                   </Button>

@@ -50,7 +50,7 @@ export default function SignInForm() {
       );
     },
     validators: {
-      onChangeAfterBlur: z.object({
+      onChange: z.object({
         email: z.email(t("validation.invalidEmail")),
         password: z.string().min(8, t("validation.passwordMin")),
       }),

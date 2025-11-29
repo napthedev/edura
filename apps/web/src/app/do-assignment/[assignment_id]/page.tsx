@@ -11,20 +11,34 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useState } from "react";
-import type { AssignmentContent, Question } from "@/lib/assignment-types";
+import type {
+  AssignmentContent,
+  Question,
+  WrittenAssignmentContent,
+  WrittenSubmissionContent,
+  FileAttachment,
+  isWrittenContent,
+  isQuizContent,
+} from "@/lib/assignment-types";
 import Loader from "@/components/loader";
 import { MathJaxProvider, LaTeXRenderer } from "@/components/latex-renderer";
 import { useTranslations } from "next-intl";
-import { ArrowLeft, Send, FileQuestion } from "lucide-react";
+import { ArrowLeft, Send, FileQuestion, Upload } from "lucide-react";
+import { FileUploader } from "@/components/assignment/file-uploader";
+import { FilePreview } from "@/components/assignment/file-preview";
+import { RichTextDisplay } from "@/components/assignment/rich-text-editor";
 
 export default function DoAssignmentPage() {
   const params = useParams();
   const assignmentId = params.assignment_id as string;
   const router = useRouter();
   const t = useTranslations("DoAssignment");
+  const tWritten = useTranslations("WrittenAssignment");
 
   const { data: session, isPending: sessionPending } = authClient.useSession();
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  // Written assignment state
+  const [uploadedFiles, setUploadedFiles] = useState<FileAttachment[]>([]);
 
   const assignmentQuery = useQuery({
     queryKey: ["student-assignment", assignmentId],
@@ -95,20 +109,31 @@ export default function DoAssignmentPage() {
 
   const { assignment, class: classData } = assignmentQuery.data!;
 
-  let assignmentContent: AssignmentContent | null = null;
+  // Determine assignment type
+  const isWrittenAssignment = (assignment as any).assignmentType === "written";
+
+  // Parse assignment content based on type
+  let quizContent: AssignmentContent | null = null;
+  let writtenContent: WrittenAssignmentContent | null = null;
+
   try {
-    assignmentContent = assignment.assignmentContent
-      ? JSON.parse(assignment.assignmentContent)
-      : null;
+    if (assignment.assignmentContent) {
+      const parsed = JSON.parse(assignment.assignmentContent);
+      if (isWrittenAssignment) {
+        writtenContent = parsed as WrittenAssignmentContent;
+      } else {
+        quizContent = parsed as AssignmentContent;
+      }
+    }
   } catch (error) {
     console.error("Failed to parse assignment content:", error);
   }
 
-  const handleSubmit = () => {
-    if (!assignmentContent) return;
+  const handleQuizSubmit = () => {
+    if (!quizContent) return;
 
     // Validate that all questions are answered
-    const unanswered = assignmentContent.questions.filter(
+    const unanswered = quizContent.questions.filter(
       (q) => !answers[q.id]?.trim()
     );
 
@@ -119,6 +144,27 @@ export default function DoAssignmentPage() {
 
     // Submit answers as JSON
     submitMutation.mutate(JSON.stringify(answers));
+  };
+
+  const handleWrittenSubmit = () => {
+    if (uploadedFiles.length === 0) {
+      toast.error(tWritten("pleaseUploadFiles"));
+      return;
+    }
+
+    const content: WrittenSubmissionContent = {
+      files: uploadedFiles,
+    };
+
+    submitMutation.mutate(JSON.stringify(content));
+  };
+
+  const handleSubmit = () => {
+    if (isWrittenAssignment) {
+      handleWrittenSubmit();
+    } else {
+      handleQuizSubmit();
+    }
   };
 
   return (
@@ -141,7 +187,7 @@ export default function DoAssignmentPage() {
                       {new Date(assignment.dueDate).toLocaleString()}
                     </p>
                   )}
-                  {assignment.testingDuration && (
+                  {!isWrittenAssignment && assignment.testingDuration && (
                     <p>
                       {t("duration")}: {assignment.testingDuration}{" "}
                       {t("minutes")}
@@ -156,38 +202,90 @@ export default function DoAssignmentPage() {
               )}
             </Card>
 
-            {/* Assignment Content */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileQuestion className="h-5 w-5" />
-                  {t("assignmentQuestions")}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {assignmentContent && assignmentContent.questions.length > 0 ? (
-                  <div className="space-y-6">
-                    {assignmentContent.questions.map((question: Question) => (
-                      <QuestionCard
-                        key={question.id}
-                        question={question}
-                        answer={answers[question.id] || ""}
-                        onAnswerChange={(answer) =>
-                          setAnswers((prev) => ({
-                            ...prev,
-                            [question.id]: answer,
-                          }))
-                        }
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">
-                    {t("noQuestionsAvailable")}
-                  </p>
+            {/* Written Assignment Content */}
+            {isWrittenAssignment && (
+              <>
+                {/* Teacher Instructions */}
+                {writtenContent && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <FileQuestion className="h-5 w-5" />
+                        {tWritten("instructions")}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {writtenContent.instructions && (
+                        <RichTextDisplay
+                          content={writtenContent.instructions}
+                        />
+                      )}
+                      {writtenContent.attachments &&
+                        writtenContent.attachments.length > 0 && (
+                          <div className="space-y-2">
+                            <p className="text-sm font-medium">
+                              {tWritten("teacherAttachments")}
+                            </p>
+                            <FilePreview files={writtenContent.attachments} />
+                          </div>
+                        )}
+                    </CardContent>
+                  </Card>
                 )}
-              </CardContent>
-            </Card>
+
+                {/* Student Upload Area */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Upload className="h-5 w-5" />
+                      {tWritten("uploadYourWork")}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <FileUploader
+                      uploadedFiles={uploadedFiles}
+                      onFilesChange={setUploadedFiles}
+                      uploadEndpoint="/api/upload/submission"
+                    />
+                  </CardContent>
+                </Card>
+              </>
+            )}
+
+            {/* Quiz Assignment Content */}
+            {!isWrittenAssignment && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileQuestion className="h-5 w-5" />
+                    {t("assignmentQuestions")}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {quizContent && quizContent.questions.length > 0 ? (
+                    <div className="space-y-6">
+                      {quizContent.questions.map((question: Question) => (
+                        <QuestionCard
+                          key={question.id}
+                          question={question}
+                          answer={answers[question.id] || ""}
+                          onAnswerChange={(answer) =>
+                            setAnswers((prev) => ({
+                              ...prev,
+                              [question.id]: answer,
+                            }))
+                          }
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">
+                      {t("noQuestionsAvailable")}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Submit Button */}
             <div className="flex justify-end">

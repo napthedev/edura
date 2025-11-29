@@ -81,6 +81,7 @@ export const assignments = pgTable("assignments", {
   }),
   title: text("title").notNull(),
   description: text("description"),
+  assignmentType: text("assignment_type").notNull().default("quiz"), // "quiz" or "written"
   assignmentContent: text("assignment_content"),
   dueDate: timestamp("due_date"),
   testingDuration: integer("testing_duration"), // Duration in minutes
@@ -99,6 +100,7 @@ export const submissions = pgTable("submissions", {
   submissionContent: text("submission_content"),
   submittedAt: timestamp("submitted_at").notNull().defaultNow(),
   grade: integer("grade"), // Can be NULL until graded
+  feedback: text("feedback"), // Rich text feedback for written assignments
 });
 
 // Announcements table
