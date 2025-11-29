@@ -5,7 +5,15 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { trpcClient } from "@/utils/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Copy, Edit, Trash2, BarChart3, FileText, Plus } from "lucide-react";
+import {
+  Copy,
+  Edit,
+  Trash2,
+  BarChart3,
+  FileText,
+  Plus,
+  Eye,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 import {
@@ -95,6 +103,7 @@ export default function AssignmentsPage() {
                   assignmentId: string;
                   title: string;
                   description: string | null;
+                  assignmentType: string;
                   dueDate: string | null;
                   createdAt: string;
                   submissionCount: number;
@@ -153,14 +162,25 @@ export default function AssignmentsPage() {
                         <BarChart3 className="w-4 h-4 mr-2" />
                         {t("viewMetrics")}
                       </Button>
-                      <Link
-                        href={`/class/teacher/${classId}/edit-assignment/${assignment.assignmentId}`}
-                      >
-                        <Button variant="outline" size="sm">
-                          <Edit className="w-4 h-4 mr-2" />
-                          {t("edit")}
-                        </Button>
-                      </Link>
+                      {assignment.assignmentType === "written" ? (
+                        <Link
+                          href={`/class/teacher/${classId}/view-statement/${assignment.assignmentId}`}
+                        >
+                          <Button variant="outline" size="sm">
+                            <Eye className="w-4 h-4 mr-2" />
+                            {t("viewStatement")}
+                          </Button>
+                        </Link>
+                      ) : (
+                        <Link
+                          href={`/class/teacher/${classId}/edit-assignment/${assignment.assignmentId}`}
+                        >
+                          <Button variant="outline" size="sm">
+                            <Edit className="w-4 h-4 mr-2" />
+                            {t("edit")}
+                          </Button>
+                        </Link>
+                      )}
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button variant="destructive" size="sm">

@@ -236,6 +236,7 @@ export const educationRouter = router({
           title: assignments.title,
           description: assignments.description,
           assignmentContent: assignments.assignmentContent,
+          assignmentType: assignments.assignmentType,
           dueDate: assignments.dueDate,
           testingDuration: assignments.testingDuration,
           createdAt: assignments.createdAt,

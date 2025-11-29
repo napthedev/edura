@@ -339,7 +339,8 @@
     "uploaded": "Đã tải lên",
     "noLecturesUploaded": "Chưa có bài giảng nào được tải lên.",
     "studentsSubmitted": "học sinh đã nộp",
-    "viewMetrics": "Xem thống kê"
+    "viewMetrics": "Xem thống kê",
+    "viewStatement": "Xem đề bài"
   },
   "CreateAssignment": {
     "title": "Tạo bài tập",
@@ -431,6 +432,18 @@
     "moduleOptional": "Module (Tùy chọn)",
     "selectModule": "Chọn module",
     "noModule": "Không có Module"
+  },
+  "ViewStatement": {
+    "title": "Xem đề bài",
+    "back": "Quay lại",
+    "class": "Lớp",
+    "description": "Mô tả",
+    "created": "Ngày tạo",
+    "due": "Hạn nộp",
+    "errorLoading": "Lỗi tải bài tập",
+    "assignmentNotFound": "Không tìm thấy bài tập",
+    "noInstructions": "Chưa có hướng dẫn",
+    "noContent": "Không có nội dung cho bài tập này"
   },
   "UploadLecture": {
     "title": "Tải lên bài giảng",

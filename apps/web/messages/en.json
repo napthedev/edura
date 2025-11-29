@@ -339,7 +339,8 @@
     "uploaded": "Uploaded",
     "noLecturesUploaded": "No lectures uploaded yet.",
     "studentsSubmitted": "students submitted",
-    "viewMetrics": "View Metrics"
+    "viewMetrics": "View Metrics",
+    "viewStatement": "View Statement"
   },
   "CreateAssignment": {
     "title": "Create Assignment",
@@ -425,6 +426,18 @@
     "moduleOptional": "Module (Optional)",
     "selectModule": "Select a module",
     "noModule": "No Module"
+  },
+  "ViewStatement": {
+    "title": "View Assignment Statement",
+    "back": "Back",
+    "class": "Class",
+    "description": "Description",
+    "created": "Created",
+    "due": "Due",
+    "errorLoading": "Error loading assignment",
+    "assignmentNotFound": "Assignment not found",
+    "noInstructions": "No instructions provided",
+    "noContent": "No content available for this assignment"
   },
   "UploadLecture": {
     "title": "Upload Lecture",

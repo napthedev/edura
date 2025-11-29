@@ -218,7 +218,7 @@ export default function CreateAssignmentPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6 max-w-2xl mx-auto">
       <div className="flex items-center gap-4">
         <Button
           variant="outline"

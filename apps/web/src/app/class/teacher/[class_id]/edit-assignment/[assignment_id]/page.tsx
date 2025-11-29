@@ -169,6 +169,18 @@ export default function EditAssignmentPage() {
     }
   }, [sessionQuery.isLoading, sessionQuery.data, router]);
 
+  // Redirect to view-statement page for written assignments (editing not allowed)
+  useEffect(() => {
+    if (assignmentQuery.data) {
+      const assignment = assignmentQuery.data.assignments;
+      if (assignment.assignmentType === "written") {
+        router.replace(
+          `/class/teacher/${classId}/view-statement/${assignmentId}`
+        );
+      }
+    }
+  }, [assignmentQuery.data, router, assignmentId, classId]);
+
   const handleAddQuestion = (question: Question) => {
     setQuestions((prev) => [...prev, question]);
   };
@@ -281,7 +293,7 @@ export default function EditAssignmentPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6 max-w-4xl mx-auto">
       <div className="flex items-center gap-4 flex-wrap">
         <Button
           variant="outline"
