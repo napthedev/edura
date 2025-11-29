@@ -21,7 +21,6 @@ import type {
   isQuizContent,
 } from "@/lib/assignment-types";
 import Loader from "@/components/loader";
-import { MathJaxProvider, LaTeXRenderer } from "@/components/latex-renderer";
 import { useTranslations } from "next-intl";
 import { ArrowLeft, Send, FileQuestion, Upload } from "lucide-react";
 import { FileUploader } from "@/components/assignment/file-uploader";
@@ -168,145 +167,136 @@ export default function DoAssignmentPage() {
   };
 
   return (
-    <MathJaxProvider>
-      <div className="min-h-screen">
-        <Header />
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
-          <div className="space-y-6">
-            {/* Assignment Header */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-2xl">{assignment.title}</CardTitle>
-                <div className="text-sm text-muted-foreground">
+    <div className="min-h-screen">
+      <Header />
+      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
+        <div className="space-y-6">
+          {/* Assignment Header */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl">{assignment.title}</CardTitle>
+              <div className="text-sm text-muted-foreground">
+                <p>
+                  {t("class")}: {classData.className}
+                </p>
+                {assignment.dueDate && (
                   <p>
-                    {t("class")}: {classData.className}
+                    {t("due")}: {new Date(assignment.dueDate).toLocaleString()}
                   </p>
-                  {assignment.dueDate && (
-                    <p>
-                      {t("due")}:{" "}
-                      {new Date(assignment.dueDate).toLocaleString()}
-                    </p>
-                  )}
-                  {!isWrittenAssignment && assignment.testingDuration && (
-                    <p>
-                      {t("duration")}: {assignment.testingDuration}{" "}
-                      {t("minutes")}
-                    </p>
-                  )}
-                </div>
-              </CardHeader>
-              {assignment.description && (
-                <CardContent>
-                  <p>{assignment.description}</p>
-                </CardContent>
-              )}
-            </Card>
-
-            {/* Written Assignment Content */}
-            {isWrittenAssignment && (
-              <>
-                {/* Teacher Instructions */}
-                {writtenContent && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <FileQuestion className="h-5 w-5" />
-                        {tWritten("instructions")}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {writtenContent.instructions && (
-                        <RichTextDisplay
-                          content={writtenContent.instructions}
-                        />
-                      )}
-                      {writtenContent.attachments &&
-                        writtenContent.attachments.length > 0 && (
-                          <div className="space-y-2">
-                            <p className="text-sm font-medium">
-                              {tWritten("teacherAttachments")}
-                            </p>
-                            <FilePreview files={writtenContent.attachments} />
-                          </div>
-                        )}
-                    </CardContent>
-                  </Card>
                 )}
+                {!isWrittenAssignment && assignment.testingDuration && (
+                  <p>
+                    {t("duration")}: {assignment.testingDuration} {t("minutes")}
+                  </p>
+                )}
+              </div>
+            </CardHeader>
+            {assignment.description && (
+              <CardContent>
+                <RichTextDisplay content={assignment.description} />
+              </CardContent>
+            )}
+          </Card>
 
-                {/* Student Upload Area */}
+          {/* Written Assignment Content */}
+          {isWrittenAssignment && (
+            <>
+              {/* Teacher Instructions */}
+              {writtenContent && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <Upload className="h-5 w-5" />
-                      {tWritten("uploadYourWork")}
+                      <FileQuestion className="h-5 w-5" />
+                      {tWritten("instructions")}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <FileUploader
-                      uploadedFiles={uploadedFiles}
-                      onFilesChange={setUploadedFiles}
-                      uploadEndpoint="/api/upload/submission"
-                    />
+                  <CardContent className="space-y-4">
+                    {writtenContent.instructions && (
+                      <RichTextDisplay content={writtenContent.instructions} />
+                    )}
+                    {writtenContent.attachments &&
+                      writtenContent.attachments.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-sm font-medium">
+                            {tWritten("teacherAttachments")}
+                          </p>
+                          <FilePreview files={writtenContent.attachments} />
+                        </div>
+                      )}
                   </CardContent>
                 </Card>
-              </>
-            )}
+              )}
 
-            {/* Quiz Assignment Content */}
-            {!isWrittenAssignment && (
+              {/* Student Upload Area */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <FileQuestion className="h-5 w-5" />
-                    {t("assignmentQuestions")}
+                    <Upload className="h-5 w-5" />
+                    {tWritten("uploadYourWork")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {quizContent && quizContent.questions.length > 0 ? (
-                    <div className="space-y-6">
-                      {quizContent.questions.map((question: Question) => (
-                        <QuestionCard
-                          key={question.id}
-                          question={question}
-                          answer={answers[question.id] || ""}
-                          onAnswerChange={(answer) =>
-                            setAnswers((prev) => ({
-                              ...prev,
-                              [question.id]: answer,
-                            }))
-                          }
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-muted-foreground">
-                      {t("noQuestionsAvailable")}
-                    </p>
-                  )}
+                  <FileUploader
+                    uploadedFiles={uploadedFiles}
+                    onFilesChange={setUploadedFiles}
+                    uploadEndpoint="/api/upload/submission"
+                  />
                 </CardContent>
               </Card>
-            )}
+            </>
+          )}
 
-            {/* Submit Button */}
-            <div className="flex justify-end">
-              <Button
-                onClick={handleSubmit}
-                disabled={submitMutation.isPending}
-              >
-                {submitMutation.isPending ? (
-                  t("submitting")
+          {/* Quiz Assignment Content */}
+          {!isWrittenAssignment && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileQuestion className="h-5 w-5" />
+                  {t("assignmentQuestions")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {quizContent && quizContent.questions.length > 0 ? (
+                  <div className="space-y-6">
+                    {quizContent.questions.map((question: Question) => (
+                      <QuestionCard
+                        key={question.id}
+                        question={question}
+                        answer={answers[question.id] || ""}
+                        onAnswerChange={(answer) =>
+                          setAnswers((prev) => ({
+                            ...prev,
+                            [question.id]: answer,
+                          }))
+                        }
+                      />
+                    ))}
+                  </div>
                 ) : (
-                  <>
-                    <Send className="h-4 w-4 mr-2" />
-                    {t("submitAssignment")}
-                  </>
+                  <p className="text-muted-foreground">
+                    {t("noQuestionsAvailable")}
+                  </p>
                 )}
-              </Button>
-            </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Submit Button */}
+          <div className="flex justify-end">
+            <Button onClick={handleSubmit} disabled={submitMutation.isPending}>
+              {submitMutation.isPending ? (
+                t("submitting")
+              ) : (
+                <>
+                  <Send className="h-4 w-4 mr-2" />
+                  {t("submitAssignment")}
+                </>
+              )}
+            </Button>
           </div>
         </div>
       </div>
-    </MathJaxProvider>
+    </div>
   );
 }
 
@@ -326,9 +316,9 @@ function QuestionCard({
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <p className="font-medium">
-            <LaTeXRenderer>{question.statement}</LaTeXRenderer>
-          </p>
+          <div className="font-medium">
+            <RichTextDisplay content={question.statement} />
+          </div>
         </div>
 
         {/* Answer Input based on type */}
@@ -356,7 +346,7 @@ function QuestionCard({
                   />
                   <Label htmlFor={`${question.id}-${optionValue}`}>
                     {optionValue.toUpperCase()}.{" "}
-                    <LaTeXRenderer>{option}</LaTeXRenderer>
+                    <span dangerouslySetInnerHTML={{ __html: option }} />
                   </Label>
                 </div>
               );

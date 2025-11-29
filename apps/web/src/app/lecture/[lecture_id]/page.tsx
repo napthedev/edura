@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import Loader from "@/components/loader";
 import { useTranslations } from "next-intl";
+import { RichTextDisplay } from "@/components/assignment/rich-text-editor";
 
 export default function LecturePage() {
   const params = useParams();
@@ -182,8 +183,8 @@ export default function LecturePage() {
             </CardHeader>
             {lecture.description && (
               <CardContent>
-                <div className="prose max-w-none">
-                  <p className="text-muted-foreground">{lecture.description}</p>
+                <div className="text-muted-foreground">
+                  <RichTextDisplay content={lecture.description} />
                 </div>
               </CardContent>
             )}

@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 import EditAnnouncementForm from "./edit-announcement-form";
 import { useTranslations } from "next-intl";
+import { RichTextDisplay } from "@/components/assignment/rich-text-editor";
 
 interface Announcement {
   announcement: {
@@ -213,10 +214,8 @@ export default function AnnouncementList({
                 </p>
 
                 {announcement.content && (
-                  <div className="prose prose-sm max-w-none mb-4">
-                    <p className="whitespace-pre-wrap">
-                      {announcement.content}
-                    </p>
+                  <div className="mb-4">
+                    <RichTextDisplay content={announcement.content} />
                   </div>
                 )}
 

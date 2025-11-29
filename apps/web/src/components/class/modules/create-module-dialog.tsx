@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/assignment/rich-text-editor";
 import { Plus, FolderPlus } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -116,9 +117,10 @@ export function CreateModuleDialog({ classId }: CreateModuleDialogProps) {
                 <FormItem>
                   <FormLabel>{t("descriptionOptional")}</FormLabel>
                   <FormControl>
-                    <Textarea
+                    <RichTextEditor
+                      content={field.value || ""}
+                      onChange={field.onChange}
                       placeholder={t("moduleDescriptionPlaceholder")}
-                      {...field}
                     />
                   </FormControl>
                   <FormMessage />

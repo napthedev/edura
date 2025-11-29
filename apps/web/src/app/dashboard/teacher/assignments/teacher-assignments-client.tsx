@@ -7,6 +7,7 @@ import Link from "next/link";
 import Loader from "@/components/loader";
 import { useTranslations } from "next-intl";
 import { FileText, Calendar, BookOpen } from "lucide-react";
+import { RichTextDisplay } from "@/components/assignment/rich-text-editor";
 
 export default function TeacherAssignmentsClient() {
   const t = useTranslations("TeacherDashboard");
@@ -45,9 +46,9 @@ export default function TeacherAssignmentsClient() {
                         </h3>
                       </div>
                       {assignment.description && (
-                        <p className="text-sm text-slate-600 mb-3 line-clamp-2">
-                          {assignment.description}
-                        </p>
+                        <div className="text-sm text-slate-600 mb-3 line-clamp-2">
+                          <RichTextDisplay content={assignment.description} />
+                        </div>
                       )}
                       <div className="flex flex-wrap gap-4 text-sm text-slate-500">
                         <div className="flex items-center gap-2">

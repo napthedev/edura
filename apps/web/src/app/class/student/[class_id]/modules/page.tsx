@@ -15,6 +15,7 @@ import { FileText, Video, Folder } from "lucide-react";
 import { format } from "date-fns";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { RichTextDisplay } from "@/components/assignment/rich-text-editor";
 
 export default function StudentModulesPage() {
   const params = useParams();
@@ -58,9 +59,9 @@ export default function StudentModulesPage() {
                     <div className="flex flex-col items-start text-left">
                       <CardTitle className="text-lg">{module.title}</CardTitle>
                       {module.description && (
-                        <p className="text-sm text-muted-foreground font-normal mt-1">
-                          {module.description}
-                        </p>
+                        <div className="text-sm text-muted-foreground font-normal mt-1">
+                          <RichTextDisplay content={module.description} />
+                        </div>
                       )}
                     </div>
                   </AccordionTrigger>

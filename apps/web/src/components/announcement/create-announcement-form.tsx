@@ -6,6 +6,7 @@ import { trpcClient } from "@/utils/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/assignment/rich-text-editor";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -154,12 +155,10 @@ export default function CreateAnnouncementForm({
 
           <div>
             <Label htmlFor="content">{t("description")}</Label>
-            <Textarea
-              id="content"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
+            <RichTextEditor
+              content={content}
+              onChange={setContent}
               placeholder={t("enterAnnouncementDescription")}
-              rows={4}
             />
           </div>
 

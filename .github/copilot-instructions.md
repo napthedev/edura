@@ -47,7 +47,7 @@ app/
 
 components/
 ├── announcement/       # Announcement list, create/edit forms
-├── assignment/         # Question editor, AI generation, metrics
+├── assignment/         # Question editor, AI generation, metrics, rich text editor
 ├── auth/               # Auth header component
 ├── class/              # Class shell, sidebar, modules (create, move, add content dialogs)
 ├── dashboard/          # Dashboard shell, sidebar, top-nav, manager components
@@ -55,7 +55,7 @@ components/
 ├── notification/       # Notification dropdown and items
 ├── schedule/           # Schedule calendar and form
 ├── ui/                 # shadcn/ui components (50+ components)
-└── [shared]            # header, user-menu, language-switcher, providers, theme-provider, loader, join-class-form, latex-renderer
+└── [shared]            # header, user-menu, language-switcher, providers, theme-provider, loader, join-class-form
 ```
 
 ### Data Flow

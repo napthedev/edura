@@ -36,6 +36,7 @@ import {
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { RichTextDisplay } from "@/components/assignment/rich-text-editor";
 
 export default function TeacherModulesPage() {
   const params = useParams();
@@ -148,9 +149,9 @@ export default function TeacherModulesPage() {
                     <div className="flex flex-col items-start text-left">
                       <CardTitle className="text-lg">{module.title}</CardTitle>
                       {module.description && (
-                        <p className="text-sm text-muted-foreground font-normal mt-1">
-                          {module.description}
-                        </p>
+                        <div className="text-sm text-muted-foreground font-normal mt-1">
+                          <RichTextDisplay content={module.description} />
+                        </div>
                       )}
                     </div>
                   </AccordionTrigger>

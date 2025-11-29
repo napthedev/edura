@@ -155,7 +155,9 @@ export default function ViewStatementPage() {
           {assignment.description && (
             <div>
               <p className="text-sm font-medium mb-1">{t("description")}</p>
-              <p className="text-muted-foreground">{assignment.description}</p>
+              <div className="text-muted-foreground">
+                <RichTextDisplay content={assignment.description} />
+              </div>
             </div>
           )}
           <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">

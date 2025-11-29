@@ -5,6 +5,7 @@ import { trpcClient } from "@/utils/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/assignment/rich-text-editor";
 import {
   Select,
   SelectContent,
@@ -258,9 +259,10 @@ export default function UploadLecturePage() {
                       <FormItem>
                         <FormLabel>{t("descriptionOptional")}</FormLabel>
                         <FormControl>
-                          <Textarea
+                          <RichTextEditor
+                            content={field.value || ""}
+                            onChange={field.onChange}
                             placeholder={t("enterLectureDescription")}
-                            {...field}
                           />
                         </FormControl>
                         <FormMessage />
@@ -392,9 +394,10 @@ export default function UploadLecturePage() {
                       <FormItem>
                         <FormLabel>Description (Optional)</FormLabel>
                         <FormControl>
-                          <Textarea
+                          <RichTextEditor
+                            content={field.value || ""}
+                            onChange={field.onChange}
                             placeholder="Enter lecture description"
-                            {...field}
                           />
                         </FormControl>
                         <FormMessage />

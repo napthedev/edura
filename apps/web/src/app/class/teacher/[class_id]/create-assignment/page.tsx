@@ -348,9 +348,10 @@ export default function CreateAssignmentPage() {
                     <FormItem>
                       <FormLabel>{t("descriptionOptional")}</FormLabel>
                       <FormControl>
-                        <Textarea
+                        <RichTextEditor
+                          content={field.value || ""}
+                          onChange={field.onChange}
                           placeholder={t("assignmentDescriptionPlaceholder")}
-                          {...field}
                         />
                       </FormControl>
                       <FormMessage />

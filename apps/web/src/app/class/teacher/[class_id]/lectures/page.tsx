@@ -10,6 +10,7 @@ import Link from "next/link";
 import Loader from "@/components/loader";
 import { useTranslations } from "next-intl";
 import { Video, Upload } from "lucide-react";
+import { RichTextDisplay } from "@/components/assignment/rich-text-editor";
 
 export default function LecturesPage() {
   const params = useParams();
@@ -68,9 +69,9 @@ export default function LecturesPage() {
                       <div className="flex-1">
                         <h3 className="font-medium">{lecture.title}</h3>
                         {lecture.description && (
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {lecture.description}
-                          </p>
+                          <div className="text-sm text-muted-foreground mt-1">
+                            <RichTextDisplay content={lecture.description} />
+                          </div>
                         )}
                         <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                           <Badge variant="outline">

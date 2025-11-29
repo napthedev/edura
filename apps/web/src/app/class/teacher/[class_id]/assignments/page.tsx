@@ -28,6 +28,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import Link from "next/link";
+import { RichTextDisplay } from "@/components/assignment/rich-text-editor";
 import Loader from "@/components/loader";
 import { useTranslations } from "next-intl";
 import AssignmentMetricsDialog from "@/components/assignment/assignment-metrics-dialog";
@@ -115,9 +116,9 @@ export default function AssignmentsPage() {
                     <div className="flex-1">
                       <h3 className="font-medium">{assignment.title}</h3>
                       {assignment.description && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {assignment.description}
-                        </p>
+                        <div className="text-sm text-muted-foreground mt-1">
+                          <RichTextDisplay content={assignment.description} />
+                        </div>
                       )}
                       <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                         <span>

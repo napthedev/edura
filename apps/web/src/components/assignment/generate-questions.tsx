@@ -101,26 +101,26 @@ export function GenerateQuestions({
             },
             question: {
               type: Type.STRING,
-              description: "The question text, can include LaTeX math notation",
+              description: "The question text in plain text format",
             },
             options: {
               type: Type.OBJECT,
               properties: {
                 A: {
                   type: Type.STRING,
-                  description: "Option A text, can include LaTeX math notation",
+                  description: "Option A text in plain text format",
                 },
                 B: {
                   type: Type.STRING,
-                  description: "Option B text, can include LaTeX math notation",
+                  description: "Option B text in plain text format",
                 },
                 C: {
                   type: Type.STRING,
-                  description: "Option C text, can include LaTeX math notation",
+                  description: "Option C text in plain text format",
                 },
                 D: {
                   type: Type.STRING,
-                  description: "Option D text, can include LaTeX math notation",
+                  description: "Option D text in plain text format",
                 },
               },
               required: ["A", "B", "C", "D"],
@@ -134,7 +134,7 @@ export function GenerateQuestions({
             explanation: {
               type: Type.STRING,
               description:
-                "Brief explanation for why the correct answer is right, can include LaTeX math notation",
+                "Brief explanation for why the correct answer is right in plain text format",
             },
           },
           required: [
@@ -169,12 +169,12 @@ export function GenerateQuestions({
         2. Provide 4 answer options (A, B, C, D)
         3. Indicate the correct answer
         4. Include a brief explanation following the detail level specified above
-        5. If the content contains mathematical formulas, equations, or symbols, format them using LaTeX notation (enclosed in $ for inline math or $$ for display math)
+        5. If the content contains mathematical formulas, equations, or symbols, write them in plain text format (e.g., "x squared" instead of "x^2", "square root of 2" instead of symbols)
         6. Make sure all text is properly formatted for JSON
         7. Generate exactly ${data.numberOfQuestions} questions
         8. Follow the ${data.difficulty} difficulty level requirement strictly
         9. Provide brief explanations as specified
-        10. Use proper LaTeX notation for all mathematical content
+        10. Use plain text for all mathematical content (avoid special symbols or notation)
         11. Focus on creating meaningful questions that test understanding
         
         The response will be automatically formatted as JSON according to the specified schema.

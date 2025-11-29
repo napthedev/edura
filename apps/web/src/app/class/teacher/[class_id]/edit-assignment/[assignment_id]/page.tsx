@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { RichTextEditor } from "@/components/assignment/rich-text-editor";
 import {
   Select,
   SelectContent,
@@ -380,9 +381,10 @@ export default function EditAssignmentPage() {
                   <FormItem>
                     <FormLabel>{t("descriptionOptional")}</FormLabel>
                     <FormControl>
-                      <Textarea
+                      <RichTextEditor
+                        content={field.value || ""}
+                        onChange={field.onChange}
                         placeholder={t("assignmentDescriptionPlaceholder")}
-                        {...field}
                       />
                     </FormControl>
                     <FormMessage />

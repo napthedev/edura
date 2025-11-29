@@ -4,6 +4,7 @@ import { useEditor, EditorContent, Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import Link from "@tiptap/extension-link";
+import DOMPurify from "isomorphic-dompurify";
 import { Button } from "@/components/ui/button";
 import {
   Bold,
@@ -205,6 +206,8 @@ export function RichTextDisplay({ content, className }: RichTextDisplayProps) {
     return null;
   }
 
+  const sanitizedContent = DOMPurify.sanitize(content);
+
   return (
     <div
       className={cn(
@@ -212,7 +215,7 @@ export function RichTextDisplay({ content, className }: RichTextDisplayProps) {
         "[&_a]:text-primary [&_a]:underline",
         className
       )}
-      dangerouslySetInnerHTML={{ __html: content }}
+      dangerouslySetInnerHTML={{ __html: sanitizedContent }}
     />
   );
 }
