@@ -21,6 +21,22 @@ export const scheduleColorEnum = pgEnum("schedule_color", [
   "teal",
 ]);
 
+// Billing status enum
+export const billingStatusEnum = pgEnum("billing_status", [
+  "pending",
+  "paid",
+  "overdue",
+  "cancelled",
+]);
+
+// Payment method enum
+export const paymentMethodEnum = pgEnum("payment_method", [
+  "cash",
+  "bank_transfer",
+  "momo",
+  "vnpay",
+]);
+
 // Classes table
 export const classes = pgTable("classes", {
   classId: text("class_id").primaryKey(),
@@ -28,6 +44,7 @@ export const classes = pgTable("classes", {
   classCode: text("class_code").notNull().unique(),
   subject: text("subject"),
   schedule: text("schedule"),
+  tuitionRate: integer("tuition_rate"), // Monthly tuition rate in smallest currency unit (VND)
   teacherId: text("teacher_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
@@ -241,4 +258,44 @@ export const auditLogs = pgTable("audit_logs", {
   oldValue: jsonb("old_value"),
   newValue: jsonb("new_value"),
   timestamp: timestamp("timestamp").notNull().defaultNow(),
+});
+
+// Tuition Billing (monthly billing records per student per class)
+export const tuitionBilling = pgTable("tuition_billing", {
+  billingId: text("billing_id").primaryKey(),
+  studentId: text("student_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  classId: text("class_id").references(() => classes.classId, {
+    onDelete: "set null",
+  }),
+  amount: integer("amount").notNull(), // In smallest currency unit (VND)
+  billingMonth: text("billing_month").notNull(), // Format: "YYYY-MM" (e.g., "2025-11")
+  dueDate: timestamp("due_date").notNull(),
+  status: billingStatusEnum("status").notNull().default("pending"),
+  paidAt: timestamp("paid_at"),
+  paymentMethod: paymentMethodEnum("payment_method"),
+  invoiceNumber: text("invoice_number"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Tutor Payments (monthly payment records per teacher)
+export const tutorPayments = pgTable("tutor_payments", {
+  paymentId: text("payment_id").primaryKey(),
+  teacherId: text("teacher_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  amount: integer("amount").notNull(), // In smallest currency unit (VND)
+  paymentMonth: text("payment_month").notNull(), // Format: "YYYY-MM" (e.g., "2025-11")
+  sessionsCount: integer("sessions_count").default(0),
+  studentsCount: integer("students_count").default(0),
+  rateId: text("rate_id").references(() => teacherRates.rateId, {
+    onDelete: "set null",
+  }),
+  status: billingStatusEnum("status").notNull().default("pending"),
+  paidAt: timestamp("paid_at"),
+  paymentMethod: paymentMethodEnum("payment_method"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });

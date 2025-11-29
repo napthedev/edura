@@ -49,7 +49,7 @@
 
 ### Schema
 
-- [ ] Create tables for:
+- [x] Create tables for:
   - `TuitionBilling`
   - `TutorPayments`
   - `AttendanceLogs`

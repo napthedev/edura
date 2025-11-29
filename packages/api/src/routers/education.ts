@@ -11,8 +11,12 @@ import {
   classJoinRequests,
   notifications,
   classModules,
+  tuitionBilling,
+  tutorPayments,
+  teacherRates,
 } from "@edura/db/schema/education";
 import { eq, and, sql } from "drizzle-orm";
+import { desc, gte, lte, inArray } from "drizzle-orm";
 import { user } from "@edura/db/schema/auth";
 
 // Schedule color type
@@ -2142,6 +2146,586 @@ export const educationRouter = router({
 
     return students;
   }),
+
+  // =====================
+  // TUITION BILLING
+  // =====================
+
+  // Get all tuition billings with filters (manager only)
+  getTuitionBillings: protectedProcedure
+    .input(
+      z.object({
+        status: z.enum(["pending", "paid", "overdue", "cancelled"]).optional(),
+        billingMonth: z.string().optional(), // Format: "YYYY-MM"
+        classId: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      const conditions = [];
+
+      if (input.status) {
+        conditions.push(eq(tuitionBilling.status, input.status));
+      }
+      if (input.billingMonth) {
+        conditions.push(eq(tuitionBilling.billingMonth, input.billingMonth));
+      }
+      if (input.classId) {
+        conditions.push(eq(tuitionBilling.classId, input.classId));
+      }
+
+      const billings = await ctx.db
+        .select({
+          billingId: tuitionBilling.billingId,
+          studentId: tuitionBilling.studentId,
+          studentName: user.name,
+          studentEmail: user.email,
+          classId: tuitionBilling.classId,
+          className: classes.className,
+          amount: tuitionBilling.amount,
+          billingMonth: tuitionBilling.billingMonth,
+          dueDate: tuitionBilling.dueDate,
+          status: tuitionBilling.status,
+          paidAt: tuitionBilling.paidAt,
+          paymentMethod: tuitionBilling.paymentMethod,
+          invoiceNumber: tuitionBilling.invoiceNumber,
+          notes: tuitionBilling.notes,
+          createdAt: tuitionBilling.createdAt,
+        })
+        .from(tuitionBilling)
+        .leftJoin(user, eq(tuitionBilling.studentId, user.id))
+        .leftJoin(classes, eq(tuitionBilling.classId, classes.classId))
+        .where(conditions.length > 0 ? and(...conditions) : undefined)
+        .orderBy(desc(tuitionBilling.createdAt));
+
+      return billings;
+    }),
+
+  // Create monthly billing for all enrolled students (manager only)
+  createMonthlyBilling: protectedProcedure
+    .input(
+      z.object({
+        billingMonth: z.string(), // Format: "YYYY-MM"
+        dueDate: z.string(), // ISO date string
+        classIds: z.array(z.string()).optional(), // Optional: specific classes only
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      // Get all enrollments with class tuition rates
+      let enrollmentQuery = ctx.db
+        .select({
+          enrollmentId: enrollments.enrollmentId,
+          studentId: enrollments.studentId,
+          classId: enrollments.classId,
+          tuitionRate: classes.tuitionRate,
+        })
+        .from(enrollments)
+        .innerJoin(classes, eq(enrollments.classId, classes.classId));
+
+      if (input.classIds && input.classIds.length > 0) {
+        enrollmentQuery = enrollmentQuery.where(
+          inArray(enrollments.classId, input.classIds)
+        ) as typeof enrollmentQuery;
+      }
+
+      const enrollmentData = await enrollmentQuery;
+
+      // Filter out enrollments where class has no tuition rate
+      const validEnrollments = enrollmentData.filter(
+        (e) => e.tuitionRate !== null
+      );
+
+      if (validEnrollments.length === 0) {
+        throw new Error("No valid enrollments found with tuition rates set");
+      }
+
+      // Check for existing billings for this month to avoid duplicates
+      const existingBillings = await ctx.db
+        .select({
+          studentId: tuitionBilling.studentId,
+          classId: tuitionBilling.classId,
+        })
+        .from(tuitionBilling)
+        .where(eq(tuitionBilling.billingMonth, input.billingMonth));
+
+      const existingSet = new Set(
+        existingBillings.map((b) => `${b.studentId}-${b.classId}`)
+      );
+
+      // Create billing records for new enrollments only
+      const newBillings = validEnrollments
+        .filter((e) => !existingSet.has(`${e.studentId}-${e.classId}`))
+        .map((enrollment) => ({
+          billingId: crypto.randomUUID(),
+          studentId: enrollment.studentId,
+          classId: enrollment.classId,
+          amount: enrollment.tuitionRate!,
+          billingMonth: input.billingMonth,
+          dueDate: new Date(input.dueDate),
+          status: "pending" as const,
+          invoiceNumber: `INV-${input.billingMonth.replace("-", "")}-${crypto
+            .randomUUID()
+            .slice(0, 8)
+            .toUpperCase()}`,
+        }));
+
+      if (newBillings.length === 0) {
+        return { created: 0, skipped: validEnrollments.length };
+      }
+
+      await ctx.db.insert(tuitionBilling).values(newBillings);
+
+      return {
+        created: newBillings.length,
+        skipped: validEnrollments.length - newBillings.length,
+      };
+    }),
+
+  // Update billing status (manager only)
+  updateBillingStatus: protectedProcedure
+    .input(
+      z.object({
+        billingId: z.string(),
+        status: z.enum(["pending", "paid", "overdue", "cancelled"]),
+        paymentMethod: z
+          .enum(["cash", "bank_transfer", "momo", "vnpay"])
+          .optional(),
+        notes: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      const updateData: {
+        status: "pending" | "paid" | "overdue" | "cancelled";
+        paidAt?: Date | null;
+        paymentMethod?: "cash" | "bank_transfer" | "momo" | "vnpay" | null;
+        notes?: string | null;
+      } = {
+        status: input.status,
+      };
+
+      if (input.status === "paid") {
+        updateData.paidAt = new Date();
+        if (input.paymentMethod) {
+          updateData.paymentMethod = input.paymentMethod;
+        }
+      } else {
+        updateData.paidAt = null;
+        updateData.paymentMethod = null;
+      }
+
+      if (input.notes !== undefined) {
+        updateData.notes = input.notes;
+      }
+
+      await ctx.db
+        .update(tuitionBilling)
+        .set(updateData)
+        .where(eq(tuitionBilling.billingId, input.billingId));
+
+      return { success: true };
+    }),
+
+  // Get single billing for invoice view (manager only)
+  getBillingInvoice: protectedProcedure
+    .input(z.object({ billingId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      const billing = await ctx.db
+        .select({
+          billingId: tuitionBilling.billingId,
+          studentId: tuitionBilling.studentId,
+          studentName: user.name,
+          studentEmail: user.email,
+          classId: tuitionBilling.classId,
+          className: classes.className,
+          classCode: classes.classCode,
+          subject: classes.subject,
+          teacherName: sql<string>`(SELECT name FROM "user" WHERE id = ${classes.teacherId})`,
+          amount: tuitionBilling.amount,
+          billingMonth: tuitionBilling.billingMonth,
+          dueDate: tuitionBilling.dueDate,
+          status: tuitionBilling.status,
+          paidAt: tuitionBilling.paidAt,
+          paymentMethod: tuitionBilling.paymentMethod,
+          invoiceNumber: tuitionBilling.invoiceNumber,
+          notes: tuitionBilling.notes,
+          createdAt: tuitionBilling.createdAt,
+        })
+        .from(tuitionBilling)
+        .leftJoin(user, eq(tuitionBilling.studentId, user.id))
+        .leftJoin(classes, eq(tuitionBilling.classId, classes.classId))
+        .where(eq(tuitionBilling.billingId, input.billingId));
+
+      if (billing.length === 0) {
+        throw new Error("Billing record not found");
+      }
+
+      return billing[0];
+    }),
+
+  // =====================
+  // TUTOR PAYMENTS
+  // =====================
+
+  // Get all tutor payments (manager only)
+  getTutorPayments: protectedProcedure
+    .input(
+      z.object({
+        status: z.enum(["pending", "paid", "overdue", "cancelled"]).optional(),
+        paymentMonth: z.string().optional(),
+        teacherId: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      const conditions = [];
+
+      if (input.status) {
+        conditions.push(eq(tutorPayments.status, input.status));
+      }
+      if (input.paymentMonth) {
+        conditions.push(eq(tutorPayments.paymentMonth, input.paymentMonth));
+      }
+      if (input.teacherId) {
+        conditions.push(eq(tutorPayments.teacherId, input.teacherId));
+      }
+
+      const payments = await ctx.db
+        .select({
+          paymentId: tutorPayments.paymentId,
+          teacherId: tutorPayments.teacherId,
+          teacherName: user.name,
+          teacherEmail: user.email,
+          amount: tutorPayments.amount,
+          paymentMonth: tutorPayments.paymentMonth,
+          sessionsCount: tutorPayments.sessionsCount,
+          studentsCount: tutorPayments.studentsCount,
+          rateId: tutorPayments.rateId,
+          status: tutorPayments.status,
+          paidAt: tutorPayments.paidAt,
+          paymentMethod: tutorPayments.paymentMethod,
+          notes: tutorPayments.notes,
+          createdAt: tutorPayments.createdAt,
+        })
+        .from(tutorPayments)
+        .leftJoin(user, eq(tutorPayments.teacherId, user.id))
+        .where(conditions.length > 0 ? and(...conditions) : undefined)
+        .orderBy(desc(tutorPayments.createdAt));
+
+      return payments;
+    }),
+
+  // Calculate and create monthly tutor payments (manager only)
+  calculateMonthlyTutorPay: protectedProcedure
+    .input(
+      z.object({
+        paymentMonth: z.string(), // Format: "YYYY-MM"
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      // Get all teachers with active rates
+      const teachersWithRates = await ctx.db
+        .select({
+          teacherId: teacherRates.teacherId,
+          rateId: teacherRates.rateId,
+          rateType: teacherRates.rateType,
+          amount: teacherRates.amount,
+        })
+        .from(teacherRates)
+        .where(eq(teacherRates.isActive, true));
+
+      if (teachersWithRates.length === 0) {
+        throw new Error("No teachers with active rates found");
+      }
+
+      // Check for existing payments for this month
+      const existingPayments = await ctx.db
+        .select({ teacherId: tutorPayments.teacherId })
+        .from(tutorPayments)
+        .where(eq(tutorPayments.paymentMonth, input.paymentMonth));
+
+      const existingTeacherIds = new Set(
+        existingPayments.map((p) => p.teacherId)
+      );
+
+      // Parse the payment month to get date range
+      const [year, month] = input.paymentMonth.split("-").map(Number);
+      const monthStart = new Date(year!, month! - 1, 1);
+      const monthEnd = new Date(year!, month!, 0, 23, 59, 59);
+
+      const newPayments = [];
+
+      for (const teacherRate of teachersWithRates) {
+        if (existingTeacherIds.has(teacherRate.teacherId)) {
+          continue; // Skip if already has payment for this month
+        }
+
+        // Get teacher's classes
+        const teacherClasses = await ctx.db
+          .select({ classId: classes.classId })
+          .from(classes)
+          .where(eq(classes.teacherId, teacherRate.teacherId));
+
+        if (teacherClasses.length === 0) continue;
+
+        const classIds = teacherClasses.map((c) => c.classId);
+
+        // Count sessions (class schedules) for this month
+        // Each schedule represents weekly recurring sessions
+        const schedules = await ctx.db
+          .select()
+          .from(classSchedules)
+          .where(inArray(classSchedules.classId, classIds));
+
+        // Calculate weeks in month (approximate: 4 sessions per weekly schedule)
+        const weeksInMonth = 4;
+        const sessionsCount = schedules.length * weeksInMonth;
+
+        // Count unique students across all classes
+        const studentCounts = await ctx.db
+          .select({
+            count: sql<number>`count(distinct ${enrollments.studentId})::int`,
+          })
+          .from(enrollments)
+          .where(inArray(enrollments.classId, classIds));
+
+        const studentsCount = studentCounts[0]?.count || 0;
+
+        // Calculate amount based on rate type
+        let amount = 0;
+        switch (teacherRate.rateType) {
+          case "HOURLY":
+            // Assuming 1.5 hours per session average
+            amount = teacherRate.amount * sessionsCount * 1.5;
+            break;
+          case "PER_STUDENT":
+            amount = teacherRate.amount * studentsCount;
+            break;
+          case "MONTHLY_FIXED":
+            amount = teacherRate.amount;
+            break;
+        }
+
+        newPayments.push({
+          paymentId: crypto.randomUUID(),
+          teacherId: teacherRate.teacherId,
+          amount: Math.round(amount),
+          paymentMonth: input.paymentMonth,
+          sessionsCount,
+          studentsCount,
+          rateId: teacherRate.rateId,
+          status: "pending" as const,
+        });
+      }
+
+      if (newPayments.length === 0) {
+        return { created: 0, skipped: teachersWithRates.length };
+      }
+
+      await ctx.db.insert(tutorPayments).values(newPayments);
+
+      return {
+        created: newPayments.length,
+        skipped: teachersWithRates.length - newPayments.length,
+      };
+    }),
+
+  // Update tutor payment status (manager only)
+  updateTutorPaymentStatus: protectedProcedure
+    .input(
+      z.object({
+        paymentId: z.string(),
+        status: z.enum(["pending", "paid", "overdue", "cancelled"]),
+        paymentMethod: z
+          .enum(["cash", "bank_transfer", "momo", "vnpay"])
+          .optional(),
+        notes: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      const updateData: {
+        status: "pending" | "paid" | "overdue" | "cancelled";
+        paidAt?: Date | null;
+        paymentMethod?: "cash" | "bank_transfer" | "momo" | "vnpay" | null;
+        notes?: string | null;
+      } = {
+        status: input.status,
+      };
+
+      if (input.status === "paid") {
+        updateData.paidAt = new Date();
+        if (input.paymentMethod) {
+          updateData.paymentMethod = input.paymentMethod;
+        }
+      } else {
+        updateData.paidAt = null;
+        updateData.paymentMethod = null;
+      }
+
+      if (input.notes !== undefined) {
+        updateData.notes = input.notes;
+      }
+
+      await ctx.db
+        .update(tutorPayments)
+        .set(updateData)
+        .where(eq(tutorPayments.paymentId, input.paymentId));
+
+      return { success: true };
+    }),
+
+  // =====================
+  // FINANCIAL SUMMARY
+  // =====================
+
+  // Get financial summary for dashboard (manager only)
+  getFinancialSummary: protectedProcedure
+    .input(
+      z.object({
+        year: z.number().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      const currentYear = input.year || new Date().getFullYear();
+      const currentMonth = new Date().getMonth() + 1;
+      const currentMonthStr = `${currentYear}-${String(currentMonth).padStart(
+        2,
+        "0"
+      )}`;
+
+      // Total revenue (all paid billings)
+      const totalRevenueResult = await ctx.db
+        .select({
+          total: sql<number>`coalesce(sum(${tuitionBilling.amount}), 0)::int`,
+        })
+        .from(tuitionBilling)
+        .where(eq(tuitionBilling.status, "paid"));
+
+      // Outstanding bills (pending + overdue)
+      const outstandingResult = await ctx.db
+        .select({
+          total: sql<number>`coalesce(sum(${tuitionBilling.amount}), 0)::int`,
+          count: sql<number>`count(*)::int`,
+        })
+        .from(tuitionBilling)
+        .where(sql`${tuitionBilling.status} IN ('pending', 'overdue')`);
+
+      // This month's revenue
+      const monthRevenueResult = await ctx.db
+        .select({
+          total: sql<number>`coalesce(sum(${tuitionBilling.amount}), 0)::int`,
+        })
+        .from(tuitionBilling)
+        .where(
+          and(
+            eq(tuitionBilling.status, "paid"),
+            eq(tuitionBilling.billingMonth, currentMonthStr)
+          )
+        );
+
+      // Pending tutor payments
+      const pendingTutorPaymentsResult = await ctx.db
+        .select({
+          total: sql<number>`coalesce(sum(${tutorPayments.amount}), 0)::int`,
+          count: sql<number>`count(*)::int`,
+        })
+        .from(tutorPayments)
+        .where(eq(tutorPayments.status, "pending"));
+
+      // Monthly revenue trend (last 12 months)
+      const monthlyTrend = await ctx.db
+        .select({
+          month: tuitionBilling.billingMonth,
+          revenue: sql<number>`coalesce(sum(case when ${tuitionBilling.status} = 'paid' then ${tuitionBilling.amount} else 0 end), 0)::int`,
+          outstanding: sql<number>`coalesce(sum(case when ${tuitionBilling.status} IN ('pending', 'overdue') then ${tuitionBilling.amount} else 0 end), 0)::int`,
+        })
+        .from(tuitionBilling)
+        .groupBy(tuitionBilling.billingMonth)
+        .orderBy(tuitionBilling.billingMonth);
+
+      return {
+        totalRevenue: totalRevenueResult[0]?.total || 0,
+        outstandingBills: outstandingResult[0]?.total || 0,
+        outstandingCount: outstandingResult[0]?.count || 0,
+        monthRevenue: monthRevenueResult[0]?.total || 0,
+        pendingTutorPayments: pendingTutorPaymentsResult[0]?.total || 0,
+        pendingTutorCount: pendingTutorPaymentsResult[0]?.count || 0,
+        monthlyTrend: monthlyTrend,
+      };
+    }),
+
+  // Get all classes for filter dropdowns (manager only)
+  getAllClasses: protectedProcedure.query(async ({ ctx }) => {
+    if (ctx.session.user.role !== "manager") {
+      throw new Error("Access denied - manager only");
+    }
+
+    const allClasses = await ctx.db
+      .select({
+        classId: classes.classId,
+        className: classes.className,
+        classCode: classes.classCode,
+        subject: classes.subject,
+        tuitionRate: classes.tuitionRate,
+        teacherId: classes.teacherId,
+        teacherName: user.name,
+      })
+      .from(classes)
+      .leftJoin(user, eq(classes.teacherId, user.id))
+      .orderBy(classes.className);
+
+    return allClasses;
+  }),
+
+  // Update class tuition rate (manager only)
+  updateClassTuitionRate: protectedProcedure
+    .input(
+      z.object({
+        classId: z.string(),
+        tuitionRate: z.number().min(0),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      await ctx.db
+        .update(classes)
+        .set({ tuitionRate: input.tuitionRate })
+        .where(eq(classes.classId, input.classId));
+
+      return { success: true };
+    }),
 });
 
 export type EducationRouter = typeof educationRouter;

@@ -61,7 +61,7 @@ export default function SignUpForm() {
       );
     },
     validators: {
-      onBlur: z.object({
+      onChangeAfterBlur: z.object({
         name: z.string().min(2, t("validation.nameMin")),
         role: z.enum(["teacher", "student"]),
         email: z.email(t("validation.invalidEmail")),

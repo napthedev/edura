@@ -14,6 +14,8 @@ import {
   Settings,
   Clock,
   CalendarClock,
+  Receipt,
+  Wallet,
 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useTranslations } from "next-intl";
@@ -100,6 +102,16 @@ function SidebarContent({ role }: { role: "teacher" | "student" | "manager" }) {
       href: "/dashboard/manager/finance",
       label: t("finance"),
       icon: LayoutDashboard, // Placeholder
+    },
+    {
+      href: "/dashboard/manager/tuition",
+      label: t("tuition"),
+      icon: Receipt,
+    },
+    {
+      href: "/dashboard/manager/payments",
+      label: t("tutorPayments"),
+      icon: Wallet,
     },
     {
       href: "/dashboard/manager/teachers",
