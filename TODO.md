@@ -14,7 +14,7 @@
 ## 👨‍🏫 Teacher Features
 
 - [x] Build "Weekly Calendar" component to track teaching hours
-- [ ] Create "Deadline Management" table with filters for Class, Task Type, and Status
+- [x] Create "Deadline Management" table with filters for Class, Task Type, and Status
 - [ ] Automated deadline reminders
 - [x] Teaching hours count
 
@@ -95,4 +95,4 @@
 
 
 ## login register
-- [ ] improve error message
+- [x] improve error message

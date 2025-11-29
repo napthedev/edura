@@ -16,6 +16,17 @@ export default function SignInForm() {
   const router = useRouter();
   const t = useTranslations("Auth");
 
+  const getErrorMessage = (error: { code?: string; message?: string }) => {
+    switch (error.code) {
+      case "INVALID_EMAIL_OR_PASSWORD":
+        return t("errors.invalidCredentials");
+      case "INVALID_EMAIL":
+        return t("validation.invalidEmail");
+      default:
+        return error.message || t("errors.generic");
+    }
+  };
+
   const form = useForm({
     defaultValues: {
       email: "",
@@ -33,13 +44,13 @@ export default function SignInForm() {
             toast.success(t("signInSuccess"));
           },
           onError: (error) => {
-            toast.error(error.error.message || error.error.statusText);
+            toast.error(getErrorMessage(error.error));
           },
         }
       );
     },
     validators: {
-      onSubmit: z.object({
+      onBlur: z.object({
         email: z.email(t("validation.invalidEmail")),
         password: z.string().min(8, t("validation.passwordMin")),
       }),

@@ -17,6 +17,22 @@ export default function SignUpForm() {
   const router = useRouter();
   const t = useTranslations("Auth");
 
+  const getErrorMessage = (error: { code?: string; message?: string }) => {
+    switch (error.code) {
+      case "USER_ALREADY_EXISTS":
+      case "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL":
+        return t("errors.userAlreadyExists");
+      case "PASSWORD_TOO_SHORT":
+        return t("errors.passwordTooShort");
+      case "PASSWORD_TOO_LONG":
+        return t("errors.passwordTooLong");
+      case "INVALID_EMAIL":
+        return t("validation.invalidEmail");
+      default:
+        return error.message || t("errors.generic");
+    }
+  };
+
   const form = useForm({
     defaultValues: {
       email: "",
@@ -39,13 +55,13 @@ export default function SignUpForm() {
             toast.success(t("signUpSuccess"));
           },
           onError: (error) => {
-            toast.error(error.error.message || error.error.statusText);
+            toast.error(getErrorMessage(error.error));
           },
         }
       );
     },
     validators: {
-      onSubmit: z.object({
+      onBlur: z.object({
         name: z.string().min(2, t("validation.nameMin")),
         role: z.enum(["teacher", "student"]),
         email: z.email(t("validation.invalidEmail")),

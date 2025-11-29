@@ -227,6 +227,13 @@
       "invalidEmail": "Địa chỉ email không hợp lệ",
       "passwordMin": "Mật khẩu phải tối thiểu 8 ký tự",
       "nameMin": "Tên phải tối thiểu 2 ký tự"
+    },
+    "errors": {
+      "userAlreadyExists": "Email này đã được đăng ký",
+      "invalidCredentials": "Email hoặc mật khẩu không hợp lệ",
+      "passwordTooShort": "Mật khẩu phải tối thiểu 8 ký tự",
+      "passwordTooLong": "Mật khẩu quá dài",
+      "generic": "Đã xảy ra lỗi. Vui lòng thử lại."
     }
   },
   "TeacherDashboard": {

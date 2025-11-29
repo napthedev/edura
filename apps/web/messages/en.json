@@ -227,6 +227,13 @@
       "invalidEmail": "Invalid email address",
       "passwordMin": "Password must be at least 8 characters",
       "nameMin": "Name must be at least 2 characters"
+    },
+    "errors": {
+      "userAlreadyExists": "This email is already registered",
+      "invalidCredentials": "Invalid email or password",
+      "passwordTooShort": "Password must be at least 8 characters",
+      "passwordTooLong": "Password is too long",
+      "generic": "An error occurred. Please try again."
     }
   },
   "TeacherDashboard": {
