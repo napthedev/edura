@@ -372,6 +372,7 @@
     "questionsCount": "Questions",
     "saving": "Saving...",
     "saveAssignment": "Save Assignment",
+    "saveSuccess": "Assignment saved successfully",
     "errorLoadingAssignment": "Error loading assignment",
     "confirmDeleteAssignment": "Are you sure you want to delete this assignment?",
     "back": "Back",
@@ -634,6 +635,7 @@
     "assignments": "Assignments",
     "schedule": "Schedule",
     "requests": "Requests",
+    "deadlines": "Deadlines",
     "finance": "Finance",
     "teachers": "Teachers",
     "customerService": "Customer Service"
@@ -891,5 +893,37 @@
     "dateOfBirth": "Date of Birth",
     "joinedDate": "Joined Date",
     "noStudents": "No students registered yet"
+  },
+  "DeadlineManagement": {
+    "title": "Deadline Management",
+    "description": "Track all your upcoming assignments and deadlines",
+    "columns": {
+      "class": "Class",
+      "task": "Task",
+      "type": "Type",
+      "status": "Status",
+      "dueDate": "Due Date",
+      "action": "Action"
+    },
+    "status": {
+      "submitted": "Submitted",
+      "pending": "Pending",
+      "overdue": "Overdue"
+    },
+    "types": {
+      "assignment": "Assignment"
+    },
+    "filters": {
+      "all": "All",
+      "upcoming": "Upcoming",
+      "overdue": "Overdue",
+      "submitted": "Submitted"
+    },
+    "actions": {
+      "takeAssignment": "Take Assignment",
+      "viewSubmission": "View Submission"
+    },
+    "noDeadlines": "No deadlines found",
+    "noDueDate": "No due date"
   }
 }

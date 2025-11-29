@@ -91,15 +91,19 @@ export default function EditAssignmentPage() {
     mutationFn: async (
       data: AssignmentForm & { assignmentContent: string }
     ) => {
+      const { moduleId, ...rest } = data;
       return await trpcClient.education.updateAssignment.mutate({
         assignmentId,
-        moduleId: data.moduleId === "none" ? undefined : data.moduleId,
-        ...data,
+        moduleId: !moduleId || moduleId === "none" ? null : moduleId,
+        ...rest,
       });
     },
     onSuccess: () => {
       assignmentQuery.refetch();
-      toast.success("Assignment saved successfully");
+      toast.success(t("saveSuccess"));
+    },
+    onError: (error) => {
+      toast.error(error.message);
     },
   });
 
@@ -119,6 +123,7 @@ export default function EditAssignmentPage() {
     resolver: zodResolver(assignmentFormSchema),
     defaultValues: {
       title: "",
+      moduleId: "none",
       description: "",
       dueDate: "",
       testingDuration: undefined,

@@ -92,3 +92,7 @@
 ## 📥 Data Import/Export
 
 - [ ] Upload CSV of students/classes
+
+
+## login register
+- [ ] improve error message

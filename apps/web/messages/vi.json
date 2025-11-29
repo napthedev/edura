@@ -372,6 +372,7 @@
     "questionsCount": "Câu hỏi",
     "saving": "Đang lưu...",
     "saveAssignment": "Lưu bài tập",
+    "saveSuccess": "Bài tập đã được lưu thành công",
     "errorLoadingAssignment": "Lỗi tải bài tập",
     "confirmDeleteAssignment": "Bạn có chắc chắn muốn xóa bài tập này?",
     "back": "Quay lại",
@@ -634,6 +635,7 @@
     "assignments": "Bài tập",
     "schedule": "Lịch trình",
     "requests": "Yêu cầu",
+    "deadlines": "Hạn nộp",
     "finance": "Tài chính",
     "teachers": "Giáo viên",
     "customerService": "Dịch vụ khách hàng"
@@ -891,5 +893,37 @@
     "dateOfBirth": "Ngày sinh",
     "joinedDate": "Ngày tham gia",
     "noStudents": "Chưa có học sinh đăng ký"
+  },
+  "DeadlineManagement": {
+    "title": "Quản lý hạn nộp",
+    "description": "Theo dõi tất cả bài tập và hạn nộp sắp tới",
+    "columns": {
+      "class": "Lớp học",
+      "task": "Nhiệm vụ",
+      "type": "Loại",
+      "status": "Trạng thái",
+      "dueDate": "Hạn nộp",
+      "action": "Hành động"
+    },
+    "status": {
+      "submitted": "Đã nộp",
+      "pending": "Chưa nộp",
+      "overdue": "Quá hạn"
+    },
+    "types": {
+      "assignment": "Bài tập"
+    },
+    "filters": {
+      "all": "Tất cả",
+      "upcoming": "Sắp tới",
+      "overdue": "Quá hạn",
+      "submitted": "Đã nộp"
+    },
+    "actions": {
+      "takeAssignment": "Làm bài",
+      "viewSubmission": "Xem bài nộp"
+    },
+    "noDeadlines": "Không tìm thấy hạn nộp nào",
+    "noDueDate": "Không có hạn nộp"
   }
 }

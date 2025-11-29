@@ -13,6 +13,7 @@ import {
   FileText,
   Settings,
   Clock,
+  CalendarClock,
 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useTranslations } from "next-intl";
@@ -75,6 +76,11 @@ function SidebarContent({ role }: { role: "teacher" | "student" | "manager" }) {
       href: "/dashboard/student/assignments",
       label: t("assignments"),
       icon: FileText,
+    },
+    {
+      href: "/dashboard/student/deadlines",
+      label: t("deadlines"),
+      icon: CalendarClock,
     },
     {
       href: "/dashboard/student/schedule",
