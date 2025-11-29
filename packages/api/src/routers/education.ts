@@ -7,13 +7,41 @@ import {
   submissions,
   lectures,
   announcements,
-  schedules,
+  classSchedules,
   classJoinRequests,
   notifications,
   classModules,
 } from "@edura/db/schema/education";
 import { eq, and, sql } from "drizzle-orm";
 import { user } from "@edura/db/schema/auth";
+
+// Schedule color type
+const scheduleColorSchema = z.enum([
+  "blue",
+  "green",
+  "purple",
+  "orange",
+  "pink",
+  "teal",
+]);
+
+// Helper function to check time overlap
+function timesOverlap(
+  start1: string,
+  end1: string,
+  start2: string,
+  end2: string
+): boolean {
+  const toMinutes = (time: string) => {
+    const [hours, minutes] = time.split(":").map(Number);
+    return hours! * 60 + minutes!;
+  };
+  const s1 = toMinutes(start1);
+  const e1 = toMinutes(end1);
+  const s2 = toMinutes(start2);
+  const e2 = toMinutes(end2);
+  return s1 < e2 && s2 < e1;
+}
 
 // Grading function
 function gradeSubmission(
@@ -51,6 +79,8 @@ export const educationRouter = router({
     .input(
       z.object({
         className: z.string().min(1),
+        subject: z.string().optional(),
+        schedule: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -85,6 +115,8 @@ export const educationRouter = router({
           classId,
           className: input.className,
           classCode: classCode!,
+          subject: input.subject || null,
+          schedule: input.schedule || null,
           teacherId: ctx.session.user.id,
         })
         .returning();
@@ -93,9 +125,19 @@ export const educationRouter = router({
     }),
   getClasses: protectedProcedure.query(async ({ ctx }) => {
     return await ctx.db
-      .select()
+      .select({
+        classId: classes.classId,
+        className: classes.className,
+        classCode: classes.classCode,
+        subject: classes.subject,
+        schedule: classes.schedule,
+        createdAt: classes.createdAt,
+        studentCount: sql<number>`count(${enrollments.enrollmentId})::int`,
+      })
       .from(classes)
-      .where(eq(classes.teacherId, ctx.session.user.id));
+      .leftJoin(enrollments, eq(classes.classId, enrollments.classId))
+      .where(eq(classes.teacherId, ctx.session.user.id))
+      .groupBy(classes.classId);
   }),
   getClassById: protectedProcedure
     .input(z.object({ classId: z.string() }))
@@ -233,6 +275,56 @@ export const educationRouter = router({
         .update(classes)
         .set({ className: input.newName })
         .where(eq(classes.classId, input.classId));
+
+      return { success: true };
+    }),
+  updateClass: protectedProcedure
+    .input(
+      z.object({
+        classId: z.string(),
+        className: z.string().min(1).optional(),
+        subject: z.string().optional(),
+        schedule: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Check if the class belongs to the teacher
+      const classData = await ctx.db
+        .select()
+        .from(classes)
+        .where(
+          and(
+            eq(classes.classId, input.classId),
+            eq(classes.teacherId, ctx.session.user.id)
+          )
+        );
+
+      if (classData.length === 0) {
+        throw new Error("Class not found or access denied");
+      }
+
+      const updateData: {
+        className?: string;
+        subject?: string | null;
+        schedule?: string | null;
+      } = {};
+
+      if (input.className !== undefined) {
+        updateData.className = input.className;
+      }
+      if (input.subject !== undefined) {
+        updateData.subject = input.subject || null;
+      }
+      if (input.schedule !== undefined) {
+        updateData.schedule = input.schedule || null;
+      }
+
+      if (Object.keys(updateData).length > 0) {
+        await ctx.db
+          .update(classes)
+          .set(updateData)
+          .where(eq(classes.classId, input.classId));
+      }
 
       return { success: true };
     }),
@@ -598,6 +690,8 @@ export const educationRouter = router({
         classId: classes.classId,
         className: classes.className,
         classCode: classes.classCode,
+        subject: classes.subject,
+        schedule: classes.schedule,
         teacherName: user.name,
         enrolledAt: enrollments.enrolledAt,
       })
@@ -1207,10 +1301,12 @@ export const educationRouter = router({
     .input(
       z.object({
         classId: z.string(),
+        dayOfWeek: z.number().min(0).max(6), // 0 = Sunday, 6 = Saturday
+        startTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/), // HH:mm format
+        endTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/), // HH:mm format
         title: z.string().min(1),
-        description: z.string().optional(),
-        date: z.string(), // YYYY-MM-DD format
-        time: z.string(), // HH:MM format
+        color: scheduleColorSchema.default("blue"),
+        location: z.string().optional(),
         meetingLink: z.string().optional(),
       })
     )
@@ -1230,23 +1326,49 @@ export const educationRouter = router({
         throw new Error("Class not found or access denied");
       }
 
+      // Validate that endTime is after startTime
+      if (input.startTime >= input.endTime) {
+        throw new Error("End time must be after start time");
+      }
+
+      // Check for overlapping schedules on the same day
+      const existingSchedules = await ctx.db
+        .select()
+        .from(classSchedules)
+        .where(
+          and(
+            eq(classSchedules.classId, input.classId),
+            eq(classSchedules.dayOfWeek, input.dayOfWeek)
+          )
+        );
+
+      const hasOverlap = existingSchedules.some((schedule) =>
+        timesOverlap(
+          input.startTime,
+          input.endTime,
+          schedule.startTime,
+          schedule.endTime
+        )
+      );
+
       const scheduleId = crypto.randomUUID();
-      // Combine date and time into a single timestamp
-      const scheduledAt = new Date(`${input.date}T${input.time}:00`);
 
       const newSchedule = await ctx.db
-        .insert(schedules)
+        .insert(classSchedules)
         .values({
           scheduleId,
           classId: input.classId,
+          dayOfWeek: input.dayOfWeek,
+          startTime: input.startTime,
+          endTime: input.endTime,
           title: input.title,
-          description: input.description,
-          scheduledAt,
+          color: input.color,
+          location: input.location,
           meetingLink: input.meetingLink,
         })
         .returning();
 
-      return newSchedule[0];
+      return { schedule: newSchedule[0], hasOverlap };
     }),
   getClassSchedules: protectedProcedure
     .input(z.object({ classId: z.string() }))
@@ -1282,30 +1404,38 @@ export const educationRouter = router({
 
       return await ctx.db
         .select()
-        .from(schedules)
-        .where(eq(schedules.classId, input.classId))
-        .orderBy(schedules.scheduledAt);
+        .from(classSchedules)
+        .where(eq(classSchedules.classId, input.classId))
+        .orderBy(classSchedules.dayOfWeek, classSchedules.startTime);
     }),
   updateSchedule: protectedProcedure
     .input(
       z.object({
         scheduleId: z.string(),
+        dayOfWeek: z.number().min(0).max(6).optional(),
+        startTime: z
+          .string()
+          .regex(/^([01]\d|2[0-3]):([0-5]\d)$/)
+          .optional(),
+        endTime: z
+          .string()
+          .regex(/^([01]\d|2[0-3]):([0-5]\d)$/)
+          .optional(),
         title: z.string().min(1).optional(),
-        description: z.string().optional(),
-        date: z.string().optional(), // YYYY-MM-DD format
-        time: z.string().optional(), // HH:MM format
-        meetingLink: z.string().optional(),
+        color: scheduleColorSchema.optional(),
+        location: z.string().optional().nullable(),
+        meetingLink: z.string().optional().nullable(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       // Check if the schedule belongs to the teacher
       const scheduleData = await ctx.db
         .select()
-        .from(schedules)
-        .innerJoin(classes, eq(schedules.classId, classes.classId))
+        .from(classSchedules)
+        .innerJoin(classes, eq(classSchedules.classId, classes.classId))
         .where(
           and(
-            eq(schedules.scheduleId, input.scheduleId),
+            eq(classSchedules.scheduleId, input.scheduleId),
             eq(classes.teacherId, ctx.session.user.id)
           )
         );
@@ -1314,35 +1444,56 @@ export const educationRouter = router({
         throw new Error("Schedule not found or access denied");
       }
 
-      const existingSchedule = scheduleData[0]!;
-      const updateData: any = {};
+      const existingSchedule = scheduleData[0]!.class_schedules;
+
+      // Build update data
+      const updateData: Partial<typeof classSchedules.$inferInsert> = {};
+      if (input.dayOfWeek !== undefined) updateData.dayOfWeek = input.dayOfWeek;
+      if (input.startTime !== undefined) updateData.startTime = input.startTime;
+      if (input.endTime !== undefined) updateData.endTime = input.endTime;
       if (input.title !== undefined) updateData.title = input.title;
-      if (input.description !== undefined)
-        updateData.description = input.description;
-      if (input.date !== undefined && input.time !== undefined) {
-        updateData.scheduledAt = new Date(`${input.date}T${input.time}:00`);
-      } else if (input.date !== undefined) {
-        // Update only date, keep existing time
-        const existingTime = existingSchedule.schedules.scheduledAt
-          .toTimeString()
-          .slice(0, 5);
-        updateData.scheduledAt = new Date(`${input.date}T${existingTime}:00`);
-      } else if (input.time !== undefined) {
-        // Update only time, keep existing date
-        const existingDate = existingSchedule.schedules.scheduledAt
-          .toISOString()
-          .slice(0, 10);
-        updateData.scheduledAt = new Date(`${existingDate}T${input.time}:00`);
-      }
+      if (input.color !== undefined) updateData.color = input.color;
+      if (input.location !== undefined)
+        updateData.location = input.location ?? undefined;
       if (input.meetingLink !== undefined)
-        updateData.meetingLink = input.meetingLink;
+        updateData.meetingLink = input.meetingLink ?? undefined;
+
+      // Validate time order if both times are being updated or one is provided
+      const finalStartTime = input.startTime ?? existingSchedule.startTime;
+      const finalEndTime = input.endTime ?? existingSchedule.endTime;
+      if (finalStartTime >= finalEndTime) {
+        throw new Error("End time must be after start time");
+      }
+
+      // Check for overlaps on the target day
+      const targetDay = input.dayOfWeek ?? existingSchedule.dayOfWeek;
+      const existingSchedules = await ctx.db
+        .select()
+        .from(classSchedules)
+        .where(
+          and(
+            eq(classSchedules.classId, existingSchedule.classId),
+            eq(classSchedules.dayOfWeek, targetDay)
+          )
+        );
+
+      const hasOverlap = existingSchedules.some(
+        (schedule) =>
+          schedule.scheduleId !== input.scheduleId &&
+          timesOverlap(
+            finalStartTime,
+            finalEndTime,
+            schedule.startTime,
+            schedule.endTime
+          )
+      );
 
       await ctx.db
-        .update(schedules)
+        .update(classSchedules)
         .set(updateData)
-        .where(eq(schedules.scheduleId, input.scheduleId));
+        .where(eq(classSchedules.scheduleId, input.scheduleId));
 
-      return { success: true };
+      return { success: true, hasOverlap };
     }),
   deleteSchedule: protectedProcedure
     .input(z.object({ scheduleId: z.string() }))
@@ -1350,11 +1501,11 @@ export const educationRouter = router({
       // Check if the schedule belongs to the teacher
       const scheduleData = await ctx.db
         .select()
-        .from(schedules)
-        .innerJoin(classes, eq(schedules.classId, classes.classId))
+        .from(classSchedules)
+        .innerJoin(classes, eq(classSchedules.classId, classes.classId))
         .where(
           and(
-            eq(schedules.scheduleId, input.scheduleId),
+            eq(classSchedules.scheduleId, input.scheduleId),
             eq(classes.teacherId, ctx.session.user.id)
           )
         );
@@ -1364,26 +1515,26 @@ export const educationRouter = router({
       }
 
       await ctx.db
-        .delete(schedules)
-        .where(eq(schedules.scheduleId, input.scheduleId));
+        .delete(classSchedules)
+        .where(eq(classSchedules.scheduleId, input.scheduleId));
 
       return { success: true };
     }),
   getAllTeacherSchedules: protectedProcedure.query(async ({ ctx }) => {
-    // Fetch all schedules for classes owned by the teacher
+    // Fetch all weekly schedules for classes owned by the teacher
     return await ctx.db
       .select()
-      .from(schedules)
-      .innerJoin(classes, eq(schedules.classId, classes.classId))
+      .from(classSchedules)
+      .innerJoin(classes, eq(classSchedules.classId, classes.classId))
       .where(eq(classes.teacherId, ctx.session.user.id))
-      .orderBy(schedules.scheduledAt);
+      .orderBy(classSchedules.dayOfWeek, classSchedules.startTime);
   }),
   getStudentSchedules: protectedProcedure.query(async ({ ctx }) => {
-    // Fetch all schedules for classes the student is enrolled in
+    // Fetch all weekly schedules for classes the student is enrolled in
     return await ctx.db
       .select()
-      .from(schedules)
-      .innerJoin(classes, eq(schedules.classId, classes.classId))
+      .from(classSchedules)
+      .innerJoin(classes, eq(classSchedules.classId, classes.classId))
       .innerJoin(
         enrollments,
         and(
@@ -1391,7 +1542,60 @@ export const educationRouter = router({
           eq(enrollments.studentId, ctx.session.user.id)
         )
       )
-      .orderBy(schedules.scheduledAt);
+      .orderBy(classSchedules.dayOfWeek, classSchedules.startTime);
+  }),
+  getTeachingHoursStats: protectedProcedure.query(async ({ ctx }) => {
+    // Helper to convert "HH:mm" to minutes
+    const toMinutes = (time: string) => {
+      const [hours, minutes] = time.split(":").map(Number);
+      return hours! * 60 + minutes!;
+    };
+
+    // Fetch all schedules for teacher's classes
+    const schedules = await ctx.db
+      .select({
+        classId: classes.classId,
+        className: classes.className,
+        startTime: classSchedules.startTime,
+        endTime: classSchedules.endTime,
+      })
+      .from(classSchedules)
+      .innerJoin(classes, eq(classSchedules.classId, classes.classId))
+      .where(eq(classes.teacherId, ctx.session.user.id));
+
+    // Calculate hours per class
+    const classHoursMap = new Map<
+      string,
+      { classId: string; className: string; hours: number }
+    >();
+
+    for (const schedule of schedules) {
+      const durationMinutes =
+        toMinutes(schedule.endTime) - toMinutes(schedule.startTime);
+      const durationHours = durationMinutes / 60;
+
+      const existing = classHoursMap.get(schedule.classId);
+      if (existing) {
+        existing.hours += durationHours;
+      } else {
+        classHoursMap.set(schedule.classId, {
+          classId: schedule.classId,
+          className: schedule.className,
+          hours: durationHours,
+        });
+      }
+    }
+
+    const perClass = Array.from(classHoursMap.values()).sort(
+      (a, b) => b.hours - a.hours
+    );
+    const totalWeeklyHours = perClass.reduce((sum, c) => sum + c.hours, 0);
+
+    return {
+      totalWeeklyHours,
+      monthlyHoursEstimate: totalWeeklyHours * 4,
+      perClass,
+    };
   }),
   generateQuestionsFromDocument: protectedProcedure
     .input(

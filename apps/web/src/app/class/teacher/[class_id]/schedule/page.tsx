@@ -3,7 +3,6 @@
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { trpcClient } from "@/utils/trpc";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CreateScheduleForm from "@/components/schedule/schedule-form";
 import ScheduleCalendar from "@/components/schedule/schedule-calendar";
 import Loader from "@/components/loader";
@@ -21,34 +20,27 @@ export default function SchedulePage() {
   });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
           <Calendar className="h-6 w-6" />
-          {t("schedule")}
+          {t("weeklySchedule")}
         </h2>
+        <CreateScheduleForm
+          classId={classId}
+          onSuccess={() => schedulesQuery.refetch()}
+        />
       </div>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0">
-          <CardTitle>{t("classSchedule")}</CardTitle>
-          <CreateScheduleForm
-            classId={classId}
-            onSuccess={() => schedulesQuery.refetch()}
-          />
-        </CardHeader>
-        <CardContent>
-          {schedulesQuery.isLoading ? (
-            <Loader />
-          ) : (
-            <ScheduleCalendar
-              schedules={schedulesQuery.data || []}
-              classId={classId}
-              onScheduleUpdate={() => schedulesQuery.refetch()}
-              isTeacher={true}
-            />
-          )}
-        </CardContent>
-      </Card>
+      {schedulesQuery.isLoading ? (
+        <Loader />
+      ) : (
+        <ScheduleCalendar
+          schedules={schedulesQuery.data || []}
+          classId={classId}
+          onScheduleUpdate={() => schedulesQuery.refetch()}
+          isTeacher={true}
+        />
+      )}
     </div>
   );
 }

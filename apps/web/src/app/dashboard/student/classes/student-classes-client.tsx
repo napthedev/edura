@@ -6,6 +6,7 @@ import Link from "next/link";
 import Loader from "@/components/loader";
 import { useTranslations } from "next-intl";
 import { JoinClassForm } from "@/components/join-class-form";
+import { GraduationCap, Calendar } from "lucide-react";
 
 export default function StudentClassesClient() {
   const t = useTranslations("StudentDashboard");
@@ -48,6 +49,18 @@ export default function StudentClassesClient() {
                         {enrollment.classCode}
                       </span>
                     </p>
+                    {enrollment.subject && (
+                      <p className="text-sm text-slate-500 mt-2 flex items-center gap-1.5">
+                        <GraduationCap className="size-4" />
+                        {enrollment.subject}
+                      </p>
+                    )}
+                    {enrollment.schedule && (
+                      <p className="text-sm text-slate-500 mt-1 flex items-center gap-1.5">
+                        <Calendar className="size-4" />
+                        {enrollment.schedule}
+                      </p>
+                    )}
                   </div>
                   <p className="text-xs text-slate-400 mt-4 pt-4 border-t">
                     {t("joined")}:{" "}

@@ -7,7 +7,19 @@ import Link from "next/link";
 import Loader from "@/components/loader";
 import { useTranslations } from "next-intl";
 import ScheduleCalendar from "@/components/schedule/schedule-calendar";
-import { BookOpen } from "lucide-react";
+import { BookOpen, Calendar } from "lucide-react";
+
+interface Schedule {
+  scheduleId: string;
+  classId: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  title: string;
+  color: string;
+  location?: string | null;
+  meetingLink?: string | null;
+}
 
 export default function StudentScheduleClient() {
   const t = useTranslations("StudentDashboard");
@@ -17,43 +29,60 @@ export default function StudentScheduleClient() {
   });
 
   // Flatten the data structure and group by class
-  const allSchedules =
+  const allSchedules: (Schedule & { className: string })[] =
     schedulesQuery.data?.map((item: any) => ({
-      scheduleId: item.schedules.scheduleId,
-      classId: item.schedules.classId,
+      scheduleId: item.class_schedules.scheduleId,
+      classId: item.class_schedules.classId,
       className: item.classes.className,
-      title: item.schedules.title,
-      description: item.schedules.description,
-      scheduledAt: item.schedules.scheduledAt,
-      meetingLink: item.schedules.meetingLink,
+      dayOfWeek: item.class_schedules.dayOfWeek,
+      startTime: item.class_schedules.startTime,
+      endTime: item.class_schedules.endTime,
+      title: item.class_schedules.title,
+      color: item.class_schedules.color,
+      location: item.class_schedules.location,
+      meetingLink: item.class_schedules.meetingLink,
     })) || [];
 
   // Group schedules by class
-  const schedulesByClass = allSchedules.reduce((acc: any, schedule: any) => {
-    if (!acc[schedule.classId]) {
-      acc[schedule.classId] = {
-        className: schedule.className,
+  const schedulesByClass = allSchedules.reduce(
+    (
+      acc: Record<
+        string,
+        { className: string; classId: string; schedules: Schedule[] }
+      >,
+      schedule
+    ) => {
+      if (!acc[schedule.classId]) {
+        acc[schedule.classId] = {
+          className: schedule.className,
+          classId: schedule.classId,
+          schedules: [],
+        };
+      }
+      acc[schedule.classId].schedules.push({
+        scheduleId: schedule.scheduleId,
         classId: schedule.classId,
-        schedules: [],
-      };
-    }
-    acc[schedule.classId].schedules.push({
-      scheduleId: schedule.scheduleId,
-      title: schedule.title,
-      description: schedule.description,
-      scheduledAt: schedule.scheduledAt,
-      meetingLink: schedule.meetingLink,
-    });
-    return acc;
-  }, {});
+        dayOfWeek: schedule.dayOfWeek,
+        startTime: schedule.startTime,
+        endTime: schedule.endTime,
+        title: schedule.title,
+        color: schedule.color,
+        location: schedule.location,
+        meetingLink: schedule.meetingLink,
+      });
+      return acc;
+    },
+    {}
+  );
 
   const schedulesList = Object.values(schedulesByClass);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-          {t("schedule")}
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2">
+          <Calendar className="size-6" />
+          {t("weeklySchedule")}
         </h1>
       </div>
 
@@ -78,12 +107,14 @@ export default function StudentScheduleClient() {
         </Card>
       ) : (
         <div className="space-y-6">
-          {schedulesList.map((classSchedule: any) => (
+          {schedulesList.map((classSchedule) => (
             <Card key={classSchedule.classId} className="shadow-sm border-none">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>{classSchedule.className}</CardTitle>
-                  <Link href={`/class/student/${classSchedule.classId}`}>
+                  <Link
+                    href={`/class/student/${classSchedule.classId}/schedule`}
+                  >
                     <Button variant="outline" size="sm">
                       {t("viewMyClasses")}
                     </Button>

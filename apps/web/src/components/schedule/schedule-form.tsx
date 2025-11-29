@@ -1,11 +1,9 @@
 "use client";
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { useMutation } from "@tanstack/react-query";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { trpcClient } from "@/utils/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import {
@@ -15,22 +13,48 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useTranslations } from "next-intl";
-import { CalendarPlus, Plus } from "lucide-react";
+import { CalendarPlus, Plus, Pencil } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+// Predefined colors for schedule items
+const SCHEDULE_COLORS = [
+  { value: "blue", label: "Blue", class: "bg-blue-500" },
+  { value: "green", label: "Green", class: "bg-green-500" },
+  { value: "purple", label: "Purple", class: "bg-purple-500" },
+  { value: "orange", label: "Orange", class: "bg-orange-500" },
+  { value: "pink", label: "Pink", class: "bg-pink-500" },
+  { value: "teal", label: "Teal", class: "bg-teal-500" },
+] as const;
+
+type ScheduleColor = (typeof SCHEDULE_COLORS)[number]["value"];
 
 interface CreateScheduleFormProps {
   classId: string;
   onSuccess?: () => void;
 }
 
+interface Schedule {
+  scheduleId: string;
+  classId: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  title: string;
+  color: string;
+  location?: string | null;
+  meetingLink?: string | null;
+}
+
 interface EditScheduleFormProps extends CreateScheduleFormProps {
-  schedule?: {
-    scheduleId: string;
-    title: string;
-    description?: string | null;
-    scheduledAt: string;
-    meetingLink?: string | null;
-  };
+  schedule: Schedule;
 }
 
 export default function CreateScheduleForm({
@@ -39,32 +63,48 @@ export default function CreateScheduleForm({
 }: CreateScheduleFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
+  const [dayOfWeek, setDayOfWeek] = useState<string>("1"); // Default Monday
+  const [startTime, setStartTime] = useState("09:00");
+  const [endTime, setEndTime] = useState("10:00");
+  const [color, setColor] = useState<ScheduleColor>("blue");
+  const [location, setLocation] = useState("");
   const [meetingLink, setMeetingLink] = useState("");
   const queryClient = useQueryClient();
   const t = useTranslations("ScheduleForm");
 
+  const dayOptions = [
+    { value: "0", label: t("sunday") },
+    { value: "1", label: t("monday") },
+    { value: "2", label: t("tuesday") },
+    { value: "3", label: t("wednesday") },
+    { value: "4", label: t("thursday") },
+    { value: "5", label: t("friday") },
+    { value: "6", label: t("saturday") },
+  ];
+
   const createMutation = useMutation({
     mutationFn: (data: {
+      classId: string;
+      dayOfWeek: number;
+      startTime: string;
+      endTime: string;
       title: string;
-      description?: string;
-      date: string;
-      time: string;
+      color: ScheduleColor;
+      location?: string;
       meetingLink?: string;
-    }) =>
-      trpcClient.education.createSchedule.mutate({
-        classId,
-        ...data,
-      }),
-    onSuccess: () => {
+    }) => trpcClient.education.createSchedule.mutate(data),
+    onSuccess: (result) => {
       toast.success(t("scheduleCreated"));
+      if (result.hasOverlap) {
+        toast.warning(t("overlapWarning"));
+      }
       setIsOpen(false);
       resetForm();
-      // Invalidate schedules query
       queryClient.invalidateQueries({
         queryKey: ["class-schedules", classId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["all-teacher-schedules"],
       });
       onSuccess?.();
     },
@@ -75,9 +115,11 @@ export default function CreateScheduleForm({
 
   const resetForm = () => {
     setTitle("");
-    setDescription("");
-    setDate("");
-    setTime("");
+    setDayOfWeek("1");
+    setStartTime("09:00");
+    setEndTime("10:00");
+    setColor("blue");
+    setLocation("");
     setMeetingLink("");
   };
 
@@ -87,20 +129,27 @@ export default function CreateScheduleForm({
       toast.error(t("titleRequired"));
       return;
     }
-    if (!date) {
-      toast.error(t("dateRequired"));
+    if (!startTime) {
+      toast.error(t("startTimeRequired"));
       return;
     }
-    if (!time) {
-      toast.error(t("timeRequired"));
+    if (!endTime) {
+      toast.error(t("endTimeRequired"));
+      return;
+    }
+    if (startTime >= endTime) {
+      toast.error(t("endTimeAfterStartTime"));
       return;
     }
 
     createMutation.mutate({
+      classId,
+      dayOfWeek: parseInt(dayOfWeek),
+      startTime,
+      endTime,
       title: title.trim(),
-      description: description.trim() || undefined,
-      date,
-      time,
+      color,
+      location: location.trim() || undefined,
       meetingLink: meetingLink.trim() || undefined,
     });
   };
@@ -133,37 +182,73 @@ export default function CreateScheduleForm({
           </div>
 
           <div>
-            <Label htmlFor="description">{t("description")}</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder={t("enterScheduleDescription")}
-              rows={3}
-            />
+            <Label htmlFor="dayOfWeek">{t("dayOfWeekLabel")}</Label>
+            <Select value={dayOfWeek} onValueChange={setDayOfWeek}>
+              <SelectTrigger>
+                <SelectValue placeholder={t("selectDay")} />
+              </SelectTrigger>
+              <SelectContent>
+                {dayOptions.map((day) => (
+                  <SelectItem key={day.value} value={day.value}>
+                    {day.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="date">{t("dateLabel")}</Label>
+              <Label htmlFor="startTime">{t("startTimeLabel")}</Label>
               <Input
-                id="date"
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
+                id="startTime"
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
                 required
               />
             </div>
             <div>
-              <Label htmlFor="time">{t("timeLabel")}</Label>
+              <Label htmlFor="endTime">{t("endTimeLabel")}</Label>
               <Input
-                id="time"
+                id="endTime"
                 type="time"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
                 required
               />
             </div>
+          </div>
+
+          <div>
+            <Label>{t("colorLabel")}</Label>
+            <div className="flex gap-2 mt-2">
+              {SCHEDULE_COLORS.map((c) => (
+                <button
+                  key={c.value}
+                  type="button"
+                  onClick={() => setColor(c.value)}
+                  className={cn(
+                    "size-8 rounded-full transition-all",
+                    c.class,
+                    color === c.value
+                      ? "ring-2 ring-offset-2 ring-slate-900 dark:ring-slate-100"
+                      : "opacity-60 hover:opacity-100"
+                  )}
+                  title={c.label}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="location">{t("locationLabel")}</Label>
+            <Input
+              id="location"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder={t("locationPlaceholder")}
+            />
           </div>
 
           <div>
@@ -203,33 +288,50 @@ export function EditScheduleForm({
   onSuccess,
 }: EditScheduleFormProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [title, setTitle] = useState(schedule?.title || "");
-  const [description, setDescription] = useState(schedule?.description || "");
-  const [date, setDate] = useState(
-    schedule ? new Date(schedule.scheduledAt).toISOString().split("T")[0] : ""
+  const [title, setTitle] = useState(schedule.title);
+  const [dayOfWeek, setDayOfWeek] = useState(String(schedule.dayOfWeek));
+  const [startTime, setStartTime] = useState(schedule.startTime);
+  const [endTime, setEndTime] = useState(schedule.endTime);
+  const [color, setColor] = useState<ScheduleColor>(
+    schedule.color as ScheduleColor
   );
-  const [time, setTime] = useState(
-    schedule ? new Date(schedule.scheduledAt).toTimeString().slice(0, 5) : ""
-  );
-  const [meetingLink, setMeetingLink] = useState(schedule?.meetingLink || "");
+  const [location, setLocation] = useState(schedule.location || "");
+  const [meetingLink, setMeetingLink] = useState(schedule.meetingLink || "");
   const queryClient = useQueryClient();
   const t = useTranslations("ScheduleForm");
+
+  const dayOptions = [
+    { value: "0", label: t("sunday") },
+    { value: "1", label: t("monday") },
+    { value: "2", label: t("tuesday") },
+    { value: "3", label: t("wednesday") },
+    { value: "4", label: t("thursday") },
+    { value: "5", label: t("friday") },
+    { value: "6", label: t("saturday") },
+  ];
 
   const updateMutation = useMutation({
     mutationFn: (data: {
       scheduleId: string;
+      dayOfWeek?: number;
+      startTime?: string;
+      endTime?: string;
       title?: string;
-      description?: string;
-      date?: string;
-      time?: string;
-      meetingLink?: string;
+      color?: ScheduleColor;
+      location?: string | null;
+      meetingLink?: string | null;
     }) => trpcClient.education.updateSchedule.mutate(data),
-    onSuccess: () => {
+    onSuccess: (result) => {
       toast.success(t("scheduleUpdated"));
+      if (result.hasOverlap) {
+        toast.warning(t("overlapWarning"));
+      }
       setIsOpen(false);
-      // Invalidate schedules query
       queryClient.invalidateQueries({
         queryKey: ["class-schedules", classId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["all-teacher-schedules"],
       });
       onSuccess?.();
     },
@@ -240,28 +342,36 @@ export function EditScheduleForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!schedule) return;
-
     if (!title.trim()) {
       toast.error(t("titleRequired"));
+      return;
+    }
+    if (startTime >= endTime) {
+      toast.error(t("endTimeAfterStartTime"));
       return;
     }
 
     updateMutation.mutate({
       scheduleId: schedule.scheduleId,
+      dayOfWeek: parseInt(dayOfWeek),
+      startTime,
+      endTime,
       title: title.trim(),
-      description: description.trim() || undefined,
-      date: date || undefined,
-      time: time || undefined,
-      meetingLink: meetingLink.trim() || undefined,
+      color,
+      location: location.trim() || null,
+      meetingLink: meetingLink.trim() || null,
     });
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          {t("edit")}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-6 text-muted-foreground hover:text-foreground"
+        >
+          <Pencil className="size-3" />
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
@@ -281,39 +391,73 @@ export function EditScheduleForm({
           </div>
 
           <div>
-            <Label htmlFor="edit-description">{t("description")}</Label>
-            <Textarea
-              id="edit-description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder={t("enterScheduleDescription")}
-              rows={3}
-            />
+            <Label htmlFor="edit-dayOfWeek">{t("dayOfWeekLabel")}</Label>
+            <Select value={dayOfWeek} onValueChange={setDayOfWeek}>
+              <SelectTrigger>
+                <SelectValue placeholder={t("selectDay")} />
+              </SelectTrigger>
+              <SelectContent>
+                {dayOptions.map((day) => (
+                  <SelectItem key={day.value} value={day.value}>
+                    {day.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="edit-date">
-                {t("dateLabel").replace(" *", "")}
-              </Label>
+              <Label htmlFor="edit-startTime">{t("startTimeLabel")}</Label>
               <Input
-                id="edit-date"
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
+                id="edit-startTime"
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                required
               />
             </div>
             <div>
-              <Label htmlFor="edit-time">
-                {t("timeLabel").replace(" *", "")}
-              </Label>
+              <Label htmlFor="edit-endTime">{t("endTimeLabel")}</Label>
               <Input
-                id="edit-time"
+                id="edit-endTime"
                 type="time"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                required
               />
             </div>
+          </div>
+
+          <div>
+            <Label>{t("colorLabel")}</Label>
+            <div className="flex gap-2 mt-2">
+              {SCHEDULE_COLORS.map((c) => (
+                <button
+                  key={c.value}
+                  type="button"
+                  onClick={() => setColor(c.value)}
+                  className={cn(
+                    "size-8 rounded-full transition-all",
+                    c.class,
+                    color === c.value
+                      ? "ring-2 ring-offset-2 ring-slate-900 dark:ring-slate-100"
+                      : "opacity-60 hover:opacity-100"
+                  )}
+                  title={c.label}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="edit-location">{t("locationLabel")}</Label>
+            <Input
+              id="edit-location"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder={t("locationPlaceholder")}
+            />
           </div>
 
           <div>

@@ -1,15 +1,21 @@
 "use client";
 
-import { useState } from "react";
 import { redirect } from "next/navigation";
-import { authClient, useSession } from "@/lib/auth-client";
+import { useSession } from "@/lib/auth-client";
 import Loader from "@/components/loader";
 import { JoinClassForm } from "@/components/join-class-form";
 import { useQuery } from "@tanstack/react-query";
 import { trpcClient } from "@/utils/trpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { BookOpen, Clock, LayoutDashboard, FolderOpen } from "lucide-react";
+import {
+  BookOpen,
+  Clock,
+  LayoutDashboard,
+  FolderOpen,
+  GraduationCap,
+  Calendar,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 
 export default function StudentDashboardPage() {
@@ -112,6 +118,18 @@ export default function StudentDashboardPage() {
                         {enrollment.classCode}
                       </span>
                     </p>
+                    {enrollment.subject && (
+                      <p className="text-sm text-slate-500 mt-2 flex items-center gap-1.5">
+                        <GraduationCap className="size-4" />
+                        {enrollment.subject}
+                      </p>
+                    )}
+                    {enrollment.schedule && (
+                      <p className="text-sm text-slate-500 mt-1 flex items-center gap-1.5">
+                        <Calendar className="size-4" />
+                        {enrollment.schedule}
+                      </p>
+                    )}
                   </div>
                   <p className="text-xs text-slate-400 mt-4 pt-4 border-t">
                     {t("joined")}:{" "}

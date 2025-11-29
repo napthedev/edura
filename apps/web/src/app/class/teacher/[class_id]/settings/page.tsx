@@ -11,17 +11,27 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Copy, Edit, Trash2, Settings } from "lucide-react";
+import {
+  Copy,
+  Edit,
+  Trash2,
+  Settings,
+  GraduationCap,
+  Calendar,
+  BookOpen,
+} from "lucide-react";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,24 +52,42 @@ export default function SettingsPage() {
   const router = useRouter();
   const t = useTranslations("ClassPage");
   const ts = useTranslations("ClassPageSettings");
-  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
-  const [newClassName, setNewClassName] = useState("");
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    className: "",
+    subject: "",
+    schedule: "",
+  });
 
   const classQuery = useQuery({
     queryKey: ["class", classId],
     queryFn: () => trpcClient.education.getClassById.query({ classId }),
   });
 
-  const renameMutation = useMutation({
-    mutationFn: (newName: string) =>
-      trpcClient.education.renameClass.mutate({ classId, newName }),
+  // Update form data when class data is loaded
+  useEffect(() => {
+    if (classQuery.data) {
+      setEditFormData({
+        className: classQuery.data.className || "",
+        subject: classQuery.data.subject || "",
+        schedule: classQuery.data.schedule || "",
+      });
+    }
+  }, [classQuery.data]);
+
+  const updateMutation = useMutation({
+    mutationFn: (data: {
+      className?: string;
+      subject?: string;
+      schedule?: string;
+    }) => trpcClient.education.updateClass.mutate({ classId, ...data }),
     onSuccess: () => {
-      toast.success(ts("classRenamedSuccess"));
-      setRenameDialogOpen(false);
+      toast.success(ts("classUpdatedSuccess"));
+      setEditDialogOpen(false);
       classQuery.refetch();
     },
     onError: (error) => {
-      toast.error(`${ts("failedToRename")}: ${error.message}`);
+      toast.error(`${ts("failedToUpdate")}: ${error.message}`);
     },
   });
 
@@ -81,9 +109,13 @@ export default function SettingsPage() {
     }
   };
 
-  const handleRename = () => {
-    if (newClassName.trim()) {
-      renameMutation.mutate(newClassName.trim());
+  const handleUpdate = () => {
+    if (editFormData.className.trim()) {
+      updateMutation.mutate({
+        className: editFormData.className.trim(),
+        subject: editFormData.subject.trim() || undefined,
+        schedule: editFormData.schedule.trim() || undefined,
+      });
     }
   };
 
@@ -130,13 +162,16 @@ export default function SettingsPage() {
           </div>
 
           <div className="flex items-center justify-between p-4 border rounded-lg">
-            <div>
-              <p className="font-medium">{t("renameClass")}</p>
+            <div className="flex-1 mr-4">
+              <p className="font-medium flex items-center gap-2">
+                <BookOpen className="size-4" />
+                {t("renameClass")}
+              </p>
               <p className="text-sm text-muted-foreground">
-                {ts("changeClassName")}
+                {classData.className}
               </p>
             </div>
-            <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
+            <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline">
                   <Edit className="w-4 h-4 mr-2" />
@@ -145,38 +180,114 @@ export default function SettingsPage() {
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>{t("renameClass")}</DialogTitle>
+                  <DialogTitle>{ts("updateClass")}</DialogTitle>
                 </DialogHeader>
-                <div className="space-y-4">
-                  <div>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="className"
+                      className="flex items-center gap-2"
+                    >
+                      <BookOpen className="size-4" />
+                      {t("renameClass")}
+                    </Label>
                     <Input
                       id="className"
-                      value={newClassName}
-                      onChange={(e) => setNewClassName(e.target.value)}
+                      value={editFormData.className}
+                      onChange={(e) =>
+                        setEditFormData((prev) => ({
+                          ...prev,
+                          className: e.target.value,
+                        }))
+                      }
                       placeholder={t("enterNewClassName")}
                     />
                   </div>
-                  <div className="flex gap-2 justify-end">
-                    <Button
-                      variant="outline"
-                      onClick={() => setRenameDialogOpen(false)}
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="subject"
+                      className="flex items-center gap-2"
                     >
-                      {t("cancel")}
-                    </Button>
-                    <Button
-                      onClick={handleRename}
-                      disabled={
-                        renameMutation.isPending || !newClassName.trim()
+                      <GraduationCap className="size-4" />
+                      {ts("subject")}
+                    </Label>
+                    <Input
+                      id="subject"
+                      value={editFormData.subject}
+                      onChange={(e) =>
+                        setEditFormData((prev) => ({
+                          ...prev,
+                          subject: e.target.value,
+                        }))
                       }
+                      placeholder={ts("subjectPlaceholder")}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="schedule"
+                      className="flex items-center gap-2"
                     >
-                      {renameMutation.isPending
-                        ? t("renaming")
-                        : t("renameButton")}
-                    </Button>
+                      <Calendar className="size-4" />
+                      {ts("schedule")}
+                    </Label>
+                    <Input
+                      id="schedule"
+                      value={editFormData.schedule}
+                      onChange={(e) =>
+                        setEditFormData((prev) => ({
+                          ...prev,
+                          schedule: e.target.value,
+                        }))
+                      }
+                      placeholder={ts("schedulePlaceholder")}
+                    />
                   </div>
                 </div>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setEditDialogOpen(false)}
+                  >
+                    {t("cancel")}
+                  </Button>
+                  <Button
+                    onClick={handleUpdate}
+                    disabled={
+                      updateMutation.isPending || !editFormData.className.trim()
+                    }
+                  >
+                    {updateMutation.isPending
+                      ? ts("updating")
+                      : ts("updateClass")}
+                  </Button>
+                </DialogFooter>
               </DialogContent>
             </Dialog>
+          </div>
+
+          <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div className="flex-1 mr-4">
+              <p className="font-medium flex items-center gap-2">
+                <GraduationCap className="size-4" />
+                {ts("subject")}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {classData.subject || ts("noSubject")}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div className="flex-1 mr-4">
+              <p className="font-medium flex items-center gap-2">
+                <Calendar className="size-4" />
+                {ts("schedule")}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {classData.schedule || ts("noSchedule")}
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -10,7 +10,14 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Copy, LogOut, Settings } from "lucide-react";
+import {
+  Copy,
+  LogOut,
+  Settings,
+  BookOpen,
+  GraduationCap,
+  Calendar,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -96,6 +103,36 @@ export default function SettingsPage() {
               <Copy className="w-4 h-4 mr-2" />
               {t("copyCode")}
             </Button>
+          </div>
+
+          <div className="p-4 border rounded-lg">
+            <p className="font-medium flex items-center gap-2">
+              <BookOpen className="size-4" />
+              {t("classCode").replace("Code", "Name")}
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {classData.className}
+            </p>
+          </div>
+
+          <div className="p-4 border rounded-lg">
+            <p className="font-medium flex items-center gap-2">
+              <GraduationCap className="size-4" />
+              {ts("subject")}
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {classData.subject || ts("noSubject")}
+            </p>
+          </div>
+
+          <div className="p-4 border rounded-lg">
+            <p className="font-medium flex items-center gap-2">
+              <Calendar className="size-4" />
+              {ts("schedule")}
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {classData.schedule || ts("noSchedule")}
+            </p>
           </div>
         </CardContent>
       </Card>

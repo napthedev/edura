@@ -7,14 +7,27 @@ import {
   boolean,
   jsonb,
   pgEnum,
+  smallint,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth";
+
+// Schedule color enum
+export const scheduleColorEnum = pgEnum("schedule_color", [
+  "blue",
+  "green",
+  "purple",
+  "orange",
+  "pink",
+  "teal",
+]);
 
 // Classes table
 export const classes = pgTable("classes", {
   classId: text("class_id").primaryKey(),
   className: text("class_name").notNull(),
   classCode: text("class_code").notNull().unique(),
+  subject: text("subject"),
+  schedule: text("schedule"),
   teacherId: text("teacher_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
@@ -86,16 +99,19 @@ export const announcements = pgTable("announcements", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-// Schedules table
-export const schedules = pgTable("schedules", {
+// Class Schedules table (weekly recurring sessions)
+export const classSchedules = pgTable("class_schedules", {
   scheduleId: text("schedule_id").primaryKey(),
   classId: text("class_id")
     .notNull()
     .references(() => classes.classId, { onDelete: "cascade" }),
+  dayOfWeek: smallint("day_of_week").notNull(), // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  startTime: text("start_time").notNull(), // Format: "HH:mm" (e.g., "09:00")
+  endTime: text("end_time").notNull(), // Format: "HH:mm" (e.g., "10:30")
   title: text("title").notNull(),
-  description: text("description"),
-  scheduledAt: timestamp("scheduled_at").notNull(),
-  meetingLink: text("meeting_link"),
+  color: scheduleColorEnum("color").notNull().default("blue"),
+  location: text("location"), // Optional physical location
+  meetingLink: text("meeting_link"), // Optional online meeting link
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
