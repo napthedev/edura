@@ -197,10 +197,13 @@
     "submitting": "Đang gửi...",
     "signInSuccess": "Đăng nhập thành công",
     "signUpSuccess": "Đăng ký thành công",
+    "showPassword": "Hiện mật khẩu",
+    "hidePassword": "Ẩn mật khẩu",
     "validation": {
       "invalidEmail": "Địa chỉ email không hợp lệ",
       "passwordMin": "Mật khẩu phải tối thiểu 8 ký tự",
-      "nameMin": "Tên phải tối thiểu 2 ký tự"
+      "nameMin": "Tên phải tối thiểu 2 ký tự",
+      "fieldsRequired": "Vui lòng điền đầy đủ các trường"
     },
     "errors": {
       "userAlreadyExists": "Email này đã được đăng ký",
@@ -954,7 +957,31 @@
     "common": {
       "add": "Thêm",
       "adding": "Đang thêm...",
-      "cancel": "Hủy"
+      "cancel": "Hủy",
+      "showPassword": "Hiện mật khẩu",
+      "hidePassword": "Ẩn mật khẩu"
+    },
+    "changePassword": {
+      "title": "Đổi mật khẩu",
+      "currentPassword": "Mật khẩu hiện tại",
+      "currentPasswordPlaceholder": "Nhập mật khẩu hiện tại",
+      "newPassword": "Mật khẩu mới",
+      "newPasswordPlaceholder": "Nhập mật khẩu mới",
+      "confirmPassword": "Xác nhận mật khẩu mới",
+      "confirmPasswordPlaceholder": "Nhập lại mật khẩu mới",
+      "submit": "Đổi mật khẩu",
+      "submitting": "Đang đổi...",
+      "successMessage": "Đổi mật khẩu thành công",
+      "errorMessage": "Đổi mật khẩu thất bại",
+      "errors": {
+        "currentPasswordRequired": "Vui lòng nhập mật khẩu hiện tại",
+        "passwordMin": "Mật khẩu phải có ít nhất 8 ký tự",
+        "passwordUppercase": "Mật khẩu phải chứa ít nhất một chữ in hoa",
+        "passwordNumber": "Mật khẩu phải chứa ít nhất một số",
+        "passwordSpecial": "Mật khẩu phải chứa ít nhất một ký tự đặc biệt",
+        "passwordsDoNotMatch": "Mật khẩu không khớp",
+        "incorrectPassword": "Mật khẩu hiện tại không đúng"
+      }
     }
   },
   "ManagerTeachers": {

@@ -197,10 +197,13 @@
     "submitting": "Submitting...",
     "signInSuccess": "Sign in successful",
     "signUpSuccess": "Sign up successful",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "validation": {
       "invalidEmail": "Invalid email address",
       "passwordMin": "Password must be at least 8 characters",
-      "nameMin": "Name must be at least 2 characters"
+      "nameMin": "Name must be at least 2 characters",
+      "fieldsRequired": "Please fill in all fields"
     },
     "errors": {
       "userAlreadyExists": "This email is already registered",
@@ -948,7 +951,31 @@
     "common": {
       "add": "Add",
       "adding": "Adding...",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password"
+    },
+    "changePassword": {
+      "title": "Change Password",
+      "currentPassword": "Current Password",
+      "currentPasswordPlaceholder": "Enter your current password",
+      "newPassword": "New Password",
+      "newPasswordPlaceholder": "Enter your new password",
+      "confirmPassword": "Confirm New Password",
+      "confirmPasswordPlaceholder": "Confirm your new password",
+      "submit": "Change Password",
+      "submitting": "Changing...",
+      "successMessage": "Password changed successfully",
+      "errorMessage": "Failed to change password",
+      "errors": {
+        "currentPasswordRequired": "Current password is required",
+        "passwordMin": "Password must be at least 8 characters",
+        "passwordUppercase": "Password must contain at least one uppercase letter",
+        "passwordNumber": "Password must contain at least one number",
+        "passwordSpecial": "Password must contain at least one special character",
+        "passwordsDoNotMatch": "Passwords do not match",
+        "incorrectPassword": "Current password is incorrect"
+      }
     }
   },
   "ManagerTeachers": {

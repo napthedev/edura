@@ -9,6 +9,7 @@ import Loader from "@/components/loader";
 import ProfileForm from "@/components/profile/profile-form";
 import EmailManager from "@/components/profile/email-manager";
 import PhoneManager from "@/components/profile/phone-manager";
+import ChangePasswordForm from "@/components/profile/change-password-form";
 import Header from "@/components/header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -121,6 +122,9 @@ export default function ProfilePage() {
 
           {/* Phone Manager */}
           <PhoneManager phones={profile.phones} />
+
+          {/* Change Password */}
+          <ChangePasswordForm />
         </div>
       </main>
     </div>

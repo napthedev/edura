@@ -5,10 +5,10 @@ import { useTranslations } from "next-intl";
 import { authClient } from "@/lib/auth-client";
 import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
-import z from "zod";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
+import { PasswordInput } from "../../components/ui/password-input";
 import { useRouter } from "next/navigation";
 import { LogIn } from "lucide-react";
 import Link from "next/link";
@@ -34,6 +34,11 @@ export default function SignInForm() {
       password: "",
     },
     onSubmit: async ({ value }) => {
+      if (!value.email.trim() || !value.password.trim()) {
+        toast.error(t("validation.fieldsRequired"));
+        return;
+      }
+
       await authClient.signIn.email(
         {
           email: value.email,
@@ -49,12 +54,6 @@ export default function SignInForm() {
           },
         }
       );
-    },
-    validators: {
-      onChange: z.object({
-        email: z.email(t("validation.invalidEmail")),
-        password: z.string().min(8, t("validation.passwordMin")),
-      }),
     },
   });
 
@@ -90,11 +89,6 @@ export default function SignInForm() {
                         onBlur={field.handleBlur}
                         onChange={(e) => field.handleChange(e.target.value)}
                       />
-                      {field.state.meta.errors.map((error) => (
-                        <p key={error?.message} className="text-red-500">
-                          {error?.message}
-                        </p>
-                      ))}
                     </div>
                   )}
                 </form.Field>
@@ -105,19 +99,15 @@ export default function SignInForm() {
                   {(field) => (
                     <div className="space-y-2">
                       <Label htmlFor={field.name}>{t("password")}</Label>
-                      <Input
+                      <PasswordInput
                         id={field.name}
                         name={field.name}
-                        type="password"
                         value={field.state.value}
                         onBlur={field.handleBlur}
                         onChange={(e) => field.handleChange(e.target.value)}
+                        showPasswordLabel={t("showPassword")}
+                        hidePasswordLabel={t("hidePassword")}
                       />
-                      {field.state.meta.errors.map((error) => (
-                        <p key={error?.message} className="text-red-500">
-                          {error?.message}
-                        </p>
-                      ))}
                     </div>
                   )}
                 </form.Field>
