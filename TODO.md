@@ -85,13 +85,13 @@
 
 ### Attendance System
 
-- [x] Implement Digital Check-in/Check-out for students and tutors
+- [x] Implement Digital Check-in/Check-out for students and teachers
 
 ---
 
 ## 📥 Data Import/Export
 
-- [ ] Upload CSV of students/classes
+- [x] Upload CSV of teachers/students
 
 
 ## login register

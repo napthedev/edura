@@ -15,6 +15,7 @@ import {
   tutorPayments,
   teacherRates,
   attendanceLogs,
+  studentAttendanceLogs,
 } from "@edura/db/schema/education";
 import { eq, and, sql } from "drizzle-orm";
 import { desc, gte, lte, inArray } from "drizzle-orm";
@@ -3622,6 +3623,423 @@ export const educationRouter = router({
       }
 
       return result[0];
+    }),
+
+  // ========== STUDENT ATTENDANCE / CHECK-IN PROCEDURES ==========
+
+  // Get active schedules for student check-in (teacher only)
+  // Returns schedules if current time is within ±5 minutes of start time
+  getActiveSchedulesForStudentCheckIn: protectedProcedure.query(
+    async ({ ctx }) => {
+      if (ctx.session.user.role !== "teacher") {
+        throw new Error("Access denied - teacher only");
+      }
+
+      const now = new Date();
+      const currentDayOfWeek = now.getDay(); // 0 = Sunday, 6 = Saturday
+      const currentHours = now.getHours();
+      const currentMinutes = now.getMinutes();
+      const currentTimeMinutes = currentHours * 60 + currentMinutes;
+
+      // Get teacher's schedules for today
+      const schedules = await ctx.db
+        .select({
+          schedule: classSchedules,
+          class: classes,
+        })
+        .from(classSchedules)
+        .innerJoin(classes, eq(classSchedules.classId, classes.classId))
+        .where(
+          and(
+            eq(classes.teacherId, ctx.session.user.id),
+            eq(classSchedules.dayOfWeek, currentDayOfWeek)
+          )
+        );
+
+      // Find schedules within ±5 min window of start time
+      const activeSchedules = schedules
+        .map(({ schedule, class: cls }) => {
+          const [startHours, startMinutes] = schedule.startTime
+            .split(":")
+            .map(Number);
+          const startTimeMinutes = startHours! * 60 + startMinutes!;
+
+          // Check if within ±5 minutes of start time
+          const isActive =
+            currentTimeMinutes >= startTimeMinutes - 5 &&
+            currentTimeMinutes <= startTimeMinutes + 5;
+
+          return {
+            scheduleId: schedule.scheduleId,
+            classId: schedule.classId,
+            className: cls.className,
+            title: schedule.title,
+            startTime: schedule.startTime,
+            endTime: schedule.endTime,
+            location: schedule.location,
+            color: schedule.color,
+            isActive,
+          };
+        })
+        .filter((s) => s.isActive);
+
+      return activeSchedules;
+    }
+  ),
+
+  // Get students for check-in with their attendance status
+  getStudentsForCheckIn: protectedProcedure
+    .input(
+      z.object({
+        scheduleId: z.string(),
+        sessionDate: z.string(), // Format: "YYYY-MM-DD"
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "teacher") {
+        throw new Error("Access denied - teacher only");
+      }
+
+      // Get the schedule and verify teacher owns the class
+      const scheduleData = await ctx.db
+        .select({
+          schedule: classSchedules,
+          class: classes,
+        })
+        .from(classSchedules)
+        .innerJoin(classes, eq(classSchedules.classId, classes.classId))
+        .where(eq(classSchedules.scheduleId, input.scheduleId))
+        .limit(1);
+
+      if (
+        scheduleData.length === 0 ||
+        scheduleData[0].class.teacherId !== ctx.session.user.id
+      ) {
+        throw new Error("Schedule not found or access denied");
+      }
+
+      const classId = scheduleData[0].schedule.classId;
+
+      // Get enrolled students
+      const students = await ctx.db
+        .select({
+          userId: user.id,
+          name: user.name,
+          email: user.email,
+        })
+        .from(enrollments)
+        .innerJoin(user, eq(enrollments.studentId, user.id))
+        .where(eq(enrollments.classId, classId));
+
+      // Get existing attendance records for this session
+      const existingAttendance = await ctx.db
+        .select()
+        .from(studentAttendanceLogs)
+        .where(
+          and(
+            eq(studentAttendanceLogs.scheduleId, input.scheduleId),
+            eq(studentAttendanceLogs.sessionDate, input.sessionDate)
+          )
+        );
+
+      const attendanceMap = new Map(
+        existingAttendance.map((a) => [a.studentId, a])
+      );
+
+      // Combine student data with attendance status
+      const studentsWithAttendance = students.map((student) => ({
+        ...student,
+        isPresent: attendanceMap.get(student.userId)?.isPresent ?? false,
+        attendanceLogId: attendanceMap.get(student.userId)?.logId ?? null,
+      }));
+
+      return {
+        schedule: {
+          scheduleId: scheduleData[0].schedule.scheduleId,
+          title: scheduleData[0].schedule.title,
+          startTime: scheduleData[0].schedule.startTime,
+          endTime: scheduleData[0].schedule.endTime,
+        },
+        className: scheduleData[0].class.className,
+        students: studentsWithAttendance,
+      };
+    }),
+
+  // Save student attendance (bulk upsert)
+  saveStudentAttendance: protectedProcedure
+    .input(
+      z.object({
+        scheduleId: z.string(),
+        sessionDate: z.string(), // Format: "YYYY-MM-DD"
+        students: z.array(
+          z.object({
+            studentId: z.string(),
+            isPresent: z.boolean(),
+          })
+        ),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "teacher") {
+        throw new Error("Access denied - teacher only");
+      }
+
+      // Get the schedule and verify teacher owns the class
+      const scheduleData = await ctx.db
+        .select({
+          schedule: classSchedules,
+          class: classes,
+        })
+        .from(classSchedules)
+        .innerJoin(classes, eq(classSchedules.classId, classes.classId))
+        .where(eq(classSchedules.scheduleId, input.scheduleId))
+        .limit(1);
+
+      if (
+        scheduleData.length === 0 ||
+        scheduleData[0].class.teacherId !== ctx.session.user.id
+      ) {
+        throw new Error("Schedule not found or access denied");
+      }
+
+      const classId = scheduleData[0].schedule.classId;
+      const now = new Date();
+
+      // Process each student's attendance
+      for (const student of input.students) {
+        // Check if record exists
+        const existingRecord = await ctx.db
+          .select()
+          .from(studentAttendanceLogs)
+          .where(
+            and(
+              eq(studentAttendanceLogs.scheduleId, input.scheduleId),
+              eq(studentAttendanceLogs.sessionDate, input.sessionDate),
+              eq(studentAttendanceLogs.studentId, student.studentId)
+            )
+          )
+          .limit(1);
+
+        if (existingRecord.length > 0) {
+          // Update existing record
+          await ctx.db
+            .update(studentAttendanceLogs)
+            .set({
+              isPresent: student.isPresent,
+              checkedInAt: student.isPresent ? now : null,
+              checkedInByTeacherId: student.isPresent
+                ? ctx.session.user.id
+                : null,
+            })
+            .where(eq(studentAttendanceLogs.logId, existingRecord[0].logId));
+        } else {
+          // Insert new record
+          await ctx.db.insert(studentAttendanceLogs).values({
+            logId: crypto.randomUUID(),
+            scheduleId: input.scheduleId,
+            classId: classId,
+            studentId: student.studentId,
+            sessionDate: input.sessionDate,
+            isPresent: student.isPresent,
+            checkedInAt: student.isPresent ? now : null,
+            checkedInByTeacherId: student.isPresent
+              ? ctx.session.user.id
+              : null,
+          });
+        }
+      }
+
+      return { success: true };
+    }),
+
+  // Get student attendance history (teacher only)
+  getStudentAttendanceHistory: protectedProcedure
+    .input(
+      z.object({
+        classId: z.string().optional(),
+        startDate: z.string().optional(), // Format: "YYYY-MM-DD"
+        endDate: z.string().optional(), // Format: "YYYY-MM-DD"
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "teacher") {
+        throw new Error("Access denied - teacher only");
+      }
+
+      // Build conditions
+      const conditions = [];
+
+      // Always filter by teacher's classes
+      const teacherClasses = await ctx.db
+        .select({ classId: classes.classId })
+        .from(classes)
+        .where(eq(classes.teacherId, ctx.session.user.id));
+
+      const teacherClassIds = teacherClasses.map((c) => c.classId);
+
+      if (teacherClassIds.length === 0) {
+        return [];
+      }
+
+      conditions.push(inArray(studentAttendanceLogs.classId, teacherClassIds));
+
+      if (input.classId) {
+        conditions.push(eq(studentAttendanceLogs.classId, input.classId));
+      }
+
+      if (input.startDate) {
+        conditions.push(
+          gte(studentAttendanceLogs.sessionDate, input.startDate)
+        );
+      }
+
+      if (input.endDate) {
+        conditions.push(lte(studentAttendanceLogs.sessionDate, input.endDate));
+      }
+
+      const logs = await ctx.db
+        .select({
+          logId: studentAttendanceLogs.logId,
+          sessionDate: studentAttendanceLogs.sessionDate,
+          isPresent: studentAttendanceLogs.isPresent,
+          checkedInAt: studentAttendanceLogs.checkedInAt,
+          studentId: studentAttendanceLogs.studentId,
+          studentName: user.name,
+          studentEmail: user.email,
+          classId: studentAttendanceLogs.classId,
+          className: classes.className,
+          scheduleTitle: classSchedules.title,
+        })
+        .from(studentAttendanceLogs)
+        .innerJoin(user, eq(studentAttendanceLogs.studentId, user.id))
+        .innerJoin(classes, eq(studentAttendanceLogs.classId, classes.classId))
+        .innerJoin(
+          classSchedules,
+          eq(studentAttendanceLogs.scheduleId, classSchedules.scheduleId)
+        )
+        .where(and(...conditions))
+        .orderBy(desc(studentAttendanceLogs.sessionDate));
+
+      return logs;
+    }),
+
+  // Get all student attendance logs (manager only - view only)
+  getAllStudentAttendanceLogs: protectedProcedure
+    .input(
+      z.object({
+        teacherId: z.string().optional(),
+        classId: z.string().optional(),
+        studentId: z.string().optional(),
+        startDate: z.string().optional(), // Format: "YYYY-MM-DD"
+        endDate: z.string().optional(), // Format: "YYYY-MM-DD"
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      // Build conditions
+      const conditions = [];
+
+      // Get classes belonging to teachers managed by this manager
+      const managedTeachers = await ctx.db
+        .select({ id: user.id })
+        .from(user)
+        .where(
+          and(eq(user.managerId, ctx.session.user.id), eq(user.role, "teacher"))
+        );
+
+      const managedTeacherIds = managedTeachers.map((t) => t.id);
+
+      if (managedTeacherIds.length === 0) {
+        return [];
+      }
+
+      const managedClasses = await ctx.db
+        .select({ classId: classes.classId })
+        .from(classes)
+        .where(inArray(classes.teacherId, managedTeacherIds));
+
+      const managedClassIds = managedClasses.map((c) => c.classId);
+
+      if (managedClassIds.length === 0) {
+        return [];
+      }
+
+      conditions.push(inArray(studentAttendanceLogs.classId, managedClassIds));
+
+      if (input.teacherId) {
+        const teacherClasses = await ctx.db
+          .select({ classId: classes.classId })
+          .from(classes)
+          .where(eq(classes.teacherId, input.teacherId));
+        const teacherClassIds = teacherClasses.map((c) => c.classId);
+        if (teacherClassIds.length > 0) {
+          conditions.push(
+            inArray(studentAttendanceLogs.classId, teacherClassIds)
+          );
+        }
+      }
+
+      if (input.classId) {
+        conditions.push(eq(studentAttendanceLogs.classId, input.classId));
+      }
+
+      if (input.studentId) {
+        conditions.push(eq(studentAttendanceLogs.studentId, input.studentId));
+      }
+
+      if (input.startDate) {
+        conditions.push(
+          gte(studentAttendanceLogs.sessionDate, input.startDate)
+        );
+      }
+
+      if (input.endDate) {
+        conditions.push(lte(studentAttendanceLogs.sessionDate, input.endDate));
+      }
+
+      // Alias for teacher user
+      const teacherUser = user;
+
+      const logs = await ctx.db
+        .select({
+          logId: studentAttendanceLogs.logId,
+          sessionDate: studentAttendanceLogs.sessionDate,
+          isPresent: studentAttendanceLogs.isPresent,
+          checkedInAt: studentAttendanceLogs.checkedInAt,
+          studentId: studentAttendanceLogs.studentId,
+          studentName: user.name,
+          studentEmail: user.email,
+          classId: studentAttendanceLogs.classId,
+          className: classes.className,
+          scheduleTitle: classSchedules.title,
+          teacherId: classes.teacherId,
+        })
+        .from(studentAttendanceLogs)
+        .innerJoin(user, eq(studentAttendanceLogs.studentId, user.id))
+        .innerJoin(classes, eq(studentAttendanceLogs.classId, classes.classId))
+        .innerJoin(
+          classSchedules,
+          eq(studentAttendanceLogs.scheduleId, classSchedules.scheduleId)
+        )
+        .where(and(...conditions))
+        .orderBy(desc(studentAttendanceLogs.sessionDate));
+
+      // Get teacher names separately
+      const teacherIds = [...new Set(logs.map((l) => l.teacherId))];
+      const teachers = await ctx.db
+        .select({ id: user.id, name: user.name })
+        .from(user)
+        .where(inArray(user.id, teacherIds));
+
+      const teacherMap = new Map(teachers.map((t) => [t.id, t.name]));
+
+      return logs.map((log) => ({
+        ...log,
+        teacherName: teacherMap.get(log.teacherId) || "Unknown",
+      }));
     }),
 });
 

@@ -733,7 +733,8 @@
     "teachers": "Giáo viên",
     "customerService": "Dịch vụ khách hàng",
     "tuition": "Học phí",
-    "tutorPayments": "Lương giáo viên"
+    "tutorPayments": "Lương giáo viên",
+    "attendance": "Điểm danh"
   },
   "DoAssignment": {
     "class": "Lớp",
@@ -1340,5 +1341,48 @@
     "password": "Mật khẩu",
     "copyPassword": "Sao chép mật khẩu",
     "passwordCopied": "Đã sao chép mật khẩu"
+  },
+  "StudentCheckIn": {
+    "title": "Điểm danh học sinh",
+    "noActiveSession": "Không có buổi học nào đang diễn ra",
+    "checkInAvailableHint": "Điểm danh khả dụng trong vòng ±5 phút trước giờ học",
+    "checkInStudents": "Điểm danh học sinh",
+    "selectDate": "Chọn ngày",
+    "studentName": "Tên học sinh",
+    "email": "Email",
+    "present": "Có mặt",
+    "allPresent": "Đánh dấu tất cả có mặt",
+    "allAbsent": "Đánh dấu tất cả vắng mặt",
+    "save": "Lưu điểm danh",
+    "saving": "Đang lưu...",
+    "saveSuccess": "Đã lưu điểm danh thành công",
+    "cancel": "Hủy",
+    "noStudents": "Không có học sinh nào trong lớp này"
+  },
+  "AttendanceHistory": {
+    "title": "Lịch sử điểm danh",
+    "filters": "Bộ lọc",
+    "filterByClass": "Lọc theo lớp",
+    "filterByTeacher": "Lọc theo giáo viên",
+    "filterByDate": "Lọc theo ngày",
+    "allClasses": "Tất cả lớp",
+    "allTeachers": "Tất cả giáo viên",
+    "selectDateRange": "Chọn khoảng thời gian",
+    "exportCsv": "Xuất CSV",
+    "noRecords": "Không tìm thấy bản ghi điểm danh",
+    "totalRecords": "Tổng số bản ghi",
+    "presentCount": "Có mặt",
+    "absentCount": "Vắng mặt",
+    "attendanceRate": "Tỷ lệ điểm danh",
+    "attendanceRecords": "Bản ghi điểm danh",
+    "date": "Ngày",
+    "class": "Lớp",
+    "session": "Buổi học",
+    "student": "Học sinh",
+    "email": "Email",
+    "status": "Trạng thái",
+    "present": "Có mặt",
+    "absent": "Vắng mặt",
+    "teacher": "Giáo viên"
   }
 }

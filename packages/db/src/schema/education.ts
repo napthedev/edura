@@ -309,7 +309,7 @@ export const tutorPayments = pgTable("tutor_payments", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-// Attendance Logs (session check-in/check-out records)
+// Attendance Logs (session check-in/check-out records for teachers)
 export const attendanceLogs = pgTable("attendance_logs", {
   logId: text("log_id").primaryKey(),
   scheduleId: text("schedule_id")
@@ -328,3 +328,36 @@ export const attendanceLogs = pgTable("attendance_logs", {
   status: attendanceStatusEnum("status").notNull().default("checked_in"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+// Student Attendance Logs (manual check-in records by teachers for students)
+export const studentAttendanceLogs = pgTable(
+  "student_attendance_logs",
+  {
+    logId: text("log_id").primaryKey(),
+    scheduleId: text("schedule_id")
+      .notNull()
+      .references(() => classSchedules.scheduleId, { onDelete: "cascade" }),
+    classId: text("class_id")
+      .notNull()
+      .references(() => classes.classId, { onDelete: "cascade" }),
+    studentId: text("student_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    sessionDate: text("session_date").notNull(), // Format: "YYYY-MM-DD"
+    checkedInAt: timestamp("checked_in_at"),
+    checkedInByTeacherId: text("checked_in_by_teacher_id").references(
+      () => user.id,
+      { onDelete: "set null" }
+    ),
+    isPresent: boolean("is_present").notNull().default(false),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    // Ensure a student can only have one attendance record per session per day
+    uniqueStudentSessionDate: unique().on(
+      table.studentId,
+      table.scheduleId,
+      table.sessionDate
+    ),
+  })
+);

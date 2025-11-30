@@ -16,6 +16,7 @@ import {
   CalendarClock,
   Receipt,
   Wallet,
+  ClipboardCheck,
 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useTranslations } from "next-intl";
@@ -55,6 +56,11 @@ function SidebarContent({ role }: { role: "teacher" | "student" | "manager" }) {
       href: "/dashboard/teacher/schedule",
       label: t("schedule"),
       icon: Calendar,
+    },
+    {
+      href: "/dashboard/teacher/attendance",
+      label: t("attendance"),
+      icon: ClipboardCheck,
     },
   ];
 
@@ -122,6 +128,11 @@ function SidebarContent({ role }: { role: "teacher" | "student" | "manager" }) {
       href: "/dashboard/manager/students",
       label: t("students"),
       icon: GraduationCap,
+    },
+    {
+      href: "/dashboard/manager/attendance",
+      label: t("attendance"),
+      icon: ClipboardCheck,
     },
     {
       href: "/dashboard/manager/customer-service",

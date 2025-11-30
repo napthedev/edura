@@ -727,7 +727,8 @@
     "teachers": "Teachers",
     "customerService": "Customer Service",
     "tuition": "Tuition",
-    "tutorPayments": "Tutor Payments"
+    "tutorPayments": "Tutor Payments",
+    "attendance": "Attendance"
   },
   "DoAssignment": {
     "class": "Class",
@@ -1334,5 +1335,48 @@
     "password": "Password",
     "copyPassword": "Copy password",
     "passwordCopied": "Password copied to clipboard"
+  },
+  "StudentCheckIn": {
+    "title": "Student Check-In",
+    "noActiveSession": "No active session available",
+    "checkInAvailableHint": "Check-in available within ±5 minutes of scheduled start time",
+    "checkInStudents": "Check In Students",
+    "selectDate": "Select Date",
+    "studentName": "Student Name",
+    "email": "Email",
+    "present": "Present",
+    "allPresent": "Mark All Present",
+    "allAbsent": "Mark All Absent",
+    "save": "Save Attendance",
+    "saving": "Saving...",
+    "saveSuccess": "Attendance saved successfully",
+    "cancel": "Cancel",
+    "noStudents": "No students enrolled in this class"
+  },
+  "AttendanceHistory": {
+    "title": "Attendance History",
+    "filters": "Filters",
+    "filterByClass": "Filter by Class",
+    "filterByTeacher": "Filter by Teacher",
+    "filterByDate": "Filter by Date",
+    "allClasses": "All Classes",
+    "allTeachers": "All Teachers",
+    "selectDateRange": "Select date range",
+    "exportCsv": "Export CSV",
+    "noRecords": "No attendance records found",
+    "totalRecords": "Total Records",
+    "presentCount": "Present",
+    "absentCount": "Absent",
+    "attendanceRate": "Attendance Rate",
+    "attendanceRecords": "Attendance Records",
+    "date": "Date",
+    "class": "Class",
+    "session": "Session",
+    "student": "Student",
+    "email": "Email",
+    "status": "Status",
+    "present": "Present",
+    "absent": "Absent",
+    "teacher": "Teacher"
   }
 }
