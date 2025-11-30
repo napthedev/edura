@@ -58,18 +58,18 @@ export default function AssignmentsPage() {
     mutationFn: (assignmentId: string) =>
       trpcClient.education.deleteAssignment.mutate({ assignmentId }),
     onSuccess: () => {
-      toast.success("Assignment deleted successfully");
+      toast.success(t("assignmentDeletedSuccess"));
       assignmentsQuery.refetch();
     },
     onError: (error) => {
-      toast.error(`Failed to delete assignment: ${error.message}`);
+      toast.error(`${t("failedToDeleteAssignment")}: ${error.message}`);
     },
   });
 
   const copyAssignmentUrl = (assignmentId: string) => {
     const url = `${window.location.origin}/do-assignment/${assignmentId}`;
     navigator.clipboard.writeText(url);
-    toast.success("Assignment URL copied to clipboard");
+    toast.success(t("assignmentUrlCopied"));
   };
 
   return (

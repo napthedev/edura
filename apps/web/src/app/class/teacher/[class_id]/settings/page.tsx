@@ -105,7 +105,7 @@ export default function SettingsPage() {
   const copyClassCode = () => {
     if (classQuery.data?.classCode) {
       navigator.clipboard.writeText(classQuery.data.classCode);
-      toast.success("Class code copied to clipboard");
+      toast.success(ts("classCodeCopied"));
     }
   };
 

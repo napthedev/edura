@@ -344,9 +344,12 @@ export default function UploadLecturePage() {
                     name="title"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Title</FormLabel>
+                        <FormLabel>{t("titleLabel")}</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter lecture title" {...field} />
+                          <Input
+                            placeholder={t("enterLectureTitle")}
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -392,12 +395,12 @@ export default function UploadLecturePage() {
                     name="description"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Description (Optional)</FormLabel>
+                        <FormLabel>{t("descriptionOptional")}</FormLabel>
                         <FormControl>
                           <RichTextEditor
                             content={field.value || ""}
                             onChange={field.onChange}
-                            placeholder="Enter lecture description"
+                            placeholder={t("enterLectureDescription")}
                           />
                         </FormControl>
                         <FormMessage />

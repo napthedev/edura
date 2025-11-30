@@ -9,6 +9,7 @@ import type {
   MultipleChoiceQuestion,
   TrueFalseQuestion,
 } from "@/lib/assignment-types";
+import { useTranslations } from "next-intl";
 
 interface AddQuestionProps {
   onAdd: (question: Question) => void;
@@ -17,6 +18,7 @@ interface AddQuestionProps {
 
 export function AddQuestion({ onAdd, nextIndex }: AddQuestionProps) {
   const [showSelector, setShowSelector] = useState(false);
+  const t = useTranslations("AddQuestion");
 
   const createQuestion = (type: QuestionType): Question => {
     const baseQuestion = {
@@ -67,7 +69,7 @@ export function AddQuestion({ onAdd, nextIndex }: AddQuestionProps) {
             className="flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            Add Question
+            {t("addQuestion")}
           </Button>
         </CardContent>
       </Card>
@@ -77,7 +79,7 @@ export function AddQuestion({ onAdd, nextIndex }: AddQuestionProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Choose Question Type</CardTitle>
+        <CardTitle className="text-lg">{t("chooseQuestionType")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -86,9 +88,9 @@ export function AddQuestion({ onAdd, nextIndex }: AddQuestionProps) {
             className="h-20 flex flex-col items-center justify-center gap-2"
             onClick={() => handleAddQuestion("simple")}
           >
-            <span className="font-medium">Simple Text</span>
+            <span className="font-medium">{t("simpleText")}</span>
             <span className="text-sm text-muted-foreground">
-              Open-ended answer
+              {t("openEndedAnswer")}
             </span>
           </Button>
           <Button
@@ -96,9 +98,9 @@ export function AddQuestion({ onAdd, nextIndex }: AddQuestionProps) {
             className="h-20 flex flex-col items-center justify-center gap-2"
             onClick={() => handleAddQuestion("multiple")}
           >
-            <span className="font-medium">Multiple Choice</span>
+            <span className="font-medium">{t("multipleChoice")}</span>
             <span className="text-sm text-muted-foreground">
-              A, B, C, D options
+              {t("abcdOptions")}
             </span>
           </Button>
           <Button
@@ -106,15 +108,15 @@ export function AddQuestion({ onAdd, nextIndex }: AddQuestionProps) {
             className="h-20 flex flex-col items-center justify-center gap-2"
             onClick={() => handleAddQuestion("truefalse")}
           >
-            <span className="font-medium">True/False</span>
+            <span className="font-medium">{t("trueFalse")}</span>
             <span className="text-sm text-muted-foreground">
-              Boolean answer
+              {t("booleanAnswer")}
             </span>
           </Button>
         </div>
         <div className="flex justify-end">
           <Button variant="ghost" onClick={() => setShowSelector(false)}>
-            Cancel
+            {t("cancel")}
           </Button>
         </div>
       </CardContent>

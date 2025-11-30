@@ -50,27 +50,38 @@ export default function InvoicePage({
 
   const formatMonth = (monthStr: string) => {
     const [year, month] = monthStr.split("-");
-    return new Date(parseInt(year!), parseInt(month!) - 1).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-    });
+    return new Date(parseInt(year!), parseInt(month!) - 1).toLocaleDateString(
+      "en-US",
+      {
+        year: "numeric",
+        month: "long",
+      }
+    );
   };
 
   const getStatusBadge = (status: BillingStatus) => {
     const variants: Record<
       BillingStatus,
-      { variant: "default" | "secondary" | "destructive" | "outline"; icon: React.ReactNode }
+      {
+        variant: "default" | "secondary" | "destructive" | "outline";
+        icon: React.ReactNode;
+      }
     > = {
       pending: { variant: "secondary", icon: <Clock className="h-3 w-3" /> },
       paid: { variant: "default", icon: <CheckCircle className="h-3 w-3" /> },
-      overdue: { variant: "destructive", icon: <AlertCircle className="h-3 w-3" /> },
+      overdue: {
+        variant: "destructive",
+        icon: <AlertCircle className="h-3 w-3" />,
+      },
       cancelled: { variant: "outline", icon: <XCircle className="h-3 w-3" /> },
     };
     const { variant, icon } = variants[status];
     return (
       <Badge variant={variant} className="gap-1 text-sm px-3 py-1">
         {icon}
-        {tBilling(`status${status.charAt(0).toUpperCase() + status.slice(1)}` as any)}
+        {tBilling(
+          `status${status.charAt(0).toUpperCase() + status.slice(1)}` as any
+        )}
       </Badge>
     );
   };
@@ -149,17 +160,27 @@ export default function InvoicePage({
                 </div>
                 <span className="font-bold text-2xl text-slate-900">Edura</span>
               </div>
-              <p className="text-sm text-muted-foreground">Education Management Platform</p>
+              <p className="text-sm text-muted-foreground">
+                {t("platformDescription")}
+              </p>
             </div>
             <div className="text-right">
-              <h2 className="text-2xl font-bold text-slate-900 mb-2">{t("title")}</h2>
+              <h2 className="text-2xl font-bold text-slate-900 mb-2">
+                {t("title")}
+              </h2>
               <div className="space-y-1 text-sm">
                 <p>
-                  <span className="text-muted-foreground">{t("invoiceNumber")}:</span>{" "}
-                  <span className="font-mono font-medium">{invoice.invoiceNumber || "-"}</span>
+                  <span className="text-muted-foreground">
+                    {t("invoiceNumber")}:
+                  </span>{" "}
+                  <span className="font-mono font-medium">
+                    {invoice.invoiceNumber || "-"}
+                  </span>
                 </p>
                 <p>
-                  <span className="text-muted-foreground">{t("billingDate")}:</span>{" "}
+                  <span className="text-muted-foreground">
+                    {t("billingDate")}:
+                  </span>{" "}
                   {invoice.createdAt
                     ? new Date(invoice.createdAt).toLocaleDateString()
                     : "-"}
@@ -173,14 +194,20 @@ export default function InvoicePage({
           {/* Status & Due Date */}
           <div className="flex justify-between items-center mb-6 p-4 bg-slate-50 rounded-lg">
             <div>
-              <p className="text-sm text-muted-foreground mb-1">{t("status")}</p>
+              <p className="text-sm text-muted-foreground mb-1">
+                {t("status")}
+              </p>
               {getStatusBadge(invoice.status as BillingStatus)}
             </div>
             <div className="text-right">
-              <p className="text-sm text-muted-foreground mb-1">{t("dueDate")}</p>
+              <p className="text-sm text-muted-foreground mb-1">
+                {t("dueDate")}
+              </p>
               <p className="font-semibold flex items-center gap-2 justify-end">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                {invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : "-"}
+                {invoice.dueDate
+                  ? new Date(invoice.dueDate).toLocaleDateString()
+                  : "-"}
               </p>
             </div>
           </div>
@@ -195,11 +222,15 @@ export default function InvoicePage({
               </h3>
               <div className="bg-slate-50 rounded-lg p-4 space-y-2">
                 <div>
-                  <p className="text-xs text-muted-foreground">{t("studentName")}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("studentName")}
+                  </p>
                   <p className="font-medium">{invoice.studentName || "-"}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">{t("studentEmail")}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("studentEmail")}
+                  </p>
                   <p className="text-sm">{invoice.studentEmail || "-"}</p>
                 </div>
               </div>
@@ -213,21 +244,31 @@ export default function InvoicePage({
               </h3>
               <div className="bg-slate-50 rounded-lg p-4 space-y-2">
                 <div>
-                  <p className="text-xs text-muted-foreground">{t("className")}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("className")}
+                  </p>
                   <p className="font-medium">{invoice.className || "-"}</p>
                 </div>
                 <div className="flex gap-4">
                   <div>
-                    <p className="text-xs text-muted-foreground">{t("classCode")}</p>
-                    <p className="text-sm font-mono">{invoice.classCode || "-"}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {t("classCode")}
+                    </p>
+                    <p className="text-sm font-mono">
+                      {invoice.classCode || "-"}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">{t("subject")}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {t("subject")}
+                    </p>
                     <p className="text-sm">{invoice.subject || "-"}</p>
                   </div>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">{t("teacher")}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("teacher")}
+                  </p>
                   <p className="text-sm">{invoice.teacherName || "-"}</p>
                 </div>
               </div>
@@ -238,19 +279,25 @@ export default function InvoicePage({
 
           {/* Billing Details */}
           <div className="mb-6">
-            <h3 className="font-semibold mb-4 text-slate-900">{t("billingPeriod")}</h3>
+            <h3 className="font-semibold mb-4 text-slate-900">
+              {t("billingPeriod")}
+            </h3>
             <div className="border rounded-lg overflow-hidden">
               <table className="w-full">
                 <thead className="bg-slate-50">
                   <tr>
-                    <th className="text-left p-3 text-sm font-semibold">Description</th>
-                    <th className="text-right p-3 text-sm font-semibold">{t("amount")}</th>
+                    <th className="text-left p-3 text-sm font-semibold">
+                      {t("description")}
+                    </th>
+                    <th className="text-right p-3 text-sm font-semibold">
+                      {t("amount")}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr className="border-t">
                     <td className="p-3">
-                      <p className="font-medium">Monthly Tuition Fee</p>
+                      <p className="font-medium">{t("monthlyTuitionFee")}</p>
                       <p className="text-sm text-muted-foreground">
                         {formatMonth(invoice.billingMonth)}
                       </p>
@@ -262,7 +309,7 @@ export default function InvoicePage({
                 </tbody>
                 <tfoot className="bg-slate-50">
                   <tr className="border-t">
-                    <td className="p-3 font-bold">Total</td>
+                    <td className="p-3 font-bold">{t("total")}</td>
                     <td className="p-3 text-right font-bold text-lg">
                       {formatCurrency(invoice.amount)}
                     </td>
@@ -283,7 +330,9 @@ export default function InvoicePage({
                 </h3>
                 <div className="bg-green-50 rounded-lg p-4 space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">{t("paidOn")}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {t("paidOn")}
+                    </span>
                     <span className="font-medium">
                       {invoice.paidAt
                         ? new Date(invoice.paidAt).toLocaleDateString()
@@ -291,9 +340,13 @@ export default function InvoicePage({
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">{t("paymentMethod")}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {t("paymentMethod")}
+                    </span>
                     <span className="font-medium">
-                      {getPaymentMethodLabel(invoice.paymentMethod as PaymentMethod | null)}
+                      {getPaymentMethodLabel(
+                        invoice.paymentMethod as PaymentMethod | null
+                      )}
                     </span>
                   </div>
                 </div>
@@ -306,7 +359,9 @@ export default function InvoicePage({
             <>
               <Separator className="my-6" />
               <div>
-                <h3 className="font-semibold mb-2 text-slate-900">{t("notes")}</h3>
+                <h3 className="font-semibold mb-2 text-slate-900">
+                  {t("notes")}
+                </h3>
                 <p className="text-sm text-muted-foreground bg-slate-50 rounded-lg p-4">
                   {invoice.notes}
                 </p>
@@ -317,8 +372,8 @@ export default function InvoicePage({
           {/* Footer */}
           <Separator className="my-6" />
           <div className="text-center text-sm text-muted-foreground">
-            <p>Thank you for your business!</p>
-            <p className="mt-1">For questions, please contact support@edura.com</p>
+            <p>{t("thankYou")}</p>
+            <p className="mt-1">{t("contactSupport")}</p>
           </div>
         </CardContent>
       </Card>

@@ -17,6 +17,7 @@ import {
   Receipt,
   Wallet,
   ClipboardCheck,
+  Banknote,
 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useTranslations } from "next-intl";
@@ -113,6 +114,11 @@ function SidebarContent({ role }: { role: "teacher" | "student" | "manager" }) {
       href: "/dashboard/manager/tuition",
       label: t("tuition"),
       icon: Receipt,
+    },
+    {
+      href: "/dashboard/manager/expenses",
+      label: t("expenses"),
+      icon: Banknote,
     },
     {
       href: "/dashboard/manager/payments",

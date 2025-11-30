@@ -12,10 +12,12 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { NotificationItem } from "./notification-item";
+import { useTranslations } from "next-intl";
 
 export function NotificationDropdown() {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
+  const t = useTranslations("Notifications");
 
   const { data: notifications, isLoading } = useQuery({
     queryKey: ["notifications"],
@@ -54,7 +56,7 @@ export function NotificationDropdown() {
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="end">
         <div className="flex items-center justify-between border-b p-4">
-          <h4 className="font-semibold">Notifications</h4>
+          <h4 className="font-semibold">{t("title")}</h4>
           {unreadCount && unreadCount > 0 ? (
             <Button
               variant="ghost"
@@ -63,18 +65,18 @@ export function NotificationDropdown() {
               onClick={() => markAllReadMutation.mutate()}
               disabled={markAllReadMutation.isPending}
             >
-              Mark all as read
+              {t("markAllAsRead")}
             </Button>
           ) : null}
         </div>
         <ScrollArea className="h-[300px]">
           {isLoading ? (
             <div className="p-4 text-center text-sm text-slate-500">
-              Loading...
+              {t("loading")}
             </div>
           ) : notifications?.length === 0 ? (
             <div className="p-4 text-center text-sm text-slate-500">
-              No notifications
+              {t("noNotifications")}
             </div>
           ) : (
             notifications?.map((notification) => (

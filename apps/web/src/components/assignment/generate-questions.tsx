@@ -19,6 +19,7 @@ import { trpcClient } from "@/utils/trpc";
 import { useMutation } from "@tanstack/react-query";
 import type { Question } from "@/lib/assignment-types";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 const generateQuestionsSchema = z.object({
   numberOfQuestions: z.number().min(1).max(100),
@@ -38,6 +39,7 @@ export function GenerateQuestions({
 }: GenerateQuestionsProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const t = useTranslations("GenerateQuestions");
 
   const form = useForm<GenerateQuestionsForm>({
     resolver: zodResolver(generateQuestionsSchema),
@@ -256,28 +258,23 @@ export function GenerateQuestions({
         console.error("Error generating questions:", error);
 
         // Provide more specific error messages based on the error type
-        let errorMessage =
-          "An unexpected error occurred while processing your document.";
+        let errorMessage = t("unexpectedError");
 
         if (error instanceof Error) {
           if (error.message.includes("API key")) {
-            errorMessage =
-              "There's a configuration issue with our AI service. Please contact support.";
+            errorMessage = t("apiKeyNotConfigured");
           } else if (
             error.message.includes("quota") ||
             error.message.includes("limit")
           ) {
-            errorMessage =
-              "Our AI service is currently experiencing high demand. Please try again in a few minutes.";
+            errorMessage = t("quotaExceeded");
           } else if (error.message.includes("timeout")) {
-            errorMessage =
-              "The request took too long to process. Please try with a smaller PDF or try again later.";
+            errorMessage = t("requestTimeout");
           } else if (
             error.message.includes("network") ||
             error.message.includes("fetch")
           ) {
-            errorMessage =
-              "Network connection issue. Please check your internet connection and try again.";
+            errorMessage = t("networkError");
           }
           // If it's one of our custom error messages, use it directly
           else if (
@@ -298,21 +295,21 @@ export function GenerateQuestions({
       window.location.href = `/class/teacher/${classId}/edit-assignment/${assignment.assignmentId}`;
     },
     onError: (error) => {
-      toast.error(error.message || "Failed to generate questions");
+      toast.error(error.message || t("failedToGenerate"));
     },
   });
 
   const handleFileSelect = (file: File) => {
     // Validate file type
     if (file.type !== "application/pdf") {
-      toast.error("Please select a PDF file");
+      toast.error(t("pleaseSelectPdf"));
       return;
     }
 
     // Validate file size (10MB)
     const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
-      toast.error("File size must be less than 10MB");
+      toast.error(t("fileSizeTooLarge"));
       return;
     }
 
@@ -347,7 +344,7 @@ export function GenerateQuestions({
 
   const onSubmit = (data: GenerateQuestionsForm) => {
     if (!selectedFile) {
-      toast.error("Please select a PDF file");
+      toast.error(t("pleaseSelectPdf"));
       return;
     }
 
@@ -359,14 +356,14 @@ export function GenerateQuestions({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileText className="w-5 h-5" />
-          Generate Questions from Document
+          {t("title")}
         </CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* File Upload Section */}
           <div className="space-y-2">
-            <Label>Upload PDF Document</Label>
+            <Label>{t("uploadPdfDocument")}</Label>
             <div
               className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
                 dragActive
@@ -395,15 +392,13 @@ export function GenerateQuestions({
                     size="sm"
                     onClick={() => setSelectedFile(null)}
                   >
-                    Remove
+                    {t("remove")}
                   </Button>
                 </div>
               ) : (
                 <div className="space-y-2">
                   <Upload className="w-8 h-8 mx-auto text-gray-400" />
-                  <p className="text-sm text-gray-600">
-                    Drag and drop a PDF file here, or click to select
-                  </p>
+                  <p className="text-sm text-gray-600">{t("dragDropPdf")}</p>
                   <input
                     type="file"
                     accept=".pdf"
@@ -418,20 +413,20 @@ export function GenerateQuestions({
                       document.getElementById("file-upload")?.click()
                     }
                   >
-                    Select File
+                    {t("selectFile")}
                   </Button>
                 </div>
               )}
             </div>
-            <p className="text-xs text-gray-500">
-              Maximum file size: 10MB. Only PDF files are supported.
-            </p>
+            <p className="text-xs text-gray-500">{t("maxFileSize")}</p>
           </div>
 
           {/* Settings Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="numberOfQuestions">Number of Questions</Label>
+              <Label htmlFor="numberOfQuestions">
+                {t("numberOfQuestions")}
+              </Label>
               <Input
                 id="numberOfQuestions"
                 type="number"
@@ -449,7 +444,7 @@ export function GenerateQuestions({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="difficulty">Difficulty Level</Label>
+              <Label htmlFor="difficulty">{t("difficultyLevel")}</Label>
               <Select
                 value={form.watch("difficulty")}
                 onValueChange={(value) =>
@@ -457,13 +452,13 @@ export function GenerateQuestions({
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select difficulty" />
+                  <SelectValue placeholder={t("selectDifficulty")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="easy">Easy</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="hard">Hard</SelectItem>
-                  <SelectItem value="mixed">Mixed</SelectItem>
+                  <SelectItem value="easy">{t("easy")}</SelectItem>
+                  <SelectItem value="medium">{t("medium")}</SelectItem>
+                  <SelectItem value="hard">{t("hard")}</SelectItem>
+                  <SelectItem value="mixed">{t("mixed")}</SelectItem>
                 </SelectContent>
               </Select>
               {form.formState.errors.difficulty && (
@@ -482,7 +477,7 @@ export function GenerateQuestions({
               onClick={onCancel}
               disabled={generateQuestionsMutation.isPending}
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button
               type="submit"
@@ -491,10 +486,10 @@ export function GenerateQuestions({
               {generateQuestionsMutation.isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Generating...
+                  {t("generating")}
                 </>
               ) : (
-                "Generate Questions"
+                t("generateQuestions")
               )}
             </Button>
           </div>

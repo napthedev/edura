@@ -115,7 +115,7 @@ export default function EditAssignmentPage() {
       });
     },
     onSuccess: () => {
-      toast.success("Assignment deleted successfully");
+      toast.success(t("assignmentDeletedSuccess"));
       router.push(`/class/teacher/${classId}/assignments`);
     },
   });
@@ -267,9 +267,9 @@ export default function EditAssignmentPage() {
     const url = `${window.location.origin}/do-assignment/${assignmentId}`;
     try {
       await navigator.clipboard.writeText(url);
-      toast.success("Assignment URL copied to clipboard");
+      toast.success(t("assignmentUrlCopied"));
     } catch (error) {
-      toast.error("Failed to copy URL");
+      toast.error(t("failedToCopyUrl"));
     }
   };
 

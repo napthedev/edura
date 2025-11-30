@@ -309,10 +309,14 @@ function QuestionCard({
   answer: string;
   onAnswerChange: (answer: string) => void;
 }) {
+  const t = useTranslations("DoAssignment");
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Question {question.index}</CardTitle>
+        <CardTitle className="text-lg">
+          {t("question")} {question.index}
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
@@ -326,7 +330,7 @@ function QuestionCard({
           <div>
             <textarea
               className="w-full p-2 border rounded-md"
-              placeholder="Enter your answer"
+              placeholder={t("enterYourAnswer")}
               rows={3}
               value={answer}
               onChange={(e) => onAnswerChange(e.target.value)}
@@ -358,11 +362,11 @@ function QuestionCard({
           <RadioGroup value={answer} onValueChange={onAnswerChange}>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="true" id={`${question.id}-true`} />
-              <Label htmlFor={`${question.id}-true`}>True</Label>
+              <Label htmlFor={`${question.id}-true`}>{t("true")}</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="false" id={`${question.id}-false`} />
-              <Label htmlFor={`${question.id}-false`}>False</Label>
+              <Label htmlFor={`${question.id}-false`}>{t("false")}</Label>
             </div>
           </RadioGroup>
         )}

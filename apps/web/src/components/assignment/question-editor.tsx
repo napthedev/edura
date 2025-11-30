@@ -8,6 +8,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Trash2 } from "lucide-react";
 import type { Question } from "@/lib/assignment-types";
 import { RichTextEditor } from "@/components/assignment/rich-text-editor";
+import { useTranslations } from "next-intl";
 
 interface QuestionEditorProps {
   question: Question;
@@ -23,6 +24,7 @@ export function QuestionEditor({
   fieldErrors = {},
 }: QuestionEditorProps) {
   const [localQuestion, setLocalQuestion] = useState<Question>(question);
+  const t = useTranslations("QuestionEditor");
 
   useEffect(() => {
     setLocalQuestion(question);
@@ -50,22 +52,22 @@ export function QuestionEditor({
         return (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="statement">Question Statement</Label>
+              <Label htmlFor="statement">{t("questionStatement")}</Label>
               <RichTextEditor
                 content={localQuestion.statement}
                 onChange={(value) => updateQuestion({ statement: value })}
-                placeholder="Enter the question"
+                placeholder={t("enterQuestion")}
                 className={getInputClassName(
                   `question-${question.id}-statement`
                 )}
               />
             </div>
             <div>
-              <Label htmlFor="correctAnswer">Correct Answer</Label>
+              <Label htmlFor="correctAnswer">{t("correctAnswer")}</Label>
               <RichTextEditor
                 content={localQuestion.correctAnswer}
                 onChange={(value) => updateQuestion({ correctAnswer: value })}
-                placeholder="Enter the correct answer"
+                placeholder={t("enterCorrectAnswer")}
                 className={getInputClassName(`question-${question.id}-answer`)}
               />
             </div>
@@ -76,18 +78,18 @@ export function QuestionEditor({
         return (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="statement">Question Statement</Label>
+              <Label htmlFor="statement">{t("questionStatement")}</Label>
               <RichTextEditor
                 content={localQuestion.statement}
                 onChange={(value) => updateQuestion({ statement: value })}
-                placeholder="Enter the question"
+                placeholder={t("enterQuestion")}
                 className={getInputClassName(
                   `question-${question.id}-statement`
                 )}
               />
             </div>
             <div>
-              <Label>Answer Options</Label>
+              <Label>{t("answerOptions")}</Label>
               <div className="space-y-2">
                 {(localQuestion.type === "multiple"
                   ? localQuestion.options
@@ -113,7 +115,9 @@ export function QuestionEditor({
                           } as Partial<Question>);
                         }
                       }}
-                      placeholder={`Option ${String.fromCharCode(97 + index)}`}
+                      placeholder={t("optionPlaceholder", {
+                        option: String.fromCharCode(97 + index).toUpperCase(),
+                      })}
                       className={getInputClassName(
                         `question-${question.id}-option-${index}`
                       )}
@@ -123,7 +127,7 @@ export function QuestionEditor({
               </div>
             </div>
             <div>
-              <Label>Correct Answer</Label>
+              <Label>{t("correctAnswer")}</Label>
               <RadioGroup
                 value={localQuestion.correctAnswer}
                 onValueChange={(value) =>
@@ -145,18 +149,18 @@ export function QuestionEditor({
         return (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="statement">Question Statement</Label>
+              <Label htmlFor="statement">{t("questionStatement")}</Label>
               <RichTextEditor
                 content={localQuestion.statement}
                 onChange={(value) => updateQuestion({ statement: value })}
-                placeholder="Enter the true/false question"
+                placeholder={t("enterTrueFalseQuestion")}
                 className={getInputClassName(
                   `question-${question.id}-statement`
                 )}
               />
             </div>
             <div>
-              <Label>Correct Answer</Label>
+              <Label>{t("correctAnswer")}</Label>
               <RadioGroup
                 value={localQuestion.correctAnswer}
                 onValueChange={(value) =>
@@ -165,11 +169,11 @@ export function QuestionEditor({
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="true" id="true" />
-                  <Label htmlFor="true">True</Label>
+                  <Label htmlFor="true">{t("true")}</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="false" id="false" />
-                  <Label htmlFor="false">False</Label>
+                  <Label htmlFor="false">{t("false")}</Label>
                 </div>
               </RadioGroup>
             </div>
@@ -185,7 +189,7 @@ export function QuestionEditor({
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg">
-          Question {localQuestion.index}
+          {t("question")} {localQuestion.index}
         </CardTitle>
         <Button variant="destructive" size="sm" onClick={onDelete}>
           <Trash2 className="w-4 h-4" />
@@ -194,11 +198,11 @@ export function QuestionEditor({
       <CardContent className="space-y-4">
         {renderQuestionContent()}
         <div>
-          <Label htmlFor="explanation">Explanation (Optional)</Label>
+          <Label htmlFor="explanation">{t("explanationOptional")}</Label>
           <RichTextEditor
             content={localQuestion.explanation || ""}
             onChange={(value) => updateQuestion({ explanation: value })}
-            placeholder="Provide an explanation for the answer"
+            placeholder={t("explanationPlaceholder")}
           />
         </div>
       </CardContent>

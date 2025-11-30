@@ -16,6 +16,8 @@ import {
   teacherRates,
   attendanceLogs,
   studentAttendanceLogs,
+  expenseCategories,
+  expenses,
 } from "@edura/db/schema/education";
 import { eq, and, sql } from "drizzle-orm";
 import { desc, gte, lte, inArray } from "drizzle-orm";
@@ -4040,6 +4042,1523 @@ export const educationRouter = router({
         ...log,
         teacherName: teacherMap.get(log.teacherId) || "Unknown",
       }));
+    }),
+
+  // =====================
+  // COLLECTION & OVERDUE METRICS
+  // =====================
+
+  // Get collection metrics (collection rate, payment method distribution)
+  getCollectionMetrics: protectedProcedure
+    .input(
+      z.object({
+        startDate: z.string().optional(), // Format: "YYYY-MM"
+        endDate: z.string().optional(), // Format: "YYYY-MM"
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      // Get students belonging to this manager
+      const managerStudents = await ctx.db
+        .select({ id: user.id })
+        .from(user)
+        .where(
+          and(eq(user.role, "student"), eq(user.managerId, ctx.session.user.id))
+        );
+
+      const studentIds = managerStudents.map((s) => s.id);
+
+      if (studentIds.length === 0) {
+        return {
+          collectionRate: 0,
+          totalBilled: 0,
+          totalCollected: 0,
+          paymentMethodDistribution: [],
+        };
+      }
+
+      // Build conditions
+      const conditions = [inArray(tuitionBilling.studentId, studentIds)];
+      if (input.startDate) {
+        conditions.push(gte(tuitionBilling.billingMonth, input.startDate));
+      }
+      if (input.endDate) {
+        conditions.push(lte(tuitionBilling.billingMonth, input.endDate));
+      }
+
+      // Total billed amount
+      const totalBilledResult = await ctx.db
+        .select({
+          total: sql<number>`coalesce(sum(${tuitionBilling.amount}), 0)::int`,
+        })
+        .from(tuitionBilling)
+        .where(and(...conditions));
+
+      // Total collected (paid)
+      const totalCollectedResult = await ctx.db
+        .select({
+          total: sql<number>`coalesce(sum(${tuitionBilling.amount}), 0)::int`,
+        })
+        .from(tuitionBilling)
+        .where(and(...conditions, eq(tuitionBilling.status, "paid")));
+
+      const totalBilled = totalBilledResult[0]?.total || 0;
+      const totalCollected = totalCollectedResult[0]?.total || 0;
+      const collectionRate =
+        totalBilled > 0 ? Math.round((totalCollected / totalBilled) * 100) : 0;
+
+      // Payment method distribution
+      const paymentMethodDist = await ctx.db
+        .select({
+          method: tuitionBilling.paymentMethod,
+          count: sql<number>`count(*)::int`,
+          amount: sql<number>`coalesce(sum(${tuitionBilling.amount}), 0)::int`,
+        })
+        .from(tuitionBilling)
+        .where(and(...conditions, eq(tuitionBilling.status, "paid")))
+        .groupBy(tuitionBilling.paymentMethod);
+
+      return {
+        collectionRate,
+        totalBilled,
+        totalCollected,
+        paymentMethodDistribution: paymentMethodDist.map((p) => ({
+          method: p.method || "unknown",
+          count: p.count,
+          amount: p.amount,
+        })),
+      };
+    }),
+
+  // Get overdue billings with aging buckets
+  getOverdueBillings: protectedProcedure.query(async ({ ctx }) => {
+    if (ctx.session.user.role !== "manager") {
+      throw new Error("Access denied - manager only");
+    }
+
+    // Get students belonging to this manager
+    const managerStudents = await ctx.db
+      .select({ id: user.id })
+      .from(user)
+      .where(
+        and(eq(user.role, "student"), eq(user.managerId, ctx.session.user.id))
+      );
+
+    const studentIds = managerStudents.map((s) => s.id);
+
+    if (studentIds.length === 0) {
+      return [];
+    }
+
+    const now = new Date();
+
+    const overdueList = await ctx.db
+      .select({
+        billingId: tuitionBilling.billingId,
+        studentId: tuitionBilling.studentId,
+        studentName: user.name,
+        studentEmail: user.email,
+        classId: tuitionBilling.classId,
+        className: classes.className,
+        amount: tuitionBilling.amount,
+        billingMonth: tuitionBilling.billingMonth,
+        dueDate: tuitionBilling.dueDate,
+        invoiceNumber: tuitionBilling.invoiceNumber,
+      })
+      .from(tuitionBilling)
+      .leftJoin(user, eq(tuitionBilling.studentId, user.id))
+      .leftJoin(classes, eq(tuitionBilling.classId, classes.classId))
+      .where(
+        and(
+          inArray(tuitionBilling.studentId, studentIds),
+          eq(tuitionBilling.status, "overdue")
+        )
+      )
+      .orderBy(tuitionBilling.dueDate);
+
+    // Calculate days overdue and aging bucket
+    return overdueList.map((bill) => {
+      const dueDate = new Date(bill.dueDate!);
+      const daysOverdue = Math.floor(
+        (now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
+
+      let agingBucket: "1-30" | "31-60" | "61-90" | "90+";
+      if (daysOverdue <= 30) {
+        agingBucket = "1-30";
+      } else if (daysOverdue <= 60) {
+        agingBucket = "31-60";
+      } else if (daysOverdue <= 90) {
+        agingBucket = "61-90";
+      } else {
+        agingBucket = "90+";
+      }
+
+      return {
+        ...bill,
+        daysOverdue,
+        agingBucket,
+      };
+    });
+  }),
+
+  // =====================
+  // EXPENSE MANAGEMENT
+  // =====================
+
+  // Get all expense categories (manager only)
+  getExpenseCategories: protectedProcedure.query(async ({ ctx }) => {
+    if (ctx.session.user.role !== "manager") {
+      throw new Error("Access denied - manager only");
+    }
+
+    const categories = await ctx.db
+      .select()
+      .from(expenseCategories)
+      .where(eq(expenseCategories.managerId, ctx.session.user.id))
+      .orderBy(expenseCategories.name);
+
+    return categories;
+  }),
+
+  // Create expense category
+  createExpenseCategory: protectedProcedure
+    .input(
+      z.object({
+        name: z.string().min(1),
+        type: z.enum(["facility", "marketing", "operational"]),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      const categoryId = crypto.randomUUID();
+
+      await ctx.db.insert(expenseCategories).values({
+        categoryId,
+        name: input.name,
+        type: input.type,
+        managerId: ctx.session.user.id,
+      });
+
+      return { categoryId };
+    }),
+
+  // Delete expense category
+  deleteExpenseCategory: protectedProcedure
+    .input(z.object({ categoryId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      // Verify ownership
+      const category = await ctx.db
+        .select()
+        .from(expenseCategories)
+        .where(
+          and(
+            eq(expenseCategories.categoryId, input.categoryId),
+            eq(expenseCategories.managerId, ctx.session.user.id)
+          )
+        );
+
+      if (category.length === 0) {
+        throw new Error("Category not found or access denied");
+      }
+
+      await ctx.db
+        .delete(expenseCategories)
+        .where(eq(expenseCategories.categoryId, input.categoryId));
+
+      return { success: true };
+    }),
+
+  // Get expenses with filters
+  getExpenses: protectedProcedure
+    .input(
+      z.object({
+        categoryId: z.string().optional(),
+        categoryType: z
+          .enum(["facility", "marketing", "operational"])
+          .optional(),
+        startDate: z.string().optional(), // ISO date string
+        endDate: z.string().optional(), // ISO date string
+        isRecurring: z.boolean().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      const conditions = [eq(expenses.managerId, ctx.session.user.id)];
+
+      if (input.categoryId) {
+        conditions.push(eq(expenses.categoryId, input.categoryId));
+      }
+
+      if (input.startDate) {
+        conditions.push(gte(expenses.expenseDate, new Date(input.startDate)));
+      }
+
+      if (input.endDate) {
+        conditions.push(lte(expenses.expenseDate, new Date(input.endDate)));
+      }
+
+      if (input.isRecurring !== undefined) {
+        conditions.push(eq(expenses.isRecurring, input.isRecurring));
+      }
+
+      let query = ctx.db
+        .select({
+          expenseId: expenses.expenseId,
+          categoryId: expenses.categoryId,
+          categoryName: expenseCategories.name,
+          categoryType: expenseCategories.type,
+          amount: expenses.amount,
+          description: expenses.description,
+          expenseDate: expenses.expenseDate,
+          isRecurring: expenses.isRecurring,
+          recurringInterval: expenses.recurringInterval,
+          createdAt: expenses.createdAt,
+        })
+        .from(expenses)
+        .innerJoin(
+          expenseCategories,
+          eq(expenses.categoryId, expenseCategories.categoryId)
+        )
+        .where(and(...conditions))
+        .orderBy(desc(expenses.expenseDate));
+
+      // Filter by category type if provided
+      if (input.categoryType) {
+        const expensesList = await query;
+        return expensesList.filter(
+          (e) => e.categoryType === input.categoryType
+        );
+      }
+
+      return await query;
+    }),
+
+  // Create expense
+  createExpense: protectedProcedure
+    .input(
+      z.object({
+        categoryId: z.string(),
+        amount: z.number().positive(),
+        description: z.string().optional(),
+        expenseDate: z.string(), // ISO date string
+        isRecurring: z.boolean().default(false),
+        recurringInterval: z
+          .enum(["monthly", "quarterly", "yearly"])
+          .optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      // Verify category ownership
+      const category = await ctx.db
+        .select()
+        .from(expenseCategories)
+        .where(
+          and(
+            eq(expenseCategories.categoryId, input.categoryId),
+            eq(expenseCategories.managerId, ctx.session.user.id)
+          )
+        );
+
+      if (category.length === 0) {
+        throw new Error("Category not found or access denied");
+      }
+
+      const expenseId = crypto.randomUUID();
+
+      await ctx.db.insert(expenses).values({
+        expenseId,
+        categoryId: input.categoryId,
+        amount: input.amount,
+        description: input.description,
+        expenseDate: new Date(input.expenseDate),
+        isRecurring: input.isRecurring,
+        recurringInterval: input.isRecurring ? input.recurringInterval : null,
+        managerId: ctx.session.user.id,
+      });
+
+      return { expenseId };
+    }),
+
+  // Update expense
+  updateExpense: protectedProcedure
+    .input(
+      z.object({
+        expenseId: z.string(),
+        categoryId: z.string().optional(),
+        amount: z.number().positive().optional(),
+        description: z.string().optional(),
+        expenseDate: z.string().optional(),
+        isRecurring: z.boolean().optional(),
+        recurringInterval: z
+          .enum(["monthly", "quarterly", "yearly"])
+          .optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      // Verify ownership
+      const expense = await ctx.db
+        .select()
+        .from(expenses)
+        .where(
+          and(
+            eq(expenses.expenseId, input.expenseId),
+            eq(expenses.managerId, ctx.session.user.id)
+          )
+        );
+
+      if (expense.length === 0) {
+        throw new Error("Expense not found or access denied");
+      }
+
+      const updateData: Partial<typeof expenses.$inferInsert> = {};
+
+      if (input.categoryId) {
+        // Verify category ownership
+        const category = await ctx.db
+          .select()
+          .from(expenseCategories)
+          .where(
+            and(
+              eq(expenseCategories.categoryId, input.categoryId),
+              eq(expenseCategories.managerId, ctx.session.user.id)
+            )
+          );
+
+        if (category.length === 0) {
+          throw new Error("Category not found or access denied");
+        }
+        updateData.categoryId = input.categoryId;
+      }
+
+      if (input.amount !== undefined) {
+        updateData.amount = input.amount;
+      }
+
+      if (input.description !== undefined) {
+        updateData.description = input.description;
+      }
+
+      if (input.expenseDate) {
+        updateData.expenseDate = new Date(input.expenseDate);
+      }
+
+      if (input.isRecurring !== undefined) {
+        updateData.isRecurring = input.isRecurring;
+        if (!input.isRecurring) {
+          updateData.recurringInterval = null;
+        }
+      }
+
+      if (input.recurringInterval !== undefined) {
+        updateData.recurringInterval = input.recurringInterval;
+      }
+
+      await ctx.db
+        .update(expenses)
+        .set(updateData)
+        .where(eq(expenses.expenseId, input.expenseId));
+
+      return { success: true };
+    }),
+
+  // Delete expense
+  deleteExpense: protectedProcedure
+    .input(z.object({ expenseId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      // Verify ownership
+      const expense = await ctx.db
+        .select()
+        .from(expenses)
+        .where(
+          and(
+            eq(expenses.expenseId, input.expenseId),
+            eq(expenses.managerId, ctx.session.user.id)
+          )
+        );
+
+      if (expense.length === 0) {
+        throw new Error("Expense not found or access denied");
+      }
+
+      await ctx.db
+        .delete(expenses)
+        .where(eq(expenses.expenseId, input.expenseId));
+
+      return { success: true };
+    }),
+
+  // Get expense summary (totals by category type, monthly trend)
+  getExpenseSummary: protectedProcedure
+    .input(
+      z.object({
+        year: z.number().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      const currentYear = input.year || new Date().getFullYear();
+      const startOfYear = new Date(currentYear, 0, 1);
+      const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59);
+
+      // Total expenses by category type
+      const byTypeResult = await ctx.db
+        .select({
+          type: expenseCategories.type,
+          total: sql<number>`coalesce(sum(${expenses.amount}), 0)::int`,
+          count: sql<number>`count(*)::int`,
+        })
+        .from(expenses)
+        .innerJoin(
+          expenseCategories,
+          eq(expenses.categoryId, expenseCategories.categoryId)
+        )
+        .where(
+          and(
+            eq(expenses.managerId, ctx.session.user.id),
+            gte(expenses.expenseDate, startOfYear),
+            lte(expenses.expenseDate, endOfYear)
+          )
+        )
+        .groupBy(expenseCategories.type);
+
+      // Monthly trend
+      const monthlyTrend = await ctx.db
+        .select({
+          month: sql<string>`to_char(${expenses.expenseDate}, 'YYYY-MM')`,
+          total: sql<number>`coalesce(sum(${expenses.amount}), 0)::int`,
+        })
+        .from(expenses)
+        .where(
+          and(
+            eq(expenses.managerId, ctx.session.user.id),
+            gte(expenses.expenseDate, startOfYear),
+            lte(expenses.expenseDate, endOfYear)
+          )
+        )
+        .groupBy(sql`to_char(${expenses.expenseDate}, 'YYYY-MM')`)
+        .orderBy(sql`to_char(${expenses.expenseDate}, 'YYYY-MM')`);
+
+      // Total for the year
+      const totalResult = await ctx.db
+        .select({
+          total: sql<number>`coalesce(sum(${expenses.amount}), 0)::int`,
+        })
+        .from(expenses)
+        .where(
+          and(
+            eq(expenses.managerId, ctx.session.user.id),
+            gte(expenses.expenseDate, startOfYear),
+            lte(expenses.expenseDate, endOfYear)
+          )
+        );
+
+      return {
+        totalExpenses: totalResult[0]?.total || 0,
+        byType: byTypeResult.map((t) => ({
+          type: t.type,
+          total: t.total,
+          count: t.count,
+        })),
+        monthlyTrend: monthlyTrend.map((m) => ({
+          month: m.month,
+          total: m.total,
+        })),
+      };
+    }),
+
+  // =====================
+  // PROFITABILITY METRICS
+  // =====================
+
+  // Get profitability metrics (net margin, revenue per student/class, teacher cost ratio)
+  getProfitabilityMetrics: protectedProcedure
+    .input(
+      z.object({
+        year: z.number().optional(),
+        month: z.string().optional(), // Format: "YYYY-MM"
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      const currentYear = input.year || new Date().getFullYear();
+      const startOfYear = new Date(currentYear, 0, 1);
+      const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59);
+
+      // Get students belonging to this manager
+      const managerStudents = await ctx.db
+        .select({ id: user.id })
+        .from(user)
+        .where(
+          and(eq(user.role, "student"), eq(user.managerId, ctx.session.user.id))
+        );
+      const studentIds = managerStudents.map((s) => s.id);
+
+      // Get teachers belonging to this manager
+      const managerTeachers = await ctx.db
+        .select({ id: user.id })
+        .from(user)
+        .where(
+          and(eq(user.role, "teacher"), eq(user.managerId, ctx.session.user.id))
+        );
+      const teacherIds = managerTeachers.map((t) => t.id);
+
+      // Build billing conditions
+      const billingConditions =
+        studentIds.length > 0
+          ? [
+              inArray(tuitionBilling.studentId, studentIds),
+              eq(tuitionBilling.status, "paid"),
+            ]
+          : [sql`1=0`]; // No students = no billing
+
+      if (input.month) {
+        billingConditions.push(eq(tuitionBilling.billingMonth, input.month));
+      } else {
+        billingConditions.push(
+          gte(tuitionBilling.billingMonth, `${currentYear}-01`)
+        );
+        billingConditions.push(
+          lte(tuitionBilling.billingMonth, `${currentYear}-12`)
+        );
+      }
+
+      // Total revenue (paid tuition)
+      const revenueResult = await ctx.db
+        .select({
+          total: sql<number>`coalesce(sum(${tuitionBilling.amount}), 0)::int`,
+        })
+        .from(tuitionBilling)
+        .where(and(...billingConditions));
+
+      const totalRevenue = revenueResult[0]?.total || 0;
+
+      // Total teacher costs (paid tutor payments)
+      const teacherCostConditions =
+        teacherIds.length > 0
+          ? [
+              inArray(tutorPayments.teacherId, teacherIds),
+              eq(tutorPayments.status, "paid"),
+            ]
+          : [sql`1=0`];
+
+      if (input.month) {
+        teacherCostConditions.push(eq(tutorPayments.paymentMonth, input.month));
+      } else {
+        teacherCostConditions.push(
+          gte(tutorPayments.paymentMonth, `${currentYear}-01`)
+        );
+        teacherCostConditions.push(
+          lte(tutorPayments.paymentMonth, `${currentYear}-12`)
+        );
+      }
+
+      const teacherCostResult = await ctx.db
+        .select({
+          total: sql<number>`coalesce(sum(${tutorPayments.amount}), 0)::int`,
+        })
+        .from(tutorPayments)
+        .where(and(...teacherCostConditions));
+
+      const totalTeacherCost = teacherCostResult[0]?.total || 0;
+
+      // Total expenses
+      const expenseResult = await ctx.db
+        .select({
+          total: sql<number>`coalesce(sum(${expenses.amount}), 0)::int`,
+        })
+        .from(expenses)
+        .where(
+          and(
+            eq(expenses.managerId, ctx.session.user.id),
+            gte(expenses.expenseDate, startOfYear),
+            lte(expenses.expenseDate, endOfYear)
+          )
+        );
+
+      const totalExpenses = expenseResult[0]?.total || 0;
+
+      // Net profit
+      const netProfit = totalRevenue - totalTeacherCost - totalExpenses;
+      const netProfitMargin =
+        totalRevenue > 0 ? Math.round((netProfit / totalRevenue) * 100) : 0;
+
+      // Teacher cost ratio
+      const teacherCostRatio =
+        totalRevenue > 0
+          ? Math.round((totalTeacherCost / totalRevenue) * 100)
+          : 0;
+
+      // Count active students (with enrollments)
+      const activeStudentsResult = await ctx.db
+        .select({
+          count: sql<number>`count(distinct ${enrollments.studentId})::int`,
+        })
+        .from(enrollments)
+        .where(
+          studentIds.length > 0
+            ? inArray(enrollments.studentId, studentIds)
+            : sql`1=0`
+        );
+
+      const activeStudentCount = activeStudentsResult[0]?.count || 0;
+      const revenuePerStudent =
+        activeStudentCount > 0
+          ? Math.round(totalRevenue / activeStudentCount)
+          : 0;
+
+      // Revenue per class
+      const classRevenueResult = await ctx.db
+        .select({
+          classId: tuitionBilling.classId,
+          className: classes.className,
+          revenue: sql<number>`coalesce(sum(${tuitionBilling.amount}), 0)::int`,
+        })
+        .from(tuitionBilling)
+        .leftJoin(classes, eq(tuitionBilling.classId, classes.classId))
+        .where(and(...billingConditions))
+        .groupBy(tuitionBilling.classId, classes.className);
+
+      const classCount = classRevenueResult.length;
+      const avgRevenuePerClass =
+        classCount > 0 ? Math.round(totalRevenue / classCount) : 0;
+
+      return {
+        totalRevenue,
+        totalTeacherCost,
+        totalExpenses,
+        netProfit,
+        netProfitMargin,
+        teacherCostRatio,
+        activeStudentCount,
+        revenuePerStudent,
+        classCount,
+        avgRevenuePerClass,
+        revenueByClass: classRevenueResult.map((c) => ({
+          classId: c.classId,
+          className: c.className || "Unknown",
+          revenue: c.revenue,
+        })),
+      };
+    }),
+
+  // =====================
+  // CASH FLOW
+  // =====================
+
+  // Get cash flow summary (inflow, outflow, net, projected revenue)
+  getCashFlowSummary: protectedProcedure
+    .input(
+      z.object({
+        year: z.number().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      const currentYear = input.year || new Date().getFullYear();
+      const startOfYear = new Date(currentYear, 0, 1);
+      const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59);
+
+      // Get students and teachers belonging to this manager
+      const managerStudents = await ctx.db
+        .select({ id: user.id })
+        .from(user)
+        .where(
+          and(eq(user.role, "student"), eq(user.managerId, ctx.session.user.id))
+        );
+      const studentIds = managerStudents.map((s) => s.id);
+
+      const managerTeachers = await ctx.db
+        .select({ id: user.id })
+        .from(user)
+        .where(
+          and(eq(user.role, "teacher"), eq(user.managerId, ctx.session.user.id))
+        );
+      const teacherIds = managerTeachers.map((t) => t.id);
+
+      // Monthly inflow (paid tuition) by month
+      const monthlyInflow =
+        studentIds.length > 0
+          ? await ctx.db
+              .select({
+                month: tuitionBilling.billingMonth,
+                amount: sql<number>`coalesce(sum(${tuitionBilling.amount}), 0)::int`,
+              })
+              .from(tuitionBilling)
+              .where(
+                and(
+                  inArray(tuitionBilling.studentId, studentIds),
+                  eq(tuitionBilling.status, "paid"),
+                  gte(tuitionBilling.billingMonth, `${currentYear}-01`),
+                  lte(tuitionBilling.billingMonth, `${currentYear}-12`)
+                )
+              )
+              .groupBy(tuitionBilling.billingMonth)
+              .orderBy(tuitionBilling.billingMonth)
+          : [];
+
+      // Monthly outflow - tutor wages by month
+      const monthlyTutorWages =
+        teacherIds.length > 0
+          ? await ctx.db
+              .select({
+                month: tutorPayments.paymentMonth,
+                amount: sql<number>`coalesce(sum(${tutorPayments.amount}), 0)::int`,
+              })
+              .from(tutorPayments)
+              .where(
+                and(
+                  inArray(tutorPayments.teacherId, teacherIds),
+                  eq(tutorPayments.status, "paid"),
+                  gte(tutorPayments.paymentMonth, `${currentYear}-01`),
+                  lte(tutorPayments.paymentMonth, `${currentYear}-12`)
+                )
+              )
+              .groupBy(tutorPayments.paymentMonth)
+              .orderBy(tutorPayments.paymentMonth)
+          : [];
+
+      // Monthly expenses
+      const monthlyExpenses = await ctx.db
+        .select({
+          month: sql<string>`to_char(${expenses.expenseDate}, 'YYYY-MM')`,
+          amount: sql<number>`coalesce(sum(${expenses.amount}), 0)::int`,
+        })
+        .from(expenses)
+        .where(
+          and(
+            eq(expenses.managerId, ctx.session.user.id),
+            gte(expenses.expenseDate, startOfYear),
+            lte(expenses.expenseDate, endOfYear)
+          )
+        )
+        .groupBy(sql`to_char(${expenses.expenseDate}, 'YYYY-MM')`)
+        .orderBy(sql`to_char(${expenses.expenseDate}, 'YYYY-MM')`);
+
+      // Combine into monthly cash flow
+      const months = Array.from({ length: 12 }, (_, i) => {
+        const month = `${currentYear}-${String(i + 1).padStart(2, "0")}`;
+        const inflow =
+          monthlyInflow.find((m) => m.month === month)?.amount || 0;
+        const tutorOutflow =
+          monthlyTutorWages.find((m) => m.month === month)?.amount || 0;
+        const expenseOutflow =
+          monthlyExpenses.find((m) => m.month === month)?.amount || 0;
+        const totalOutflow = tutorOutflow + expenseOutflow;
+        return {
+          month,
+          inflow,
+          tutorWages: tutorOutflow,
+          expenses: expenseOutflow,
+          totalOutflow,
+          netCashFlow: inflow - totalOutflow,
+        };
+      });
+
+      // Calculate totals
+      const totalInflow = months.reduce((sum, m) => sum + m.inflow, 0);
+      const totalOutflow = months.reduce((sum, m) => sum + m.totalOutflow, 0);
+      const totalNetCashFlow = totalInflow - totalOutflow;
+
+      // Projected revenue from active enrollments
+      // Count active enrollments and multiply by class tuition rates
+      const projectedRevenueResult =
+        studentIds.length > 0
+          ? await ctx.db
+              .select({
+                total: sql<number>`coalesce(sum(${classes.tuitionRate}), 0)::int`,
+              })
+              .from(enrollments)
+              .innerJoin(classes, eq(enrollments.classId, classes.classId))
+              .where(inArray(enrollments.studentId, studentIds))
+          : [{ total: 0 }];
+
+      const projectedMonthlyRevenue = projectedRevenueResult[0]?.total || 0;
+
+      return {
+        monthlyData: months,
+        totalInflow,
+        totalOutflow,
+        totalNetCashFlow,
+        projectedMonthlyRevenue,
+        projectedAnnualRevenue: projectedMonthlyRevenue * 12,
+      };
+    }),
+
+  // ==================== MANAGER OVERVIEW ANALYTICS ====================
+
+  // Get manager dashboard overview stats
+  getManagerOverviewStats: protectedProcedure.query(async ({ ctx }) => {
+    if (ctx.session.user.role !== "manager") {
+      throw new Error("Access denied - manager only");
+    }
+
+    const managerId = ctx.session.user.id;
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${String(
+      now.getMonth() + 1
+    ).padStart(2, "0")}`;
+
+    // Get teacher count
+    const teacherCount = await ctx.db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(user)
+      .where(and(eq(user.role, "teacher"), eq(user.managerId, managerId)));
+
+    // Get student count
+    const studentCount = await ctx.db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(user)
+      .where(and(eq(user.role, "student"), eq(user.managerId, managerId)));
+
+    // Get active classes (classes from teachers under this manager)
+    const teacherIds = await ctx.db
+      .select({ id: user.id })
+      .from(user)
+      .where(and(eq(user.role, "teacher"), eq(user.managerId, managerId)));
+
+    const classCount =
+      teacherIds.length > 0
+        ? await ctx.db
+            .select({ count: sql<number>`count(*)::int` })
+            .from(classes)
+            .where(
+              inArray(
+                classes.teacherId,
+                teacherIds.map((t) => t.id)
+              )
+            )
+        : [{ count: 0 }];
+
+    // Get this month's revenue (paid tuition)
+    const studentIds = await ctx.db
+      .select({ id: user.id })
+      .from(user)
+      .where(and(eq(user.role, "student"), eq(user.managerId, managerId)));
+
+    const monthlyRevenue =
+      studentIds.length > 0
+        ? await ctx.db
+            .select({
+              total: sql<number>`coalesce(sum(${tuitionBilling.amount}), 0)::int`,
+            })
+            .from(tuitionBilling)
+            .where(
+              and(
+                inArray(
+                  tuitionBilling.studentId,
+                  studentIds.map((s) => s.id)
+                ),
+                eq(tuitionBilling.billingMonth, currentMonth),
+                eq(tuitionBilling.status, "paid")
+              )
+            )
+        : [{ total: 0 }];
+
+    return {
+      totalTeachers: teacherCount[0]?.count ?? 0,
+      totalStudents: studentCount[0]?.count ?? 0,
+      activeClasses: classCount[0]?.count ?? 0,
+      monthlyRevenue: monthlyRevenue[0]?.total ?? 0,
+    };
+  }),
+
+  // Get retention metrics based on last activity date
+  getRetentionMetrics: protectedProcedure
+    .input(
+      z.object({
+        months: z.number().min(1).max(12).default(6),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      const managerId = ctx.session.user.id;
+      const now = new Date();
+
+      // Get all students under this manager
+      const students = await ctx.db
+        .select({ id: user.id, createdAt: user.createdAt })
+        .from(user)
+        .where(and(eq(user.role, "student"), eq(user.managerId, managerId)));
+
+      const studentIds = students.map((s) => s.id);
+      if (studentIds.length === 0) {
+        return {
+          currentRetentionRate: 0,
+          monthlyRetention: [],
+          totalStudents: 0,
+          activeStudents: 0,
+        };
+      }
+
+      // Calculate retention for each month
+      const monthlyRetention = [];
+      for (let i = input.months - 1; i >= 0; i--) {
+        const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);
+        const monthStr = `${monthDate.getFullYear()}-${String(
+          monthDate.getMonth() + 1
+        ).padStart(2, "0")}`;
+        const monthEndStr = monthEnd.toISOString().split("T")[0]!;
+
+        // Students who existed at that time (enrolled before month end)
+        const existingStudents = students.filter(
+          (s) => s.createdAt && new Date(s.createdAt) <= monthEnd
+        );
+
+        if (existingStudents.length === 0) {
+          monthlyRetention.push({
+            month: monthStr,
+            retentionRate: 0,
+            totalStudents: 0,
+            activeStudents: 0,
+          });
+          continue;
+        }
+
+        const existingIds = existingStudents.map((s) => s.id);
+
+        // Check activity from submissions
+        const submissionActivity = await ctx.db
+          .select({ studentId: submissions.studentId })
+          .from(submissions)
+          .innerJoin(
+            assignments,
+            eq(submissions.assignmentId, assignments.assignmentId)
+          )
+          .innerJoin(classes, eq(assignments.classId, classes.classId))
+          .where(
+            and(
+              inArray(submissions.studentId, existingIds),
+              gte(submissions.submittedAt, monthDate),
+              lte(submissions.submittedAt, monthEnd)
+            )
+          )
+          .groupBy(submissions.studentId);
+
+        // Check activity from attendance
+        const attendanceActivity = await ctx.db
+          .select({ studentId: studentAttendanceLogs.studentId })
+          .from(studentAttendanceLogs)
+          .where(
+            and(
+              inArray(studentAttendanceLogs.studentId, existingIds),
+              gte(
+                studentAttendanceLogs.sessionDate,
+                monthStr.slice(0, 7) + "-01"
+              ),
+              lte(studentAttendanceLogs.sessionDate, monthEndStr),
+              eq(studentAttendanceLogs.isPresent, true)
+            )
+          )
+          .groupBy(studentAttendanceLogs.studentId);
+
+        // Combine active students (from either submissions or attendance)
+        const activeFromSubmissions = new Set(
+          submissionActivity.map((s) => s.studentId)
+        );
+        const activeFromAttendance = new Set(
+          attendanceActivity.map((s) => s.studentId)
+        );
+        const allActive = new Set([
+          ...activeFromSubmissions,
+          ...activeFromAttendance,
+        ]);
+
+        const retentionRate =
+          existingStudents.length > 0
+            ? Math.round((allActive.size / existingStudents.length) * 100)
+            : 0;
+
+        monthlyRetention.push({
+          month: monthStr,
+          retentionRate,
+          totalStudents: existingStudents.length,
+          activeStudents: allActive.size,
+        });
+      }
+
+      // Current retention rate (last month)
+      const currentRetention = monthlyRetention[monthlyRetention.length - 1];
+
+      return {
+        currentRetentionRate: currentRetention?.retentionRate ?? 0,
+        monthlyRetention,
+        totalStudents: currentRetention?.totalStudents ?? 0,
+        activeStudents: currentRetention?.activeStudents ?? 0,
+      };
+    }),
+
+  // Get assignment completion metrics
+  getAssignmentCompletionMetrics: protectedProcedure
+    .input(
+      z.object({
+        months: z.number().min(1).max(12).default(6),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      const managerId = ctx.session.user.id;
+      const now = new Date();
+      const startDate = new Date(
+        now.getFullYear(),
+        now.getMonth() - input.months + 1,
+        1
+      );
+
+      // Get teachers under this manager
+      const teachers = await ctx.db
+        .select({ id: user.id })
+        .from(user)
+        .where(and(eq(user.role, "teacher"), eq(user.managerId, managerId)));
+
+      const teacherIds = teachers.map((t) => t.id);
+      if (teacherIds.length === 0) {
+        return {
+          overallCompletionRate: 0,
+          onTimeRate: 0,
+          lateRate: 0,
+          byClass: [],
+        };
+      }
+
+      // Get classes from these teachers
+      const teacherClasses = await ctx.db
+        .select({ classId: classes.classId, className: classes.className })
+        .from(classes)
+        .where(inArray(classes.teacherId, teacherIds));
+
+      const classIds = teacherClasses.map((c) => c.classId);
+      if (classIds.length === 0) {
+        return {
+          overallCompletionRate: 0,
+          onTimeRate: 0,
+          lateRate: 0,
+          byClass: [],
+        };
+      }
+
+      // Get students under this manager
+      const students = await ctx.db
+        .select({ id: user.id })
+        .from(user)
+        .where(and(eq(user.role, "student"), eq(user.managerId, managerId)));
+
+      const studentIds = students.map((s) => s.id);
+
+      // Get assignments in date range
+      const assignmentList = await ctx.db
+        .select({
+          assignmentId: assignments.assignmentId,
+          classId: assignments.classId,
+          dueDate: assignments.dueDate,
+        })
+        .from(assignments)
+        .where(
+          and(
+            inArray(assignments.classId, classIds),
+            gte(assignments.createdAt, startDate)
+          )
+        );
+
+      if (assignmentList.length === 0 || studentIds.length === 0) {
+        return {
+          overallCompletionRate: 0,
+          onTimeRate: 0,
+          lateRate: 0,
+          byClass: teacherClasses.map((c) => ({
+            classId: c.classId,
+            className: c.className,
+            completionRate: 0,
+            onTimeRate: 0,
+          })),
+        };
+      }
+
+      // Get enrollments to know which students should submit which assignments
+      const enrollmentData = await ctx.db
+        .select({
+          studentId: enrollments.studentId,
+          classId: enrollments.classId,
+        })
+        .from(enrollments)
+        .where(
+          and(
+            inArray(enrollments.studentId, studentIds),
+            inArray(enrollments.classId, classIds)
+          )
+        );
+
+      // Calculate expected submissions per assignment
+      const expectedSubmissions = new Map<string, number>();
+      const classEnrollments = new Map<string, Set<string>>();
+
+      for (const e of enrollmentData) {
+        if (!classEnrollments.has(e.classId)) {
+          classEnrollments.set(e.classId, new Set());
+        }
+        classEnrollments.get(e.classId)!.add(e.studentId);
+      }
+
+      for (const a of assignmentList) {
+        const enrolledCount = classEnrollments.get(a.classId)?.size ?? 0;
+        expectedSubmissions.set(a.assignmentId, enrolledCount);
+      }
+
+      // Get actual submissions
+      const submissionData = await ctx.db
+        .select({
+          assignmentId: submissions.assignmentId,
+          submittedAt: submissions.submittedAt,
+          studentId: submissions.studentId,
+        })
+        .from(submissions)
+        .where(
+          and(
+            inArray(
+              submissions.assignmentId,
+              assignmentList.map((a) => a.assignmentId)
+            ),
+            inArray(submissions.studentId, studentIds)
+          )
+        );
+
+      // Calculate metrics
+      let totalExpected = 0;
+      let totalSubmitted = 0;
+      let onTime = 0;
+      let late = 0;
+
+      const byClassMap = new Map<
+        string,
+        { expected: number; submitted: number; onTime: number }
+      >();
+
+      for (const a of assignmentList) {
+        const expected = expectedSubmissions.get(a.assignmentId) ?? 0;
+        totalExpected += expected;
+
+        if (!byClassMap.has(a.classId)) {
+          byClassMap.set(a.classId, { expected: 0, submitted: 0, onTime: 0 });
+        }
+        byClassMap.get(a.classId)!.expected += expected;
+      }
+
+      for (const s of submissionData) {
+        totalSubmitted++;
+        const assignment = assignmentList.find(
+          (a) => a.assignmentId === s.assignmentId
+        );
+
+        if (assignment) {
+          if (!byClassMap.has(assignment.classId)) {
+            byClassMap.set(assignment.classId, {
+              expected: 0,
+              submitted: 0,
+              onTime: 0,
+            });
+          }
+          byClassMap.get(assignment.classId)!.submitted++;
+
+          if (assignment.dueDate && s.submittedAt <= assignment.dueDate) {
+            onTime++;
+            byClassMap.get(assignment.classId)!.onTime++;
+          } else {
+            late++;
+          }
+        }
+      }
+
+      const overallCompletionRate =
+        totalExpected > 0
+          ? Math.round((totalSubmitted / totalExpected) * 100)
+          : 0;
+      const onTimeRate =
+        totalSubmitted > 0 ? Math.round((onTime / totalSubmitted) * 100) : 0;
+      const lateRate =
+        totalSubmitted > 0 ? Math.round((late / totalSubmitted) * 100) : 0;
+
+      const byClass = teacherClasses.map((c) => {
+        const stats = byClassMap.get(c.classId) ?? {
+          expected: 0,
+          submitted: 0,
+          onTime: 0,
+        };
+        return {
+          classId: c.classId,
+          className: c.className,
+          completionRate:
+            stats.expected > 0
+              ? Math.round((stats.submitted / stats.expected) * 100)
+              : 0,
+          onTimeRate:
+            stats.submitted > 0
+              ? Math.round((stats.onTime / stats.submitted) * 100)
+              : 0,
+        };
+      });
+
+      return {
+        overallCompletionRate,
+        onTimeRate,
+        lateRate,
+        byClass,
+      };
+    }),
+
+  // Get enrollment trends over time
+  getEnrollmentTrends: protectedProcedure
+    .input(
+      z.object({
+        months: z.number().min(1).max(12).default(12),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      const managerId = ctx.session.user.id;
+      const now = new Date();
+
+      // Get students under this manager
+      const students = await ctx.db
+        .select({ id: user.id })
+        .from(user)
+        .where(and(eq(user.role, "student"), eq(user.managerId, managerId)));
+
+      const studentIds = students.map((s) => s.id);
+      if (studentIds.length === 0) {
+        const emptyMonths = [];
+        for (let i = input.months - 1; i >= 0; i--) {
+          const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          emptyMonths.push({
+            month: `${monthDate.getFullYear()}-${String(
+              monthDate.getMonth() + 1
+            ).padStart(2, "0")}`,
+            newEnrollments: 0,
+            totalEnrollments: 0,
+          });
+        }
+        return { trends: emptyMonths };
+      }
+
+      // Get enrollments data
+      const enrollmentData = await ctx.db
+        .select({
+          enrolledAt: enrollments.enrolledAt,
+        })
+        .from(enrollments)
+        .where(inArray(enrollments.studentId, studentIds));
+
+      // Calculate monthly trends
+      const trends = [];
+      let cumulativeTotal = 0;
+
+      // First, count enrollments before the period
+      const startDate = new Date(
+        now.getFullYear(),
+        now.getMonth() - input.months + 1,
+        1
+      );
+      cumulativeTotal = enrollmentData.filter(
+        (e) => e.enrolledAt && new Date(e.enrolledAt) < startDate
+      ).length;
+
+      for (let i = input.months - 1; i >= 0; i--) {
+        const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthEnd = new Date(
+          now.getFullYear(),
+          now.getMonth() - i + 1,
+          0,
+          23,
+          59,
+          59
+        );
+        const monthStr = `${monthStart.getFullYear()}-${String(
+          monthStart.getMonth() + 1
+        ).padStart(2, "0")}`;
+
+        const newEnrollments = enrollmentData.filter(
+          (e) =>
+            e.enrolledAt &&
+            new Date(e.enrolledAt) >= monthStart &&
+            new Date(e.enrolledAt) <= monthEnd
+        ).length;
+
+        cumulativeTotal += newEnrollments;
+
+        trends.push({
+          month: monthStr,
+          newEnrollments,
+          totalEnrollments: cumulativeTotal,
+        });
+      }
+
+      return { trends };
+    }),
+
+  // Get class performance metrics
+  getClassPerformanceMetrics: protectedProcedure
+    .input(
+      z.object({
+        months: z.number().min(1).max(12).default(6),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      const managerId = ctx.session.user.id;
+      const now = new Date();
+      const startDate = new Date(
+        now.getFullYear(),
+        now.getMonth() - input.months + 1,
+        1
+      );
+
+      // Get teachers under this manager
+      const teachers = await ctx.db
+        .select({ id: user.id })
+        .from(user)
+        .where(and(eq(user.role, "teacher"), eq(user.managerId, managerId)));
+
+      const teacherIds = teachers.map((t) => t.id);
+      if (teacherIds.length === 0) {
+        return { classPerformance: [] };
+      }
+
+      // Get classes from these teachers
+      const teacherClasses = await ctx.db
+        .select({
+          classId: classes.classId,
+          className: classes.className,
+        })
+        .from(classes)
+        .where(inArray(classes.teacherId, teacherIds));
+
+      if (teacherClasses.length === 0) {
+        return { classPerformance: [] };
+      }
+
+      const classIds = teacherClasses.map((c) => c.classId);
+
+      // Get assignments for these classes
+      const assignmentList = await ctx.db
+        .select({
+          assignmentId: assignments.assignmentId,
+          classId: assignments.classId,
+        })
+        .from(assignments)
+        .where(
+          and(
+            inArray(assignments.classId, classIds),
+            gte(assignments.createdAt, startDate)
+          )
+        );
+
+      if (assignmentList.length === 0) {
+        return {
+          classPerformance: teacherClasses.map((c) => ({
+            classId: c.classId,
+            className: c.className,
+            averageGrade: 0,
+            submissionCount: 0,
+          })),
+        };
+      }
+
+      // Get submissions with grades
+      const submissionData = await ctx.db
+        .select({
+          assignmentId: submissions.assignmentId,
+          grade: submissions.grade,
+        })
+        .from(submissions)
+        .where(
+          and(
+            inArray(
+              submissions.assignmentId,
+              assignmentList.map((a) => a.assignmentId)
+            ),
+            sql`${submissions.grade} IS NOT NULL`
+          )
+        );
+
+      // Calculate average grade per class
+      const classGrades = new Map<string, { total: number; count: number }>();
+
+      for (const s of submissionData) {
+        const assignment = assignmentList.find(
+          (a) => a.assignmentId === s.assignmentId
+        );
+        if (assignment && s.grade !== null) {
+          if (!classGrades.has(assignment.classId)) {
+            classGrades.set(assignment.classId, { total: 0, count: 0 });
+          }
+          classGrades.get(assignment.classId)!.total += s.grade;
+          classGrades.get(assignment.classId)!.count++;
+        }
+      }
+
+      const classPerformance = teacherClasses.map((c) => {
+        const grades = classGrades.get(c.classId);
+        return {
+          classId: c.classId,
+          className: c.className,
+          averageGrade:
+            grades && grades.count > 0
+              ? Math.round(grades.total / grades.count)
+              : 0,
+          submissionCount: grades?.count ?? 0,
+        };
+      });
+
+      // Sort by average grade descending
+      classPerformance.sort((a, b) => b.averageGrade - a.averageGrade);
+
+      return { classPerformance };
     }),
 });
 

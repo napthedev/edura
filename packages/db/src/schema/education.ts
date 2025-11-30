@@ -8,6 +8,7 @@ import {
   jsonb,
   pgEnum,
   smallint,
+  index,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 
@@ -74,6 +75,8 @@ export const enrollments = pgTable(
   (table) => ({
     // Unique constraint to prevent a student from enrolling in the same class more than once
     uniqueStudentClass: unique().on(table.studentId, table.classId),
+    // Index for analytics queries on enrollment trends
+    enrolledAtIdx: index("enrollments_enrolled_at_idx").on(table.enrolledAt),
   })
 );
 
@@ -96,19 +99,26 @@ export const assignments = pgTable("assignments", {
 });
 
 // Submissions table
-export const submissions = pgTable("submissions", {
-  submissionId: text("submission_id").primaryKey(),
-  assignmentId: text("assignment_id")
-    .notNull()
-    .references(() => assignments.assignmentId, { onDelete: "cascade" }),
-  studentId: text("student_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-  submissionContent: text("submission_content"),
-  submittedAt: timestamp("submitted_at").notNull().defaultNow(),
-  grade: integer("grade"), // Can be NULL until graded
-  feedback: text("feedback"), // Rich text feedback for written assignments
-});
+export const submissions = pgTable(
+  "submissions",
+  {
+    submissionId: text("submission_id").primaryKey(),
+    assignmentId: text("assignment_id")
+      .notNull()
+      .references(() => assignments.assignmentId, { onDelete: "cascade" }),
+    studentId: text("student_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    submissionContent: text("submission_content"),
+    submittedAt: timestamp("submitted_at").notNull().defaultNow(),
+    grade: integer("grade"), // Can be NULL until graded
+    feedback: text("feedback"), // Rich text feedback for written assignments
+  },
+  (table) => ({
+    // Index for analytics queries on submission activity
+    submittedAtIdx: index("submissions_submitted_at_idx").on(table.submittedAt),
+  })
+);
 
 // Announcements table
 export const announcements = pgTable("announcements", {
@@ -270,24 +280,31 @@ export const auditLogs = pgTable("audit_logs", {
 });
 
 // Tuition Billing (monthly billing records per student per class)
-export const tuitionBilling = pgTable("tuition_billing", {
-  billingId: text("billing_id").primaryKey(),
-  studentId: text("student_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-  classId: text("class_id").references(() => classes.classId, {
-    onDelete: "set null",
-  }),
-  amount: integer("amount").notNull(), // In smallest currency unit (VND)
-  billingMonth: text("billing_month").notNull(), // Format: "YYYY-MM" (e.g., "2025-11")
-  dueDate: timestamp("due_date").notNull(),
-  status: billingStatusEnum("status").notNull().default("pending"),
-  paidAt: timestamp("paid_at"),
-  paymentMethod: paymentMethodEnum("payment_method"),
-  invoiceNumber: text("invoice_number"),
-  notes: text("notes"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+export const tuitionBilling = pgTable(
+  "tuition_billing",
+  {
+    billingId: text("billing_id").primaryKey(),
+    studentId: text("student_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    classId: text("class_id").references(() => classes.classId, {
+      onDelete: "set null",
+    }),
+    amount: integer("amount").notNull(), // In smallest currency unit (VND)
+    billingMonth: text("billing_month").notNull(), // Format: "YYYY-MM" (e.g., "2025-11")
+    dueDate: timestamp("due_date").notNull(),
+    status: billingStatusEnum("status").notNull().default("pending"),
+    paidAt: timestamp("paid_at"),
+    paymentMethod: paymentMethodEnum("payment_method"),
+    invoiceNumber: text("invoice_number"),
+    notes: text("notes"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    // Index for analytics queries on billing trends
+    billingMonthIdx: index("tuition_billing_month_idx").on(table.billingMonth),
+  })
+);
 
 // Tutor Payments (monthly payment records per teacher)
 export const tutorPayments = pgTable("tutor_payments", {
@@ -359,5 +376,51 @@ export const studentAttendanceLogs = pgTable(
       table.scheduleId,
       table.sessionDate
     ),
+    // Index for analytics queries on student activity
+    sessionDateIdx: index("student_attendance_session_date_idx").on(
+      table.sessionDate
+    ),
   })
 );
+
+// Expense category type enum
+export const expenseCategoryTypeEnum = pgEnum("expense_category_type", [
+  "facility",
+  "marketing",
+  "operational",
+]);
+
+// Recurring interval enum for expenses
+export const recurringIntervalEnum = pgEnum("recurring_interval", [
+  "monthly",
+  "quarterly",
+  "yearly",
+]);
+
+// Expense Categories (manager-defined categories for expenses)
+export const expenseCategories = pgTable("expense_categories", {
+  categoryId: text("category_id").primaryKey(),
+  name: text("name").notNull(),
+  type: expenseCategoryTypeEnum("type").notNull(),
+  managerId: text("manager_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Expenses (individual expense records)
+export const expenses = pgTable("expenses", {
+  expenseId: text("expense_id").primaryKey(),
+  categoryId: text("category_id")
+    .notNull()
+    .references(() => expenseCategories.categoryId, { onDelete: "cascade" }),
+  amount: integer("amount").notNull(), // In smallest currency unit (VND)
+  description: text("description"),
+  expenseDate: timestamp("expense_date").notNull(),
+  isRecurring: boolean("is_recurring").notNull().default(false),
+  recurringInterval: recurringIntervalEnum("recurring_interval"),
+  managerId: text("manager_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
