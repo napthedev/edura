@@ -14,6 +14,13 @@ export const user = pgTable("user", {
   image: text("image"),
   // role indicates whether the user is a teacher or student
   role: userRoleEnum("role").notNull().default("student"),
+  // Multi-tenancy: links teachers/students to their manager (learning center)
+  // Managers link to themselves (self-reference)
+  managerId: text("manager_id"),
+  // System-generated password stored for manager reference
+  generatedPassword: text("generated_password"),
+  // Tracks if user has changed their initial password
+  hasChangedPassword: boolean("has_changed_password").notNull().default(false),
   // Extended profile fields
   dateOfBirth: timestamp("date_of_birth"),
   address: text("address"),

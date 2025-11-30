@@ -22,6 +22,22 @@ export const auth = betterAuth({
         required: true,
         input: true,
       },
+      managerId: {
+        type: "string",
+        required: false,
+        input: true,
+      },
+      generatedPassword: {
+        type: "string",
+        required: false,
+        input: true,
+      },
+      hasChangedPassword: {
+        type: "boolean",
+        required: false,
+        input: true,
+        defaultValue: false,
+      },
       dateOfBirth: {
         type: "date",
         required: false,

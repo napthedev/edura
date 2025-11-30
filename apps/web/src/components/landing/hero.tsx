@@ -3,6 +3,7 @@
 import { BookOpen, Play, Star, TrendingUp, Users } from "lucide-react";
 import { Button } from "../ui/button";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 
 const Hero = () => {
   const t = useTranslations("Hero");
@@ -53,12 +54,14 @@ const Hero = () => {
 
             {/* CTA Buttons */}
             <div className="flex flex-col gap-4 sm:flex-row">
-              <Button
-                className="transform bg-black px-8 py-4 font-semibold text-lg text-white transition-all duration-200 hover:scale-105 hover:bg-gray-800"
-                size="lg"
-              >
-                {HERO.ctaText}
-              </Button>
+              <Link href="/contact">
+                <Button
+                  className="transform bg-black px-8 py-4 font-semibold text-lg text-white transition-all duration-200 hover:scale-105 hover:bg-gray-800"
+                  size="lg"
+                >
+                  {t("contactUs")}
+                </Button>
+              </Link>
               <Button
                 className="flex items-center border-2 border-gray-300 px-8 py-4 font-semibold text-gray-700 text-lg transition-all duration-200 hover:bg-gray-50"
                 size="lg"

@@ -11,6 +11,7 @@
     "pricing": "Bảng giá",
     "signin": "Đăng nhập",
     "startFreeTrial": "Dùng thử miễn phí",
+    "contactUs": "Liên hệ",
     "home": "Trang chủ",
     "teachers": "Giáo viên",
     "about": "Giới thiệu"
@@ -19,6 +20,7 @@
     "title": "Nền tảng quản lý giáo dục cho trung tâm",
     "subtitle": "Tối ưu hóa hoạt động, quản lý tài chính, theo dõi KPI và tương tác với phụ huynh—mọi thứ bạn cần để điều hành trung tâm dạy thêm thành công",
     "ctaText": "Dùng thử miễn phí",
+    "contactUs": "Liên hệ ngay",
     "watchDemo": "Xem Demo",
     "trustedBadge": "Được tin tưởng bởi hơn 500 trung tâm dạy thêm trên toàn thế giới",
     "trustedBy": "Được tin tưởng bởi các trung tâm hàng đầu:",
@@ -72,63 +74,35 @@
   },
   "Pricing": {
     "title": "Bảng giá minh bạch đơn giản",
-    "subtitle": "Các gói linh hoạt được thiết kế cho trung tâm dạy thêm mọi quy mô",
-    "monthly": "Hàng tháng",
-    "yearly": "Hàng năm",
-    "save": "Tiết kiệm 20%",
-    "mostPopular": "Phổ biến nhất",
-    "plans": {
-      "basic": {
-        "name": "Khởi động",
-        "description": "Hoàn hảo cho trung tâm nhỏ",
-        "cta": "Bắt đầu gói Khởi động",
-        "features": [
-          "Tối đa 3 lớp học",
-          "Quản lý học sinh & theo dõi tiến trình",
-          "Lập lịch lớp cơ bản",
-          "Hỗ trợ qua email",
-          "Công cụ giao tiếp với phụ huynh"
-        ]
-      },
-      "standard": {
-        "name": "Chuyên nghiệp",
-        "description": "Phổ biến nhất cho trung tâm đang phát triển",
-        "cta": "Chọn Chuyên nghiệp",
-        "features": [
-          "Lớp học không giới hạn",
-          "Tạo bài tập bằng AI",
-          "Hệ thống chấm điểm tự động",
-          "Thông báo phụ huynh qua Zalo",
-          "Theo dõi tài chính & báo cáo",
-          "Bảng điều khiển phân tích KPI",
-          "Hỗ trợ ưu tiên"
-        ]
-      },
-      "premium": {
-        "name": "Doanh nghiệp",
-        "description": "Giải pháp hoàn chỉnh cho trung tâm lớn",
-        "cta": "Chọn Doanh nghiệp",
-        "features": [
-          "Mọi thứ trong gói Chuyên nghiệp",
-          "Xử lý thanh toán tự động",
-          "Quản lý tài chính nâng cao",
-          "Theo dõi dòng tiền (lương & học phí)",
-          "Tích hợp tùy chỉnh",
-          "Quản lý tài khoản chuyên dụng",
-          "Hỗ trợ ưu tiên 24/7"
-        ]
-      }
+    "subtitle": "Chỉ trả tiền cho những gì bạn sử dụng, 100 học sinh đầu tiên hoàn toàn miễn phí",
+    "planName": "Gói linh hoạt",
+    "planDescription": "Tất cả tính năng đều được bao gồm, trả theo số lượng học sinh",
+    "freeTier": {
+      "title": "100 học sinh đầu tiên MIỄN PHÍ",
+      "description": "Bắt đầu với tối đa 100 học sinh mà không mất phí"
     },
-    "perMonth": "mỗi tháng",
-    "perYear": "mỗi năm",
-    "savePerYear": "Tiết kiệm {amount}/năm",
+    "paidTier": {
+      "perStudent": "mỗi học sinh thêm/tháng",
+      "description": "Cho mỗi học sinh vượt quá 100"
+    },
+    "includedFeatures": "Bao gồm tất cả:",
+    "features": [
+      "Lớp học không giới hạn",
+      "Tạo bài tập bằng AI",
+      "Hệ thống chấm điểm tự động",
+      "Thông báo phụ huynh qua Zalo",
+      "Theo dõi tài chính & báo cáo",
+      "Bảng điều khiển phân tích KPI",
+      "Lập lịch lớp học",
+      "Theo dõi tiến trình học sinh",
+      "Quản lý giáo viên",
+      "Xử lý thanh toán"
+    ],
+    "contactCta": "Liên hệ để bắt đầu",
+    "contactNote": "Đội ngũ của chúng tôi sẽ thiết lập tài khoản và giúp bạn bắt đầu",
     "guarantee": {
-      "title": "Dùng thử không rủi ro 30 ngày",
-      "description": "Dùng thử Edura hoàn toàn không rủi ro! Nếu bạn không hoàn toàn hài lòng với cách nền tảng của chúng tôi giúp quản lý trung tâm dạy thêm của bạn trong 30 ngày đầu, chúng tôi sẽ hoàn lại toàn bộ tiền của bạn, không hỏi lý do."
-    },
-    "faq": {
-      "question": "Có câu hỏi về các gói của chúng tôi?",
-      "cta": "Xem câu hỏi thường gặp"
+      "title": "Đảm bảo hài lòng 30 ngày",
+      "description": "Dùng thử Edura hoàn toàn không rủi ro! Nếu bạn không hoàn toàn hài lòng với cách nền tảng của chúng tôi giúp quản lý trung tâm dạy thêm của bạn trong 30 ngày đầu, chúng tôi sẽ giúp giải quyết mọi vấn đề hoặc hoàn lại toàn bộ tiền."
     }
   },
   "Testimonials": {
@@ -177,9 +151,9 @@
     },
     "description": "Trao quyền cho học sinh K-12 trên toàn thế giới với trải nghiệm học tập tương tác, hướng dẫn chuyên nghiệp và lộ trình giáo dục cá nhân hóa để thành công trong học tập.",
     "contact": {
-      "phone": "1-800-EDURA",
+      "phone": "09123456789",
       "email": "support@edura.com",
-      "address": "San Francisco, CA"
+      "address": "Hà Nội, Việt Nam"
     },
     "links": {
       "company": {
@@ -234,6 +208,57 @@
       "passwordTooShort": "Mật khẩu phải tối thiểu 8 ký tự",
       "passwordTooLong": "Mật khẩu quá dài",
       "generic": "Đã xảy ra lỗi. Vui lòng thử lại."
+    },
+    "noAccount": "Chưa có tài khoản?",
+    "contactAdmin": "Liên hệ quản trị viên"
+  },
+  "Contact": {
+    "title": "Bắt đầu với Edura",
+    "subtitle": "Liên hệ với chúng tôi để thiết lập tài khoản trung tâm dạy thêm của bạn. Đội ngũ của chúng tôi sẽ giúp bạn bắt đầu nhanh chóng.",
+    "signIn": "Đăng nhập",
+    "form": {
+      "title": "Yêu cầu thiết lập tài khoản",
+      "description": "Điền vào mẫu này và chúng tôi sẽ liên hệ với bạn trong vòng 24 giờ",
+      "name": "Họ tên",
+      "namePlaceholder": "Nhập họ tên đầy đủ",
+      "email": "Địa chỉ email",
+      "emailPlaceholder": "email@cuaban.com",
+      "phone": "Số điện thoại",
+      "phonePlaceholder": "Nhập số điện thoại",
+      "centerName": "Tên trung tâm dạy thêm",
+      "centerNamePlaceholder": "Nhập tên trung tâm",
+      "studentCount": "Số lượng học sinh ước tính",
+      "studentCountPlaceholder": "ví dụ: 50",
+      "message": "Thông tin thêm",
+      "messagePlaceholder": "Cho chúng tôi biết về trung tâm của bạn...",
+      "submit": "Gửi yêu cầu",
+      "submitting": "Đang gửi..."
+    },
+    "info": {
+      "title": "Thông tin liên hệ",
+      "email": "Email",
+      "phone": "Điện thoại",
+      "address": "Địa chỉ"
+    },
+    "benefits": {
+      "title": "Tại sao chọn Edura?",
+      "free": {
+        "title": "100 học sinh đầu tiên miễn phí",
+        "description": "Bắt đầu mà không mất chi phí cho 100 học sinh đầu tiên"
+      },
+      "setup": {
+        "title": "Thiết lập tài khoản nhanh chóng",
+        "description": "Chúng tôi sẽ thiết lập tài khoản quản lý và giúp bạn làm quen"
+      },
+      "support": {
+        "title": "Hỗ trợ tận tình",
+        "description": "Nhận trợ giúp bất cứ khi nào bạn cần từ đội ngũ hỗ trợ của chúng tôi"
+      }
+    },
+    "success": {
+      "title": "Yêu cầu đã được gửi!",
+      "message": "Cảm ơn bạn đã quan tâm đến Edura. Đội ngũ của chúng tôi sẽ liên hệ với bạn trong vòng 24 giờ để thiết lập tài khoản.",
+      "backToHome": "Quay về trang chủ"
     }
   },
   "TeacherDashboard": {
@@ -940,11 +965,14 @@
     "teachersList": "Danh sách giáo viên",
     "name": "Tên",
     "email": "Email",
+    "password": "Mật khẩu",
     "schoolName": "Trường",
     "address": "Địa chỉ",
     "dateOfBirth": "Ngày sinh",
     "joinedDate": "Ngày tham gia",
-    "noTeachers": "Chưa có giáo viên đăng ký"
+    "noTeachers": "Chưa có giáo viên đăng ký",
+    "passwordNotChanged": "Chưa đổi",
+    "passwordNotChangedTooltip": "Người dùng chưa đổi mật khẩu do hệ thống tạo"
   },
   "ManagerStudents": {
     "title": "Quản lý học sinh",
@@ -954,12 +982,15 @@
     "studentsList": "Danh sách học sinh",
     "name": "Tên",
     "email": "Email",
+    "password": "Mật khẩu",
     "gradeLevel": "Khối lớp",
     "schoolName": "Trường",
     "address": "Địa chỉ",
     "dateOfBirth": "Ngày sinh",
     "joinedDate": "Ngày tham gia",
-    "noStudents": "Chưa có học sinh đăng ký"
+    "noStudents": "Chưa có học sinh đăng ký",
+    "passwordNotChanged": "Chưa đổi",
+    "passwordNotChangedTooltip": "Người dùng chưa đổi mật khẩu do hệ thống tạo"
   },
   "DeadlineManagement": {
     "title": "Quản lý hạn nộp",
@@ -1162,5 +1193,125 @@
     "checkedOutAt": "Kết thúc lúc",
     "waitForEndTime": "Chờ đến giờ kết thúc để điểm danh ra",
     "timeWindowHint": "Điểm danh khả dụng trong ±5 phút theo lịch"
+  },
+  "AddTeacher": {
+    "title": "Thêm giáo viên",
+    "addTeacher": "Thêm giáo viên",
+    "description": "Tạo tài khoản giáo viên mới. Mật khẩu sẽ được tự động tạo và gửi qua email.",
+    "name": "Họ và tên",
+    "namePlaceholder": "Nhập họ và tên",
+    "email": "Email",
+    "emailPlaceholder": "Nhập địa chỉ email",
+    "dateOfBirth": "Ngày sinh",
+    "dateOfBirthPlaceholder": "Chọn ngày sinh",
+    "optional": "tùy chọn",
+    "submit": "Tạo giáo viên",
+    "create": "Tạo giáo viên",
+    "creating": "Đang tạo...",
+    "cancel": "Hủy",
+    "success": "Tạo tài khoản giáo viên thành công",
+    "error": "Không thể tạo tài khoản giáo viên",
+    "accountCreated": "Tạo tài khoản giáo viên thành công!",
+    "generatedPassword": "Mật khẩu được tạo",
+    "generatedPasswordDescription": "Vui lòng lưu mật khẩu này. Giáo viên sẽ cần nó để đăng nhập lần đầu.",
+    "passwordWarning": "Vui lòng lưu mật khẩu này. Mật khẩu sẽ được gửi cho giáo viên qua email, nhưng bạn nên giữ một bản sao để tham khảo.",
+    "copyPassword": "Sao chép mật khẩu",
+    "passwordCopied": "Đã sao chép mật khẩu",
+    "close": "Đóng",
+    "done": "Hoàn tất",
+    "addAnother": "Thêm người khác",
+    "createAnother": "Tạo thêm"
+  },
+  "AddStudent": {
+    "title": "Thêm học sinh",
+    "addStudent": "Thêm học sinh",
+    "description": "Tạo tài khoản học sinh mới. Mật khẩu sẽ được tự động tạo và gửi qua email.",
+    "name": "Họ và tên",
+    "namePlaceholder": "Nhập họ và tên",
+    "email": "Email",
+    "emailPlaceholder": "Nhập địa chỉ email",
+    "dateOfBirth": "Ngày sinh",
+    "dateOfBirthPlaceholder": "Chọn ngày sinh",
+    "optional": "tùy chọn",
+    "submit": "Tạo học sinh",
+    "create": "Tạo học sinh",
+    "creating": "Đang tạo...",
+    "cancel": "Hủy",
+    "success": "Tạo tài khoản học sinh thành công",
+    "error": "Không thể tạo tài khoản học sinh",
+    "accountCreated": "Tạo tài khoản học sinh thành công!",
+    "generatedPassword": "Mật khẩu được tạo",
+    "generatedPasswordDescription": "Vui lòng lưu mật khẩu này. Học sinh sẽ cần nó để đăng nhập lần đầu.",
+    "passwordWarning": "Vui lòng lưu mật khẩu này. Mật khẩu sẽ được gửi cho học sinh qua email, nhưng bạn nên giữ một bản sao để tham khảo.",
+    "copyPassword": "Sao chép mật khẩu",
+    "passwordCopied": "Đã sao chép mật khẩu",
+    "close": "Đóng",
+    "done": "Hoàn tất",
+    "addAnother": "Thêm người khác",
+    "createAnother": "Tạo thêm"
+  },
+  "CSVImport": {
+    "title": "Nhập từ CSV",
+    "importTeachers": "Nhập giáo viên",
+    "importStudents": "Nhập học sinh",
+    "importTeachersDesc": "Tải lên file CSV để tạo nhiều tài khoản giáo viên cùng lúc.",
+    "importStudentsDesc": "Tải lên file CSV để tạo nhiều tài khoản học sinh cùng lúc.",
+    "titleTeachers": "Nhập giáo viên từ CSV",
+    "titleStudents": "Nhập học sinh từ CSV",
+    "description": "Tải lên file CSV để tạo nhiều tài khoản cùng lúc.",
+    "formatDescription": "Định dạng CSV: tên, email, ngàySinh (YYYY-MM-DD)",
+    "exampleFormat": "Ví dụ: Nguyễn Văn A, nguyenvana@email.com, 1990-01-15",
+    "selectFile": "Chọn file CSV",
+    "changeFile": "Đổi file",
+    "selectedFile": "File đã chọn",
+    "downloadTemplate": "Tải mẫu",
+    "csvFormat": "Định dạng CSV: tên, email, ngàySinh (YYYY-MM-DD). Ngày sinh là tùy chọn.",
+    "preview": "Xem trước",
+    "previewDescription": "Các tài khoản sau sẽ được tạo:",
+    "rowCount": "{count} dòng",
+    "moreRows": "... và {count} dòng nữa",
+    "name": "Tên",
+    "email": "Email",
+    "dateOfBirth": "Ngày sinh",
+    "password": "Mật khẩu",
+    "reason": "Lý do",
+    "import": "Nhập {count} tài khoản",
+    "importing": "Đang nhập...",
+    "importSuccess": "Đã nhập thành công {count} tài khoản",
+    "success": "Đã nhập thành công {count} tài khoản",
+    "partialSuccess": "Đã nhập {success} trong {total} tài khoản",
+    "successCount": "Đã tạo thành công {count} tài khoản",
+    "failedCount": "{count} tài khoản không thể tạo",
+    "createdAccounts": "Tài khoản đã tạo",
+    "error": "Không thể nhập tài khoản",
+    "parseError": "Không thể đọc file CSV",
+    "invalidFormat": "Định dạng CSV không hợp lệ. Vui lòng kiểm tra lại file.",
+    "noDataRows": "Không tìm thấy dữ liệu trong file CSV.",
+    "noValidRows": "Không tìm thấy dòng hợp lệ trong file CSV.",
+    "missingNameColumn": "Thiếu cột 'tên' trong file CSV.",
+    "missingEmailColumn": "Thiếu cột 'email' trong file CSV.",
+    "passwordWarning": "Vui lòng lưu các mật khẩu này. Chúng sẽ được gửi cho người dùng qua email, nhưng bạn nên giữ một bản sao để tham khảo.",
+    "close": "Đóng",
+    "cancel": "Hủy",
+    "done": "Hoàn tất",
+    "results": "Kết quả nhập",
+    "resultsDescription": "Tổng kết quá trình nhập:",
+    "accounts": "tài khoản"
+  },
+  "PasswordWarning": {
+    "title": "Yêu cầu đổi mật khẩu",
+    "description": "Bạn đang sử dụng mật khẩu do hệ thống tạo. Vui lòng đổi mật khẩu để bảo mật.",
+    "changePassword": "Đổi mật khẩu",
+    "dismiss": "Nhắc lại sau",
+    "notChanged": "Chưa đổi",
+    "notChangedTooltip": "Người dùng chưa đổi mật khẩu do hệ thống tạo"
+  },
+  "ManagerAccounts": {
+    "addTeacher": "Thêm giáo viên",
+    "addStudent": "Thêm học sinh",
+    "importCSV": "Nhập CSV",
+    "password": "Mật khẩu",
+    "copyPassword": "Sao chép mật khẩu",
+    "passwordCopied": "Đã sao chép mật khẩu"
   }
 }

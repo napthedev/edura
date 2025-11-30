@@ -62,9 +62,9 @@ const Header = () => {
                 {t("signin")}
               </Button>
             </Link>
-            <Link href="/register">
+            <Link href="/contact">
               <Button className="bg-black text-white hover:bg-gray-800">
-                {t("startFreeTrial")}
+                {t("contactUs")}
               </Button>
             </Link>
             <LanguageSwitcher />
@@ -125,9 +125,11 @@ const Header = () => {
               >
                 {t("signin")}
               </Button>
-              <Button className="w-full bg-black text-white hover:bg-gray-800">
-                {t("startFreeTrial")}
-              </Button>
+              <Link href="/contact">
+                <Button className="w-full bg-black text-white hover:bg-gray-800">
+                  {t("contactUs")}
+                </Button>
+              </Link>
               <LanguageSwitcher />
             </div>
           </div>

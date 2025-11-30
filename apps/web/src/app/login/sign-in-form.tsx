@@ -10,7 +10,8 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { useRouter } from "next/navigation";
-import { LogIn, UserPlus } from "lucide-react";
+import { LogIn } from "lucide-react";
+import Link from "next/link";
 
 export default function SignInForm() {
   const router = useRouter();
@@ -143,14 +144,15 @@ export default function SignInForm() {
             </form>
 
             <div className="mt-4 text-center">
-              <Button
-                variant="link"
-                onClick={() => router.push("/register" as any)}
-                className="text-black"
-              >
-                <UserPlus className="h-4 w-4 mr-2" />
-                {t("needAccount")}
-              </Button>
+              <p className="text-sm text-gray-600">
+                {t("noAccount")}{" "}
+                <Link
+                  href="/contact"
+                  className="text-black font-medium hover:underline"
+                >
+                  {t("contactAdmin")}
+                </Link>
+              </p>
             </div>
           </div>
         </div>

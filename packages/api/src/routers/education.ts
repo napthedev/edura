@@ -18,7 +18,9 @@ import {
 } from "@edura/db/schema/education";
 import { eq, and, sql } from "drizzle-orm";
 import { desc, gte, lte, inArray } from "drizzle-orm";
-import { user } from "@edura/db/schema/auth";
+import { user, account } from "@edura/db/schema/auth";
+import { generateRandomPassword, sendWelcomeEmail } from "../utils/email";
+import { Scrypt } from "lucia";
 
 // Schedule color type
 const scheduleColorSchema = z.enum([
@@ -2107,7 +2109,7 @@ export const educationRouter = router({
       };
     }),
 
-  // Manager endpoints - get all teachers with extended profile
+  // Manager endpoints - get all teachers with extended profile (scoped to manager)
   getAllTeachers: protectedProcedure.query(async ({ ctx }) => {
     // Check if user is a manager
     if (ctx.session.user.role !== "manager") {
@@ -2124,15 +2126,19 @@ export const educationRouter = router({
         address: user.address,
         schoolName: user.schoolName,
         createdAt: user.createdAt,
+        generatedPassword: user.generatedPassword,
+        hasChangedPassword: user.hasChangedPassword,
       })
       .from(user)
-      .where(eq(user.role, "teacher"))
+      .where(
+        and(eq(user.role, "teacher"), eq(user.managerId, ctx.session.user.id))
+      )
       .orderBy(user.name);
 
     return teachers;
   }),
 
-  // Manager endpoints - get all students with extended profile
+  // Manager endpoints - get all students with extended profile (scoped to manager)
   getAllStudents: protectedProcedure.query(async ({ ctx }) => {
     // Check if user is a manager
     if (ctx.session.user.role !== "manager") {
@@ -2150,9 +2156,13 @@ export const educationRouter = router({
         grade: user.grade,
         schoolName: user.schoolName,
         createdAt: user.createdAt,
+        generatedPassword: user.generatedPassword,
+        hasChangedPassword: user.hasChangedPassword,
       })
       .from(user)
-      .where(eq(user.role, "student"))
+      .where(
+        and(eq(user.role, "student"), eq(user.managerId, ctx.session.user.id))
+      )
       .orderBy(user.name);
 
     return students;
@@ -2162,7 +2172,7 @@ export const educationRouter = router({
   // TUITION BILLING
   // =====================
 
-  // Get all tuition billings with filters (manager only)
+  // Get all tuition billings with filters (manager only, scoped to manager's students)
   getTuitionBillings: protectedProcedure
     .input(
       z.object({
@@ -2176,7 +2186,8 @@ export const educationRouter = router({
         throw new Error("Access denied - manager only");
       }
 
-      const conditions = [];
+      // Filter by students belonging to this manager
+      const conditions = [eq(user.managerId, ctx.session.user.id)];
 
       if (input.status) {
         conditions.push(eq(tuitionBilling.status, input.status));
@@ -2207,9 +2218,9 @@ export const educationRouter = router({
           createdAt: tuitionBilling.createdAt,
         })
         .from(tuitionBilling)
-        .leftJoin(user, eq(tuitionBilling.studentId, user.id))
+        .innerJoin(user, eq(tuitionBilling.studentId, user.id))
         .leftJoin(classes, eq(tuitionBilling.classId, classes.classId))
-        .where(conditions.length > 0 ? and(...conditions) : undefined)
+        .where(and(...conditions))
         .orderBy(desc(tuitionBilling.createdAt));
 
       return billings;
@@ -2392,7 +2403,7 @@ export const educationRouter = router({
   // TUTOR PAYMENTS
   // =====================
 
-  // Get all tutor payments (manager only)
+  // Get all tutor payments (manager only, scoped to manager's teachers)
   getTutorPayments: protectedProcedure
     .input(
       z.object({
@@ -2406,7 +2417,8 @@ export const educationRouter = router({
         throw new Error("Access denied - manager only");
       }
 
-      const conditions = [];
+      // Filter by teachers belonging to this manager
+      const conditions = [eq(user.managerId, ctx.session.user.id)];
 
       if (input.status) {
         conditions.push(eq(tutorPayments.status, input.status));
@@ -2437,9 +2449,9 @@ export const educationRouter = router({
           createdAt: tutorPayments.createdAt,
         })
         .from(tutorPayments)
-        .leftJoin(user, eq(tutorPayments.teacherId, user.id))
+        .innerJoin(user, eq(tutorPayments.teacherId, user.id))
         .leftJoin(teacherRates, eq(tutorPayments.rateId, teacherRates.rateId))
-        .where(conditions.length > 0 ? and(...conditions) : undefined)
+        .where(and(...conditions))
         .orderBy(desc(tutorPayments.createdAt));
 
       return payments;
@@ -3181,7 +3193,7 @@ export const educationRouter = router({
     return { markedCount };
   }),
 
-  // Get all attendance logs (manager only - for reports)
+  // Get all attendance logs (manager only - for reports, scoped to manager's teachers)
   getAllAttendanceLogs: protectedProcedure
     .input(
       z.object({
@@ -3209,6 +3221,7 @@ export const educationRouter = router({
         )
         .innerJoin(classes, eq(attendanceLogs.classId, classes.classId))
         .innerJoin(user, eq(attendanceLogs.teacherId, user.id))
+        .where(eq(user.managerId, ctx.session.user.id))
         .orderBy(desc(attendanceLogs.sessionDate));
 
       // Apply filters
@@ -3226,6 +3239,389 @@ export const educationRouter = router({
       }
 
       return filtered;
+    }),
+
+  // =====================
+  // ACCOUNT MANAGEMENT (Manager only)
+  // =====================
+
+  // Create a teacher account
+  createTeacher: protectedProcedure
+    .input(
+      z.object({
+        name: z.string().min(2),
+        email: z.string().email(),
+        dateOfBirth: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      // Check if email already exists
+      const existingUser = await ctx.db
+        .select()
+        .from(user)
+        .where(eq(user.email, input.email))
+        .limit(1);
+
+      if (existingUser.length > 0) {
+        throw new Error("Email already exists");
+      }
+
+      const userId = crypto.randomUUID();
+      const password = generateRandomPassword();
+      const hashedPassword = await new Scrypt().hash(password);
+      const now = new Date();
+
+      // Create user
+      await ctx.db.insert(user).values({
+        id: userId,
+        name: input.name,
+        email: input.email,
+        emailVerified: true,
+        role: "teacher",
+        managerId: ctx.session.user.id,
+        generatedPassword: password,
+        hasChangedPassword: false,
+        dateOfBirth: input.dateOfBirth ? new Date(input.dateOfBirth) : null,
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      // Create account for password authentication
+      await ctx.db.insert(account).values({
+        id: crypto.randomUUID(),
+        accountId: userId,
+        providerId: "credential",
+        userId: userId,
+        password: hashedPassword,
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      // Send welcome email
+      try {
+        const loginUrl = process.env.CORS_ORIGIN
+          ? `${process.env.CORS_ORIGIN}/login`
+          : "/login";
+        await sendWelcomeEmail({
+          name: input.name,
+          email: input.email,
+          password: password,
+          role: "teacher",
+          loginUrl,
+        });
+      } catch (emailError) {
+        console.error("Failed to send welcome email:", emailError);
+        // Don't throw - user was created successfully, just email failed
+      }
+
+      return { userId, email: input.email, generatedPassword: password };
+    }),
+
+  // Create a student account
+  createStudent: protectedProcedure
+    .input(
+      z.object({
+        name: z.string().min(2),
+        email: z.string().email(),
+        dateOfBirth: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      // Check if email already exists
+      const existingUser = await ctx.db
+        .select()
+        .from(user)
+        .where(eq(user.email, input.email))
+        .limit(1);
+
+      if (existingUser.length > 0) {
+        throw new Error("Email already exists");
+      }
+
+      const userId = crypto.randomUUID();
+      const password = generateRandomPassword();
+      const hashedPassword = await new Scrypt().hash(password);
+      const now = new Date();
+
+      // Create user
+      await ctx.db.insert(user).values({
+        id: userId,
+        name: input.name,
+        email: input.email,
+        emailVerified: true,
+        role: "student",
+        managerId: ctx.session.user.id,
+        generatedPassword: password,
+        hasChangedPassword: false,
+        dateOfBirth: input.dateOfBirth ? new Date(input.dateOfBirth) : null,
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      // Create account for password authentication
+      await ctx.db.insert(account).values({
+        id: crypto.randomUUID(),
+        accountId: userId,
+        providerId: "credential",
+        userId: userId,
+        password: hashedPassword,
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      // Send welcome email
+      try {
+        const loginUrl = process.env.CORS_ORIGIN
+          ? `${process.env.CORS_ORIGIN}/login`
+          : "/login";
+        await sendWelcomeEmail({
+          name: input.name,
+          email: input.email,
+          password: password,
+          role: "student",
+          loginUrl,
+        });
+      } catch (emailError) {
+        console.error("Failed to send welcome email:", emailError);
+        // Don't throw - user was created successfully, just email failed
+      }
+
+      return { userId, email: input.email, generatedPassword: password };
+    }),
+
+  // Import teachers from CSV data
+  importTeachers: protectedProcedure
+    .input(
+      z.object({
+        teachers: z.array(
+          z.object({
+            name: z.string().min(2),
+            email: z.string().email(),
+            dateOfBirth: z.string().optional(),
+          })
+        ),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      const results: {
+        success: { email: string; password: string }[];
+        failed: { email: string; reason: string }[];
+      } = { success: [], failed: [] };
+
+      for (const teacher of input.teachers) {
+        try {
+          // Check if email already exists
+          const existingUser = await ctx.db
+            .select()
+            .from(user)
+            .where(eq(user.email, teacher.email))
+            .limit(1);
+
+          if (existingUser.length > 0) {
+            results.failed.push({
+              email: teacher.email,
+              reason: "Email already exists",
+            });
+            continue;
+          }
+
+          const userId = crypto.randomUUID();
+          const password = generateRandomPassword();
+          const hashedPassword = await new Scrypt().hash(password);
+          const now = new Date();
+
+          // Create user
+          await ctx.db.insert(user).values({
+            id: userId,
+            name: teacher.name,
+            email: teacher.email,
+            emailVerified: true,
+            role: "teacher",
+            managerId: ctx.session.user.id,
+            generatedPassword: password,
+            hasChangedPassword: false,
+            dateOfBirth: teacher.dateOfBirth
+              ? new Date(teacher.dateOfBirth)
+              : null,
+            createdAt: now,
+            updatedAt: now,
+          });
+
+          // Create account for password authentication
+          await ctx.db.insert(account).values({
+            id: crypto.randomUUID(),
+            accountId: userId,
+            providerId: "credential",
+            userId: userId,
+            password: hashedPassword,
+            createdAt: now,
+            updatedAt: now,
+          });
+
+          results.success.push({ email: teacher.email, password });
+
+          // Send welcome email (don't await to speed up bulk import)
+          const loginUrl = process.env.CORS_ORIGIN
+            ? `${process.env.CORS_ORIGIN}/login`
+            : "/login";
+          sendWelcomeEmail({
+            name: teacher.name,
+            email: teacher.email,
+            password: password,
+            role: "teacher",
+            loginUrl,
+          }).catch((err) =>
+            console.error(`Failed to send email to ${teacher.email}:`, err)
+          );
+        } catch (error: any) {
+          results.failed.push({
+            email: teacher.email,
+            reason: error.message || "Unknown error",
+          });
+        }
+      }
+
+      return results;
+    }),
+
+  // Import students from CSV data
+  importStudents: protectedProcedure
+    .input(
+      z.object({
+        students: z.array(
+          z.object({
+            name: z.string().min(2),
+            email: z.string().email(),
+            dateOfBirth: z.string().optional(),
+          })
+        ),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      const results: {
+        success: { email: string; password: string }[];
+        failed: { email: string; reason: string }[];
+      } = { success: [], failed: [] };
+
+      for (const student of input.students) {
+        try {
+          // Check if email already exists
+          const existingUser = await ctx.db
+            .select()
+            .from(user)
+            .where(eq(user.email, student.email))
+            .limit(1);
+
+          if (existingUser.length > 0) {
+            results.failed.push({
+              email: student.email,
+              reason: "Email already exists",
+            });
+            continue;
+          }
+
+          const userId = crypto.randomUUID();
+          const password = generateRandomPassword();
+          const hashedPassword = await new Scrypt().hash(password);
+          const now = new Date();
+
+          // Create user
+          await ctx.db.insert(user).values({
+            id: userId,
+            name: student.name,
+            email: student.email,
+            emailVerified: true,
+            role: "student",
+            managerId: ctx.session.user.id,
+            generatedPassword: password,
+            hasChangedPassword: false,
+            dateOfBirth: student.dateOfBirth
+              ? new Date(student.dateOfBirth)
+              : null,
+            createdAt: now,
+            updatedAt: now,
+          });
+
+          // Create account for password authentication
+          await ctx.db.insert(account).values({
+            id: crypto.randomUUID(),
+            accountId: userId,
+            providerId: "credential",
+            userId: userId,
+            password: hashedPassword,
+            createdAt: now,
+            updatedAt: now,
+          });
+
+          results.success.push({ email: student.email, password });
+
+          // Send welcome email (don't await to speed up bulk import)
+          const loginUrl = process.env.CORS_ORIGIN
+            ? `${process.env.CORS_ORIGIN}/login`
+            : "/login";
+          sendWelcomeEmail({
+            name: student.name,
+            email: student.email,
+            password: password,
+            role: "student",
+            loginUrl,
+          }).catch((err) =>
+            console.error(`Failed to send email to ${student.email}:`, err)
+          );
+        } catch (error: any) {
+          results.failed.push({
+            email: student.email,
+            reason: error.message || "Unknown error",
+          });
+        }
+      }
+
+      return results;
+    }),
+
+  // Get generated password for a user (manager only)
+  getAccountPassword: protectedProcedure
+    .input(z.object({ userId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      const result = await ctx.db
+        .select({
+          generatedPassword: user.generatedPassword,
+          hasChangedPassword: user.hasChangedPassword,
+        })
+        .from(user)
+        .where(
+          and(
+            eq(user.id, input.userId),
+            eq(user.managerId, ctx.session.user.id)
+          )
+        )
+        .limit(1);
+
+      if (result.length === 0) {
+        throw new Error("User not found or access denied");
+      }
+
+      return result[0];
     }),
 });
 

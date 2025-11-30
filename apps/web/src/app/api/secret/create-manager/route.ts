@@ -1,4 +1,7 @@
 import { auth } from "@edura/auth";
+import { db } from "@edura/db";
+import { user } from "@edura/db/schema/auth";
+import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -45,6 +48,16 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       );
     }
+
+    // Update the manager to link to themselves and mark password as changed
+    // (since they set their own password during creation)
+    await db
+      .update(user)
+      .set({
+        managerId: result.user.id,
+        hasChangedPassword: true,
+      })
+      .where(eq(user.id, result.user.id));
 
     return NextResponse.json({
       success: true,

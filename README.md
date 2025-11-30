@@ -32,6 +32,21 @@ This project uses PostgreSQL with Drizzle ORM.
 pnpm db:push
 ```
 
+## Email Configuration (Resend)
+
+This project uses Resend for sending transactional emails (welcome emails for new teachers/students).
+
+1. Sign up at [https://resend.com](https://resend.com)
+2. Add and verify your sending domain at [https://resend.com/domains](https://resend.com/domains)
+   - For development, you can use Resend's test domain (`onboarding@resend.dev`)
+3. Generate an API key at [https://resend.com/api-keys](https://resend.com/api-keys)
+4. Add the following to your `apps/web/.env` file:
+
+```bash
+RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxxx
+EMAIL_FROM=noreply@yourdomain.com
+```
+
 
 Then, run the development server:
 
