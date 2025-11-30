@@ -37,6 +37,13 @@ export const paymentMethodEnum = pgEnum("payment_method", [
   "vnpay",
 ]);
 
+// Attendance status enum
+export const attendanceStatusEnum = pgEnum("attendance_status", [
+  "checked_in",
+  "completed",
+  "missed",
+]);
+
 // Classes table
 export const classes = pgTable("classes", {
   classId: text("class_id").primaryKey(),
@@ -299,5 +306,25 @@ export const tutorPayments = pgTable("tutor_payments", {
   paidAt: timestamp("paid_at"),
   paymentMethod: paymentMethodEnum("payment_method"),
   notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Attendance Logs (session check-in/check-out records)
+export const attendanceLogs = pgTable("attendance_logs", {
+  logId: text("log_id").primaryKey(),
+  scheduleId: text("schedule_id")
+    .notNull()
+    .references(() => classSchedules.scheduleId, { onDelete: "cascade" }),
+  classId: text("class_id")
+    .notNull()
+    .references(() => classes.classId, { onDelete: "cascade" }),
+  teacherId: text("teacher_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  sessionDate: text("session_date").notNull(), // Format: "YYYY-MM-DD"
+  checkInTime: timestamp("check_in_time"),
+  checkOutTime: timestamp("check_out_time"),
+  actualDurationMinutes: integer("actual_duration_minutes"),
+  status: attendanceStatusEnum("status").notNull().default("checked_in"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });

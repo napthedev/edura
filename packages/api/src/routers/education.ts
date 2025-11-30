@@ -14,6 +14,7 @@ import {
   tuitionBilling,
   tutorPayments,
   teacherRates,
+  attendanceLogs,
 } from "@edura/db/schema/education";
 import { eq, and, sql } from "drizzle-orm";
 import { desc, gte, lte, inArray } from "drizzle-orm";
@@ -2428,6 +2429,7 @@ export const educationRouter = router({
           sessionsCount: tutorPayments.sessionsCount,
           studentsCount: tutorPayments.studentsCount,
           rateId: tutorPayments.rateId,
+          rateType: teacherRates.rateType,
           status: tutorPayments.status,
           paidAt: tutorPayments.paidAt,
           paymentMethod: tutorPayments.paymentMethod,
@@ -2436,6 +2438,7 @@ export const educationRouter = router({
         })
         .from(tutorPayments)
         .leftJoin(user, eq(tutorPayments.teacherId, user.id))
+        .leftJoin(teacherRates, eq(tutorPayments.rateId, teacherRates.rateId))
         .where(conditions.length > 0 ? and(...conditions) : undefined)
         .orderBy(desc(tutorPayments.createdAt));
 
@@ -2501,16 +2504,40 @@ export const educationRouter = router({
 
         const classIds = teacherClasses.map((c) => c.classId);
 
-        // Count sessions (class schedules) for this month
-        // Each schedule represents weekly recurring sessions
-        const schedules = await ctx.db
+        // Get actual attendance logs for this month (completed sessions only)
+        const completedLogs = await ctx.db
           .select()
-          .from(classSchedules)
-          .where(inArray(classSchedules.classId, classIds));
+          .from(attendanceLogs)
+          .where(
+            and(
+              eq(attendanceLogs.teacherId, teacherRate.teacherId),
+              eq(attendanceLogs.status, "completed"),
+              sql`${attendanceLogs.sessionDate} LIKE ${
+                input.paymentMonth + "%"
+              }`
+            )
+          );
 
-        // Calculate weeks in month (approximate: 4 sessions per weekly schedule)
-        const weeksInMonth = 4;
-        const sessionsCount = schedules.length * weeksInMonth;
+        // Calculate actual sessions and hours from attendance logs
+        let sessionsCount = completedLogs.length;
+        let totalMinutes = completedLogs.reduce(
+          (sum, log) => sum + (log.actualDurationMinutes || 0),
+          0
+        );
+
+        // Fallback to schedule approximation if no attendance logs exist
+        if (sessionsCount === 0) {
+          const schedules = await ctx.db
+            .select()
+            .from(classSchedules)
+            .where(inArray(classSchedules.classId, classIds));
+
+          // Calculate weeks in month (approximate: 4 sessions per weekly schedule)
+          const weeksInMonth = 4;
+          sessionsCount = schedules.length * weeksInMonth;
+          // Estimate 90 minutes per session
+          totalMinutes = sessionsCount * 90;
+        }
 
         // Count unique students across all classes
         const studentCounts = await ctx.db
@@ -2526,8 +2553,9 @@ export const educationRouter = router({
         let amount = 0;
         switch (teacherRate.rateType) {
           case "HOURLY":
-            // Assuming 1.5 hours per session average
-            amount = teacherRate.amount * sessionsCount * 1.5;
+            // Use actual hours from attendance logs
+            const totalHours = totalMinutes / 60;
+            amount = teacherRate.amount * totalHours;
             break;
           case "PER_STUDENT":
             amount = teacherRate.amount * studentsCount;
@@ -2788,6 +2816,416 @@ export const educationRouter = router({
         .where(eq(submissions.submissionId, input.submissionId));
 
       return { success: true };
+    }),
+
+  // ========== ATTENDANCE / CHECK-IN PROCEDURES ==========
+
+  // Get active schedule for check-in (teacher only)
+  // Returns schedule if current time is within ±5 minutes of start time
+  getActiveScheduleForCheckIn: protectedProcedure.query(async ({ ctx }) => {
+    if (ctx.session.user.role !== "teacher") {
+      throw new Error("Access denied - teacher only");
+    }
+
+    const now = new Date();
+    const currentDayOfWeek = now.getDay(); // 0 = Sunday, 6 = Saturday
+    const currentHours = now.getHours();
+    const currentMinutes = now.getMinutes();
+    const currentTimeMinutes = currentHours * 60 + currentMinutes;
+    const today = now.toISOString().split("T")[0]; // "YYYY-MM-DD"
+
+    // Get teacher's schedules for today
+    const schedules = await ctx.db
+      .select({
+        schedule: classSchedules,
+        class: classes,
+      })
+      .from(classSchedules)
+      .innerJoin(classes, eq(classSchedules.classId, classes.classId))
+      .where(
+        and(
+          eq(classes.teacherId, ctx.session.user.id),
+          eq(classSchedules.dayOfWeek, currentDayOfWeek)
+        )
+      );
+
+    // Check for existing attendance logs for today
+    const todayLogs = await ctx.db
+      .select()
+      .from(attendanceLogs)
+      .where(
+        and(
+          eq(attendanceLogs.teacherId, ctx.session.user.id),
+          eq(attendanceLogs.sessionDate, today!)
+        )
+      );
+
+    const logsBySchedule = new Map(
+      todayLogs.map((log) => [log.scheduleId, log])
+    );
+
+    // Find schedules within ±5 min window
+    const activeSchedules = schedules
+      .map(({ schedule, class: cls }) => {
+        const [startHours, startMinutes] = schedule.startTime
+          .split(":")
+          .map(Number);
+        const [endHours, endMinutes] = schedule.endTime.split(":").map(Number);
+        const startTimeMinutes = startHours! * 60 + startMinutes!;
+        const endTimeMinutes = endHours! * 60 + endMinutes!;
+
+        const existingLog = logsBySchedule.get(schedule.scheduleId);
+
+        // Check if within ±5 minutes of start time (for check-in)
+        const canCheckIn =
+          !existingLog &&
+          currentTimeMinutes >= startTimeMinutes - 5 &&
+          currentTimeMinutes <= startTimeMinutes + 5;
+
+        // Check if within ±5 minutes of end time (for check-out)
+        const canCheckOut =
+          existingLog?.status === "checked_in" &&
+          currentTimeMinutes >= endTimeMinutes - 5 &&
+          currentTimeMinutes <= endTimeMinutes + 5;
+
+        return {
+          scheduleId: schedule.scheduleId,
+          classId: schedule.classId,
+          className: cls.className,
+          title: schedule.title,
+          startTime: schedule.startTime,
+          endTime: schedule.endTime,
+          location: schedule.location,
+          color: schedule.color,
+          canCheckIn,
+          canCheckOut,
+          existingLog: existingLog
+            ? {
+                logId: existingLog.logId,
+                status: existingLog.status,
+                checkInTime: existingLog.checkInTime,
+                checkOutTime: existingLog.checkOutTime,
+              }
+            : null,
+        };
+      })
+      .filter((s) => s.canCheckIn || s.canCheckOut || s.existingLog);
+
+    return activeSchedules;
+  }),
+
+  // Check in to a session (teacher only)
+  checkInSession: protectedProcedure
+    .input(
+      z.object({
+        scheduleId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "teacher") {
+        throw new Error("Access denied - teacher only");
+      }
+
+      const now = new Date();
+      const currentDayOfWeek = now.getDay();
+      const currentHours = now.getHours();
+      const currentMinutes = now.getMinutes();
+      const currentTimeMinutes = currentHours * 60 + currentMinutes;
+      const today = now.toISOString().split("T")[0]!;
+
+      // Get the schedule and verify teacher owns the class
+      const scheduleData = await ctx.db
+        .select({
+          schedule: classSchedules,
+          class: classes,
+        })
+        .from(classSchedules)
+        .innerJoin(classes, eq(classSchedules.classId, classes.classId))
+        .where(
+          and(
+            eq(classSchedules.scheduleId, input.scheduleId),
+            eq(classes.teacherId, ctx.session.user.id)
+          )
+        );
+
+      if (scheduleData.length === 0) {
+        throw new Error("Schedule not found or access denied");
+      }
+
+      const { schedule, class: cls } = scheduleData[0]!;
+
+      // Verify it's the correct day
+      if (schedule.dayOfWeek !== currentDayOfWeek) {
+        throw new Error("This schedule is not for today");
+      }
+
+      // Verify within ±5 minutes of start time
+      const [startHours, startMinutes] = schedule.startTime
+        .split(":")
+        .map(Number);
+      const startTimeMinutes = startHours! * 60 + startMinutes!;
+
+      if (
+        currentTimeMinutes < startTimeMinutes - 5 ||
+        currentTimeMinutes > startTimeMinutes + 5
+      ) {
+        throw new Error(
+          "Check-in is only allowed within 5 minutes of the scheduled start time"
+        );
+      }
+
+      // Check for existing log
+      const existingLog = await ctx.db
+        .select()
+        .from(attendanceLogs)
+        .where(
+          and(
+            eq(attendanceLogs.scheduleId, input.scheduleId),
+            eq(attendanceLogs.sessionDate, today)
+          )
+        );
+
+      if (existingLog.length > 0) {
+        throw new Error("Already checked in for this session today");
+      }
+
+      // Create attendance log
+      const logId = crypto.randomUUID();
+      await ctx.db.insert(attendanceLogs).values({
+        logId,
+        scheduleId: input.scheduleId,
+        classId: cls.classId,
+        teacherId: ctx.session.user.id,
+        sessionDate: today,
+        checkInTime: now,
+        status: "checked_in",
+      });
+
+      return { success: true, logId };
+    }),
+
+  // Check out of a session (teacher only)
+  checkOutSession: protectedProcedure
+    .input(
+      z.object({
+        logId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "teacher") {
+        throw new Error("Access denied - teacher only");
+      }
+
+      const now = new Date();
+      const currentHours = now.getHours();
+      const currentMinutes = now.getMinutes();
+      const currentTimeMinutes = currentHours * 60 + currentMinutes;
+
+      // Get the attendance log
+      const logData = await ctx.db
+        .select({
+          log: attendanceLogs,
+          schedule: classSchedules,
+        })
+        .from(attendanceLogs)
+        .innerJoin(
+          classSchedules,
+          eq(attendanceLogs.scheduleId, classSchedules.scheduleId)
+        )
+        .where(
+          and(
+            eq(attendanceLogs.logId, input.logId),
+            eq(attendanceLogs.teacherId, ctx.session.user.id)
+          )
+        );
+
+      if (logData.length === 0) {
+        throw new Error("Attendance log not found or access denied");
+      }
+
+      const { log, schedule } = logData[0]!;
+
+      if (log.status !== "checked_in") {
+        throw new Error("Session is not in checked-in status");
+      }
+
+      // Verify within ±5 minutes of end time
+      const [endHours, endMinutes] = schedule.endTime.split(":").map(Number);
+      const endTimeMinutes = endHours! * 60 + endMinutes!;
+
+      if (
+        currentTimeMinutes < endTimeMinutes - 5 ||
+        currentTimeMinutes > endTimeMinutes + 5
+      ) {
+        throw new Error(
+          "Check-out is only allowed within 5 minutes of the scheduled end time"
+        );
+      }
+
+      // Calculate actual duration
+      const checkInTime = log.checkInTime!;
+      const durationMs = now.getTime() - checkInTime.getTime();
+      const actualDurationMinutes = Math.round(durationMs / 1000 / 60);
+
+      // Update attendance log
+      await ctx.db
+        .update(attendanceLogs)
+        .set({
+          checkOutTime: now,
+          actualDurationMinutes,
+          status: "completed",
+        })
+        .where(eq(attendanceLogs.logId, input.logId));
+
+      return { success: true, actualDurationMinutes };
+    }),
+
+  // Get attendance logs for a teacher (for history/reports)
+  getTeacherAttendanceLogs: protectedProcedure
+    .input(
+      z.object({
+        month: z.string().optional(), // "YYYY-MM" format
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "teacher") {
+        throw new Error("Access denied - teacher only");
+      }
+
+      let query = ctx.db
+        .select({
+          log: attendanceLogs,
+          schedule: classSchedules,
+          class: classes,
+        })
+        .from(attendanceLogs)
+        .innerJoin(
+          classSchedules,
+          eq(attendanceLogs.scheduleId, classSchedules.scheduleId)
+        )
+        .innerJoin(classes, eq(attendanceLogs.classId, classes.classId))
+        .where(eq(attendanceLogs.teacherId, ctx.session.user.id))
+        .orderBy(desc(attendanceLogs.sessionDate));
+
+      const logs = await query;
+
+      // Filter by month if specified
+      if (input.month) {
+        return logs.filter((l) => l.log.sessionDate.startsWith(input.month!));
+      }
+
+      return logs;
+    }),
+
+  // Mark missed sessions - called by cron job (internal use)
+  markMissedSessions: protectedProcedure.mutation(async ({ ctx }) => {
+    // This should ideally be called by a cron job with a special auth token
+    // For now, only managers can trigger this
+    if (ctx.session.user.role !== "manager") {
+      throw new Error("Access denied - manager only");
+    }
+
+    const now = new Date();
+    const today = now.toISOString().split("T")[0]!;
+    const currentDayOfWeek = now.getDay();
+    const currentHours = now.getHours();
+    const currentMinutes = now.getMinutes();
+    const currentTimeMinutes = currentHours * 60 + currentMinutes;
+
+    // Get all schedules for today that have passed their end time
+    const schedules = await ctx.db
+      .select({
+        schedule: classSchedules,
+        class: classes,
+      })
+      .from(classSchedules)
+      .innerJoin(classes, eq(classSchedules.classId, classes.classId))
+      .where(eq(classSchedules.dayOfWeek, currentDayOfWeek));
+
+    let markedCount = 0;
+
+    for (const { schedule, class: cls } of schedules) {
+      const [endHours, endMinutes] = schedule.endTime.split(":").map(Number);
+      const endTimeMinutes = endHours! * 60 + endMinutes!;
+
+      // Skip if session hasn't ended yet (with 5 min buffer)
+      if (currentTimeMinutes < endTimeMinutes + 5) {
+        continue;
+      }
+
+      // Check if there's already a log for this schedule today
+      const existingLog = await ctx.db
+        .select()
+        .from(attendanceLogs)
+        .where(
+          and(
+            eq(attendanceLogs.scheduleId, schedule.scheduleId),
+            eq(attendanceLogs.sessionDate, today)
+          )
+        );
+
+      // If no log exists, mark as missed
+      if (existingLog.length === 0) {
+        await ctx.db.insert(attendanceLogs).values({
+          logId: crypto.randomUUID(),
+          scheduleId: schedule.scheduleId,
+          classId: cls.classId,
+          teacherId: cls.teacherId,
+          sessionDate: today,
+          status: "missed",
+        });
+        markedCount++;
+      }
+    }
+
+    return { markedCount };
+  }),
+
+  // Get all attendance logs (manager only - for reports)
+  getAllAttendanceLogs: protectedProcedure
+    .input(
+      z.object({
+        month: z.string().optional(), // "YYYY-MM" format
+        teacherId: z.string().optional(),
+        status: z.enum(["checked_in", "completed", "missed"]).optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      const logs = await ctx.db
+        .select({
+          log: attendanceLogs,
+          schedule: classSchedules,
+          class: classes,
+          teacher: user,
+        })
+        .from(attendanceLogs)
+        .innerJoin(
+          classSchedules,
+          eq(attendanceLogs.scheduleId, classSchedules.scheduleId)
+        )
+        .innerJoin(classes, eq(attendanceLogs.classId, classes.classId))
+        .innerJoin(user, eq(attendanceLogs.teacherId, user.id))
+        .orderBy(desc(attendanceLogs.sessionDate));
+
+      // Apply filters
+      let filtered = logs;
+      if (input.month) {
+        filtered = filtered.filter((l) =>
+          l.log.sessionDate.startsWith(input.month!)
+        );
+      }
+      if (input.teacherId) {
+        filtered = filtered.filter((l) => l.log.teacherId === input.teacherId);
+      }
+      if (input.status) {
+        filtered = filtered.filter((l) => l.log.status === input.status);
+      }
+
+      return filtered;
     }),
 });
 

@@ -53,7 +53,9 @@ import {
   Calendar,
   Filter,
   X,
+  Download,
 } from "lucide-react";
+import { exportToCsv } from "@/lib/utils";
 
 type BillingStatus = "pending" | "paid" | "overdue" | "cancelled";
 type PaymentMethod = "cash" | "bank_transfer" | "momo" | "vnpay";
@@ -245,6 +247,47 @@ export default function TutorPaymentsPage() {
   const hasActiveFilters =
     statusFilter !== "all" || monthFilter !== "all" || teacherFilter !== "all";
 
+  const handleExportCsv = () => {
+    if (!paymentsQuery.data || paymentsQuery.data.length === 0) {
+      toast.error(t("noDataToExport"));
+      return;
+    }
+
+    const exportData = paymentsQuery.data.map((payment) => ({
+      teacherName: payment.teacherName || "-",
+      teacherEmail: payment.teacherEmail || "-",
+      paymentMonth: payment.paymentMonth,
+      amount: payment.amount,
+      sessionsCount: payment.sessionsCount || 0,
+      studentsCount: payment.studentsCount || 0,
+      rateType: payment.rateType || "-",
+      status: payment.status,
+      paidAt: payment.paidAt
+        ? new Date(payment.paidAt).toLocaleDateString()
+        : "-",
+      paymentMethod: payment.paymentMethod || "-",
+    }));
+
+    const columns = [
+      { key: "teacherName" as const, header: t("teacher") },
+      { key: "teacherEmail" as const, header: t("email") },
+      { key: "paymentMonth" as const, header: t("month") },
+      { key: "amount" as const, header: t("amount") },
+      { key: "sessionsCount" as const, header: t("sessions") },
+      { key: "studentsCount" as const, header: t("students") },
+      { key: "rateType" as const, header: t("rateType") },
+      { key: "status" as const, header: t("status") },
+      { key: "paidAt" as const, header: t("paidAt") },
+      { key: "paymentMethod" as const, header: t("paymentMethod") },
+    ];
+
+    const filename = `tutor-payments-${
+      monthFilter !== "all" ? monthFilter : "all"
+    }-${new Date().toISOString().split("T")[0]}`;
+    exportToCsv(exportData, filename, columns);
+    toast.success(t("exportSuccess"));
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -256,54 +299,60 @@ export default function TutorPaymentsPage() {
           </h1>
           <p className="text-muted-foreground mt-1">{t("description")}</p>
         </div>
-        <Dialog
-          open={calculateDialogOpen}
-          onOpenChange={setCalculateDialogOpen}
-        >
-          <DialogTrigger asChild>
-            <Button>
-              <Calculator className="h-4 w-4 mr-2" />
-              {t("calculatePayments")}
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{t("calculatePayments")}</DialogTitle>
-              <DialogDescription>
-                Calculate monthly payments for all teachers based on their rates
-                and activity.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>{t("selectMonth")}</Label>
-                <Input
-                  type="month"
-                  value={paymentMonth}
-                  onChange={(e) => setPaymentMonth(e.target.value)}
-                />
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={handleExportCsv}>
+            <Download className="h-4 w-4 mr-2" />
+            {t("exportCsv")}
+          </Button>
+          <Dialog
+            open={calculateDialogOpen}
+            onOpenChange={setCalculateDialogOpen}
+          >
+            <DialogTrigger asChild>
+              <Button>
+                <Calculator className="h-4 w-4 mr-2" />
+                {t("calculatePayments")}
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{t("calculatePayments")}</DialogTitle>
+                <DialogDescription>
+                  Calculate monthly payments for all teachers based on their
+                  rates and activity.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label>{t("selectMonth")}</Label>
+                  <Input
+                    type="month"
+                    value={paymentMonth}
+                    onChange={(e) => setPaymentMonth(e.target.value)}
+                  />
+                </div>
               </div>
-            </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setCalculateDialogOpen(false)}
-              >
-                {t("cancel")}
-              </Button>
-              <Button
-                onClick={() =>
-                  calculatePaymentsMutation.mutate({ paymentMonth })
-                }
-                disabled={calculatePaymentsMutation.isPending}
-              >
-                {calculatePaymentsMutation.isPending
-                  ? t("calculating")
-                  : t("calculate")}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setCalculateDialogOpen(false)}
+                >
+                  {t("cancel")}
+                </Button>
+                <Button
+                  onClick={() =>
+                    calculatePaymentsMutation.mutate({ paymentMonth })
+                  }
+                  disabled={calculatePaymentsMutation.isPending}
+                >
+                  {calculatePaymentsMutation.isPending
+                    ? t("calculating")
+                    : t("calculate")}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Stats Cards */}

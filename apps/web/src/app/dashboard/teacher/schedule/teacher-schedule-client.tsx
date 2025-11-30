@@ -8,6 +8,7 @@ import Loader from "@/components/loader";
 import { useTranslations } from "next-intl";
 import ScheduleCalendar from "@/components/schedule/schedule-calendar";
 import { TeachingHoursCard } from "@/components/schedule/teaching-hours-card";
+import SessionCheckIn from "@/components/schedule/session-check-in";
 import { Plus, Calendar } from "lucide-react";
 
 interface Schedule {
@@ -90,6 +91,7 @@ export default function TeacherScheduleClient() {
       {/* Teaching Hours Stats */}
       <div className="grid gap-6 md:grid-cols-2">
         <TeachingHoursCard variant="detailed" />
+        <SessionCheckIn />
       </div>
 
       {schedulesQuery.isLoading ? (

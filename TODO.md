@@ -56,10 +56,10 @@
 
 ### Automated Billing
 
-- [ ] Script logic to calculate Tutor Pay: `Sessions Taught × Rate`
+- [x] Script logic to calculate Tutor Pay: `Sessions Taught × Rate`
 - [ ] Generate Invoice views for Centers
-- [ ] Exportable financial reports
-- [ ] Auto-generated monthly bills
+- [x] Exportable financial reports (CSV export)
+- [x] Auto-generated monthly bills (Vercel Cron)
 
 ---
 
@@ -85,7 +85,7 @@
 
 ### Attendance System
 
-- [ ] Implement Digital Check-in/Check-out for students and tutors
+- [x] Implement Digital Check-in/Check-out for students and tutors
 
 ---
 

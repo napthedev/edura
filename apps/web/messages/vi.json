@@ -1041,7 +1041,13 @@
     "filterByClass": "Lọc theo lớp",
     "allStatuses": "Tất cả trạng thái",
     "allMonths": "Tất cả tháng",
-    "clearFilters": "Xóa bộ lọc"
+    "clearFilters": "Xóa bộ lọc",
+    "exportCsv": "Xuất CSV",
+    "exportSuccess": "Xuất dữ liệu thành công",
+    "noDataToExport": "Không có dữ liệu để xuất",
+    "email": "Email",
+    "month": "Tháng",
+    "paidAt": "Ngày thanh toán"
   },
   "TutorPayments": {
     "title": "Lương giáo viên",
@@ -1087,7 +1093,13 @@
     "allTeachers": "Tất cả giáo viên",
     "hourly": "Theo giờ",
     "perStudent": "Theo học sinh",
-    "monthlyFixed": "Lương cố định"
+    "monthlyFixed": "Lương cố định",
+    "exportCsv": "Xuất CSV",
+    "exportSuccess": "Xuất dữ liệu thành công",
+    "noDataToExport": "Không có dữ liệu để xuất",
+    "email": "Email",
+    "month": "Tháng",
+    "paidAt": "Ngày thanh toán"
   },
   "Invoice": {
     "title": "Hóa đơn",
@@ -1133,5 +1145,22 @@
     "manageTutorPayments": "Quản lý lương giáo viên",
     "bills": "hóa đơn",
     "payments": "thanh toán"
+  },
+  "SessionCheckIn": {
+    "title": "Điểm danh buổi học",
+    "noActiveSession": "Không có buổi học nào đang hoạt động",
+    "checkInAvailableHint": "Điểm danh khả dụng trong ±5 phút trước giờ bắt đầu",
+    "checkIn": "Điểm danh vào",
+    "checkOut": "Điểm danh ra",
+    "checkingIn": "Đang điểm danh...",
+    "checkingOut": "Đang kết thúc...",
+    "checkInSuccess": "Điểm danh vào buổi học thành công",
+    "checkOutSuccess": "Hoàn thành buổi học. Thời gian: {duration} phút",
+    "checkedIn": "Đã điểm danh",
+    "completed": "Hoàn thành",
+    "checkedInAt": "Điểm danh lúc",
+    "checkedOutAt": "Kết thúc lúc",
+    "waitForEndTime": "Chờ đến giờ kết thúc để điểm danh ra",
+    "timeWindowHint": "Điểm danh khả dụng trong ±5 phút theo lịch"
   }
 }

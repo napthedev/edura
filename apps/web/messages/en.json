@@ -1035,7 +1035,13 @@
     "filterByClass": "Filter by Class",
     "allStatuses": "All Statuses",
     "allMonths": "All Months",
-    "clearFilters": "Clear Filters"
+    "clearFilters": "Clear Filters",
+    "exportCsv": "Export CSV",
+    "exportSuccess": "Data exported successfully",
+    "noDataToExport": "No data to export",
+    "email": "Email",
+    "month": "Month",
+    "paidAt": "Paid At"
   },
   "TutorPayments": {
     "title": "Tutor Payments",
@@ -1081,7 +1087,13 @@
     "allTeachers": "All Teachers",
     "hourly": "Hourly",
     "perStudent": "Per Student",
-    "monthlyFixed": "Monthly Fixed"
+    "monthlyFixed": "Monthly Fixed",
+    "exportCsv": "Export CSV",
+    "exportSuccess": "Data exported successfully",
+    "noDataToExport": "No data to export",
+    "email": "Email",
+    "month": "Month",
+    "paidAt": "Paid At"
   },
   "Invoice": {
     "title": "Invoice",
@@ -1127,5 +1139,22 @@
     "manageTutorPayments": "Manage Tutor Payments",
     "bills": "bills",
     "payments": "payments"
+  },
+  "SessionCheckIn": {
+    "title": "Session Check-In",
+    "noActiveSession": "No active session available",
+    "checkInAvailableHint": "Check-in available within ±5 minutes of scheduled start time",
+    "checkIn": "Check In",
+    "checkOut": "Check Out",
+    "checkingIn": "Checking in...",
+    "checkingOut": "Checking out...",
+    "checkInSuccess": "Successfully checked in to session",
+    "checkOutSuccess": "Session completed. Duration: {duration} minutes",
+    "checkedIn": "Checked In",
+    "completed": "Completed",
+    "checkedInAt": "Checked in at",
+    "checkedOutAt": "Checked out at",
+    "waitForEndTime": "Wait for end time to check out",
+    "timeWindowHint": "Check-in/out available within ±5 minutes of scheduled times"
   }
 }

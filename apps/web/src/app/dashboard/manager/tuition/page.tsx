@@ -53,8 +53,10 @@ import {
   FileText,
   Filter,
   X,
+  Download,
 } from "lucide-react";
 import Link from "next/link";
+import { exportToCsv } from "@/lib/utils";
 
 type BillingStatus = "pending" | "paid" | "overdue" | "cancelled";
 type PaymentMethod = "cash" | "bank_transfer" | "momo" | "vnpay";
@@ -245,6 +247,49 @@ export default function TuitionBillingPage() {
   const hasActiveFilters =
     statusFilter !== "all" || monthFilter !== "all" || classFilter !== "all";
 
+  const handleExportCsv = () => {
+    if (!billingsQuery.data || billingsQuery.data.length === 0) {
+      toast.error(t("noDataToExport"));
+      return;
+    }
+
+    const exportData = billingsQuery.data.map((billing) => ({
+      invoiceNumber: billing.invoiceNumber || "-",
+      studentName: billing.studentName || "-",
+      studentEmail: billing.studentEmail || "-",
+      className: billing.className || "-",
+      billingMonth: billing.billingMonth,
+      amount: billing.amount,
+      status: billing.status,
+      dueDate: billing.dueDate
+        ? new Date(billing.dueDate).toLocaleDateString()
+        : "-",
+      paidAt: billing.paidAt
+        ? new Date(billing.paidAt).toLocaleDateString()
+        : "-",
+      paymentMethod: billing.paymentMethod || "-",
+    }));
+
+    const columns = [
+      { key: "invoiceNumber" as const, header: t("invoiceNumber") },
+      { key: "studentName" as const, header: t("student") },
+      { key: "studentEmail" as const, header: t("email") },
+      { key: "className" as const, header: t("class") },
+      { key: "billingMonth" as const, header: t("month") },
+      { key: "amount" as const, header: t("amount") },
+      { key: "status" as const, header: t("status") },
+      { key: "dueDate" as const, header: t("dueDate") },
+      { key: "paidAt" as const, header: t("paidAt") },
+      { key: "paymentMethod" as const, header: t("paymentMethod") },
+    ];
+
+    const filename = `tuition-billings-${
+      monthFilter !== "all" ? monthFilter : "all"
+    }-${new Date().toISOString().split("T")[0]}`;
+    exportToCsv(exportData, filename, columns);
+    toast.success(t("exportSuccess"));
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -256,61 +301,70 @@ export default function TuitionBillingPage() {
           </h1>
           <p className="text-muted-foreground mt-1">{t("description")}</p>
         </div>
-        <Dialog open={generateDialogOpen} onOpenChange={setGenerateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              {t("generateBills")}
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{t("generateBills")}</DialogTitle>
-              <DialogDescription>
-                Generate monthly tuition bills for all enrolled students.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>{t("selectMonth")}</Label>
-                <Input
-                  type="month"
-                  value={billingMonth}
-                  onChange={(e) => setBillingMonth(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>{t("selectDueDate")}</Label>
-                <Input
-                  type="date"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setGenerateDialogOpen(false)}
-              >
-                {t("cancel")}
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={handleExportCsv}>
+            <Download className="h-4 w-4 mr-2" />
+            {t("exportCsv")}
+          </Button>
+          <Dialog
+            open={generateDialogOpen}
+            onOpenChange={setGenerateDialogOpen}
+          >
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                {t("generateBills")}
               </Button>
-              <Button
-                onClick={() =>
-                  generateBillingMutation.mutate({
-                    billingMonth,
-                    dueDate,
-                  })
-                }
-                disabled={generateBillingMutation.isPending}
-              >
-                {generateBillingMutation.isPending
-                  ? t("generating")
-                  : t("generate")}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{t("generateBills")}</DialogTitle>
+                <DialogDescription>
+                  Generate monthly tuition bills for all enrolled students.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label>{t("selectMonth")}</Label>
+                  <Input
+                    type="month"
+                    value={billingMonth}
+                    onChange={(e) => setBillingMonth(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t("selectDueDate")}</Label>
+                  <Input
+                    type="date"
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setGenerateDialogOpen(false)}
+                >
+                  {t("cancel")}
+                </Button>
+                <Button
+                  onClick={() =>
+                    generateBillingMutation.mutate({
+                      billingMonth,
+                      dueDate,
+                    })
+                  }
+                  disabled={generateBillingMutation.isPending}
+                >
+                  {generateBillingMutation.isPending
+                    ? t("generating")
+                    : t("generate")}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Stats Cards */}
