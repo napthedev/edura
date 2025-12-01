@@ -25,6 +25,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -34,10 +35,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import Loader from "@/components/loader";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -54,6 +69,13 @@ import {
   Filter,
   X,
   Download,
+  Plus,
+  Pencil,
+  Trash2,
+  History,
+  FileText,
+  Eye,
+  CheckSquare,
 } from "lucide-react";
 import { exportToCsv } from "@/lib/utils";
 
@@ -75,9 +97,16 @@ export default function TutorPaymentsPage() {
   // Dialog states
   const [calculateDialogOpen, setCalculateDialogOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [batchPayDialogOpen, setBatchPayDialogOpen] = useState(false);
   const [selectedPaymentId, setSelectedPaymentId] = useState<string | null>(
     null
   );
+  const [selectedPaymentIds, setSelectedPaymentIds] = useState<string[]>([]);
 
   // Form states
   const [paymentMonth, setPaymentMonth] = useState(() => {
@@ -89,6 +118,29 @@ export default function TutorPaymentsPage() {
   });
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState<PaymentMethod>("bank_transfer");
+
+  // Manual payment form states
+  const [manualTeacherId, setManualTeacherId] = useState<string>("");
+  const [manualAmount, setManualAmount] = useState<string>("");
+  const [manualMonth, setManualMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}`;
+  });
+  const [manualSessions, setManualSessions] = useState<string>("");
+  const [manualStudents, setManualStudents] = useState<string>("");
+  const [manualNotes, setManualNotes] = useState<string>("");
+
+  // Edit payment form states
+  const [editAmount, setEditAmount] = useState<string>("");
+  const [editSessions, setEditSessions] = useState<string>("");
+  const [editStudents, setEditStudents] = useState<string>("");
+  const [editNotes, setEditNotes] = useState<string>("");
+
+  // Batch operation notes
+  const [batchNotes, setBatchNotes] = useState<string>("");
 
   // Queries
   const paymentsQuery = useQuery({
@@ -140,6 +192,126 @@ export default function TutorPaymentsPage() {
       setPaymentDialogOpen(false);
       setSelectedPaymentId(null);
     },
+  });
+
+  // Create manual payment mutation
+  const createPaymentMutation = useMutation({
+    mutationFn: (data: {
+      teacherId: string;
+      amount: number;
+      paymentMonth: string;
+      sessionsCount?: number;
+      studentsCount?: number;
+      notes?: string;
+    }) => trpcClient.education.createManualTutorPayment.mutate(data),
+    onSuccess: () => {
+      toast.success(t("paymentCreated"));
+      queryClient.invalidateQueries({ queryKey: ["tutor-payments"] });
+      setCreateDialogOpen(false);
+      resetManualForm();
+    },
+    onError: (error: any) => {
+      toast.error(error.message || t("paymentAlreadyExists"));
+    },
+  });
+
+  // Update payment details mutation
+  const updatePaymentMutation = useMutation({
+    mutationFn: (data: {
+      paymentId: string;
+      amount?: number;
+      sessionsCount?: number;
+      studentsCount?: number;
+      notes?: string;
+    }) => trpcClient.education.updateTutorPaymentDetails.mutate(data),
+    onSuccess: () => {
+      toast.success(t("paymentUpdated"));
+      queryClient.invalidateQueries({ queryKey: ["tutor-payments"] });
+      setEditDialogOpen(false);
+      setSelectedPaymentId(null);
+    },
+    onError: (error: any) => {
+      toast.error(error.message || t("onlyPendingCanBeEdited"));
+    },
+  });
+
+  // Delete payment mutation
+  const deletePaymentMutation = useMutation({
+    mutationFn: (paymentId: string) =>
+      trpcClient.education.deleteTutorPayment.mutate({ paymentId }),
+    onSuccess: () => {
+      toast.success(t("paymentDeleted"));
+      queryClient.invalidateQueries({ queryKey: ["tutor-payments"] });
+      setDeleteDialogOpen(false);
+      setSelectedPaymentId(null);
+    },
+    onError: (error: any) => {
+      toast.error(error.message || t("onlyPendingCanBeDeleted"));
+    },
+  });
+
+  // Batch mark as paid mutation
+  const batchMarkAsPaidMutation = useMutation({
+    mutationFn: (data: {
+      paymentIds: string[];
+      paymentMethod: PaymentMethod;
+      notes?: string;
+    }) => trpcClient.education.markMultipleTutorPaymentsAsPaid.mutate(data),
+    onSuccess: (result) => {
+      toast.success(
+        t("batchOperationSuccess", { count: result.processedCount })
+      );
+      if (result.errors && result.errors.length > 0) {
+        toast.warning(t("batchOperationErrors"));
+      }
+      queryClient.invalidateQueries({ queryKey: ["tutor-payments"] });
+      setBatchPayDialogOpen(false);
+      setSelectedPaymentIds([]);
+      setBatchNotes("");
+    },
+  });
+
+  // Bulk update status mutation
+  const bulkUpdateStatusMutation = useMutation({
+    mutationFn: (data: {
+      paymentIds: string[];
+      status: "pending" | "overdue" | "cancelled";
+      notes?: string;
+    }) => trpcClient.education.bulkUpdateTutorPaymentStatus.mutate(data),
+    onSuccess: (result) => {
+      toast.success(
+        t("batchOperationSuccess", { count: result.processedCount })
+      );
+      if (result.errors && result.errors.length > 0) {
+        toast.warning(t("batchOperationErrors"));
+      }
+      queryClient.invalidateQueries({ queryKey: ["tutor-payments"] });
+      setSelectedPaymentIds([]);
+    },
+  });
+
+  // Payment history query (lazy)
+  const historyQuery = useQuery({
+    queryKey: ["payment-history", selectedPaymentId],
+    queryFn: () =>
+      selectedPaymentId
+        ? trpcClient.education.getTutorPaymentHistory.query({
+            paymentId: selectedPaymentId,
+          })
+        : Promise.resolve([]),
+    enabled: historyDialogOpen && !!selectedPaymentId,
+  });
+
+  // Payment details query (lazy)
+  const detailsQuery = useQuery({
+    queryKey: ["payment-details", selectedPaymentId],
+    queryFn: () =>
+      selectedPaymentId
+        ? trpcClient.education.getTutorPaymentInvoice.query({
+            paymentId: selectedPaymentId,
+          })
+        : Promise.resolve(null),
+    enabled: detailsDialogOpen && !!selectedPaymentId,
   });
 
   // Helpers
@@ -288,6 +460,144 @@ export default function TutorPaymentsPage() {
     toast.success(t("exportSuccess"));
   };
 
+  // Reset manual payment form
+  const resetManualForm = () => {
+    setManualTeacherId("");
+    setManualAmount("");
+    setManualMonth(() => {
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}`;
+    });
+    setManualSessions("");
+    setManualStudents("");
+    setManualNotes("");
+  };
+
+  // Handle create manual payment
+  const handleCreatePayment = () => {
+    if (!manualTeacherId || !manualAmount) {
+      toast.error("Please fill in required fields");
+      return;
+    }
+    createPaymentMutation.mutate({
+      teacherId: manualTeacherId,
+      amount: parseInt(manualAmount),
+      paymentMonth: manualMonth,
+      sessionsCount: manualSessions ? parseInt(manualSessions) : undefined,
+      studentsCount: manualStudents ? parseInt(manualStudents) : undefined,
+      notes: manualNotes || undefined,
+    });
+  };
+
+  // Handle edit payment
+  const handleEditPayment = (paymentId: string) => {
+    const payment = paymentsQuery.data?.find((p) => p.paymentId === paymentId);
+    if (payment) {
+      setSelectedPaymentId(paymentId);
+      setEditAmount(payment.amount.toString());
+      setEditSessions((payment.sessionsCount || 0).toString());
+      setEditStudents((payment.studentsCount || 0).toString());
+      setEditNotes(payment.notes || "");
+      setEditDialogOpen(true);
+    }
+  };
+
+  // Confirm edit payment
+  const confirmEditPayment = () => {
+    if (selectedPaymentId) {
+      updatePaymentMutation.mutate({
+        paymentId: selectedPaymentId,
+        amount: editAmount ? parseInt(editAmount) : undefined,
+        sessionsCount: editSessions ? parseInt(editSessions) : undefined,
+        studentsCount: editStudents ? parseInt(editStudents) : undefined,
+        notes: editNotes || undefined,
+      });
+    }
+  };
+
+  // Handle delete payment
+  const handleDeletePayment = (paymentId: string) => {
+    setSelectedPaymentId(paymentId);
+    setDeleteDialogOpen(true);
+  };
+
+  // Handle view details
+  const handleViewDetails = (paymentId: string) => {
+    setSelectedPaymentId(paymentId);
+    setDetailsDialogOpen(true);
+  };
+
+  // Handle view history
+  const handleViewHistory = (paymentId: string) => {
+    setSelectedPaymentId(paymentId);
+    setHistoryDialogOpen(true);
+  };
+
+  // Selection helpers
+  const togglePaymentSelection = (paymentId: string) => {
+    setSelectedPaymentIds((prev) =>
+      prev.includes(paymentId)
+        ? prev.filter((id) => id !== paymentId)
+        : [...prev, paymentId]
+    );
+  };
+
+  const selectAllPending = () => {
+    const pendingIds =
+      paymentsQuery.data
+        ?.filter((p) => p.status === "pending")
+        .map((p) => p.paymentId) || [];
+    setSelectedPaymentIds(pendingIds);
+  };
+
+  const deselectAll = () => {
+    setSelectedPaymentIds([]);
+  };
+
+  // Batch operations
+  const handleBatchMarkAsPaid = () => {
+    if (selectedPaymentIds.length === 0) return;
+    setBatchPayDialogOpen(true);
+  };
+
+  const confirmBatchMarkAsPaid = () => {
+    batchMarkAsPaidMutation.mutate({
+      paymentIds: selectedPaymentIds,
+      paymentMethod: selectedPaymentMethod,
+      notes: batchNotes || undefined,
+    });
+  };
+
+  const handleBatchMarkAsOverdue = () => {
+    if (selectedPaymentIds.length === 0) return;
+    bulkUpdateStatusMutation.mutate({
+      paymentIds: selectedPaymentIds,
+      status: "overdue",
+    });
+  };
+
+  const handleBatchCancel = () => {
+    if (selectedPaymentIds.length === 0) return;
+    bulkUpdateStatusMutation.mutate({
+      paymentIds: selectedPaymentIds,
+      status: "cancelled",
+    });
+  };
+
+  // Format audit action
+  const getActionLabel = (action: string) => {
+    const labels: Record<string, string> = {
+      created: t("actionCreated"),
+      updated: t("actionUpdated"),
+      status_changed: t("actionStatusChanged"),
+      deleted: t("actionDeleted"),
+    };
+    return labels[action] || action;
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -304,6 +614,104 @@ export default function TutorPaymentsPage() {
             <Download className="h-4 w-4 mr-2" />
             {t("exportCsv")}
           </Button>
+          {/* Create Manual Payment Button */}
+          <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Plus className="h-4 w-4 mr-2" />
+                {t("createManualPayment")}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>{t("createManualPayment")}</DialogTitle>
+                <DialogDescription>
+                  {t("createManualPaymentDescription")}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label>{t("teacher")} *</Label>
+                  <Select
+                    value={manualTeacherId}
+                    onValueChange={setManualTeacherId}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={t("filterByTeacher")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {teachersQuery.data?.map((teacher) => (
+                        <SelectItem key={teacher.userId} value={teacher.userId}>
+                          {teacher.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>{t("amount")} (VND) *</Label>
+                  <Input
+                    type="number"
+                    value={manualAmount}
+                    onChange={(e) => setManualAmount(e.target.value)}
+                    placeholder={t("enterAmount")}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t("paymentMonth")}</Label>
+                  <Input
+                    type="month"
+                    value={manualMonth}
+                    onChange={(e) => setManualMonth(e.target.value)}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>{t("sessions")}</Label>
+                    <Input
+                      type="number"
+                      value={manualSessions}
+                      onChange={(e) => setManualSessions(e.target.value)}
+                      placeholder={t("enterSessionsCount")}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{t("students")}</Label>
+                    <Input
+                      type="number"
+                      value={manualStudents}
+                      onChange={(e) => setManualStudents(e.target.value)}
+                      placeholder={t("enterStudentsCount")}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>{t("notes")}</Label>
+                  <Textarea
+                    value={manualNotes}
+                    onChange={(e) => setManualNotes(e.target.value)}
+                    placeholder={t("enterNotes")}
+                    rows={3}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setCreateDialogOpen(false)}
+                >
+                  {t("cancel")}
+                </Button>
+                <Button
+                  onClick={handleCreatePayment}
+                  disabled={createPaymentMutation.isPending}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  {t("createManualPayment")}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
           <Dialog
             open={calculateDialogOpen}
             onOpenChange={setCalculateDialogOpen}
@@ -494,10 +902,58 @@ export default function TutorPaymentsPage() {
       {/* Payments Table */}
       <Card className="shadow-sm border-none">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Wallet className="h-5 w-5" />
-            {t("paymentsList")}
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Wallet className="h-5 w-5" />
+              {t("paymentsList")}
+            </CardTitle>
+            {/* Batch Operations */}
+            {selectedPaymentIds.length > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  {t("selectedCount", { count: selectedPaymentIds.length })}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleBatchMarkAsPaid}
+                >
+                  <CheckCircle className="h-4 w-4 mr-1 text-green-500" />
+                  {t("batchMarkAsPaid")}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleBatchMarkAsOverdue}
+                >
+                  <AlertCircle className="h-4 w-4 mr-1 text-orange-500" />
+                  {t("batchMarkAsOverdue")}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleBatchCancel}
+                  className="text-red-600"
+                >
+                  <XCircle className="h-4 w-4 mr-1" />
+                  {t("batchCancel")}
+                </Button>
+                <Button variant="ghost" size="sm" onClick={deselectAll}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
+          {/* Quick selection buttons */}
+          {paymentsQuery.data &&
+            paymentsQuery.data.some((p) => p.status === "pending") && (
+              <div className="flex items-center gap-2 mt-2">
+                <Button variant="ghost" size="sm" onClick={selectAllPending}>
+                  <CheckSquare className="h-4 w-4 mr-1" />
+                  {t("selectAll")} ({t("statusPending")})
+                </Button>
+              </div>
+            )}
         </CardHeader>
         <CardContent>
           {paymentsQuery.isLoading ? (
@@ -507,6 +963,24 @@ export default function TutorPaymentsPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-slate-50 hover:bg-slate-50">
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={
+                          selectedPaymentIds.length > 0 &&
+                          selectedPaymentIds.length ===
+                            paymentsQuery.data.filter(
+                              (p) => p.status === "pending"
+                            ).length
+                        }
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            selectAllPending();
+                          } else {
+                            deselectAll();
+                          }
+                        }}
+                      />
+                    </TableHead>
                     <TableHead className="font-semibold">
                       {t("teacher")}
                     </TableHead>
@@ -537,8 +1011,23 @@ export default function TutorPaymentsPage() {
                   {paymentsQuery.data.map((payment) => (
                     <TableRow
                       key={payment.paymentId}
-                      className="hover:bg-slate-50"
+                      className={`hover:bg-slate-50 ${
+                        selectedPaymentIds.includes(payment.paymentId)
+                          ? "bg-blue-50"
+                          : ""
+                      }`}
                     >
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedPaymentIds.includes(
+                            payment.paymentId
+                          )}
+                          onCheckedChange={() =>
+                            togglePaymentSelection(payment.paymentId)
+                          }
+                          disabled={payment.status === "paid"}
+                        />
+                      </TableCell>
                       <TableCell>
                         <div>
                           <div className="font-medium">
@@ -581,15 +1070,51 @@ export default function TutorPaymentsPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleViewDetails(payment.paymentId)
+                              }
+                            >
+                              <Eye className="h-4 w-4 mr-2" />
+                              {t("viewDetails")}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleViewHistory(payment.paymentId)
+                              }
+                            >
+                              <History className="h-4 w-4 mr-2" />
+                              {t("viewHistory")}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
                             {payment.status === "pending" && (
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  handleMarkAsPaid(payment.paymentId)
-                                }
-                              >
-                                <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
-                                {t("markAsPaid")}
-                              </DropdownMenuItem>
+                              <>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    handleMarkAsPaid(payment.paymentId)
+                                  }
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+                                  {t("markAsPaid")}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    handleEditPayment(payment.paymentId)
+                                  }
+                                >
+                                  <Pencil className="h-4 w-4 mr-2" />
+                                  {t("editPayment")}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    handleDeletePayment(payment.paymentId)
+                                  }
+                                  className="text-red-600"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  {t("deletePayment")}
+                                </DropdownMenuItem>
+                              </>
                             )}
                             {payment.status !== "cancelled" &&
                               payment.status !== "paid" && (
@@ -603,7 +1128,7 @@ export default function TutorPaymentsPage() {
                                   className="text-red-600"
                                 >
                                   <XCircle className="h-4 w-4 mr-2" />
-                                  Cancel
+                                  {t("cancel")}
                                 </DropdownMenuItem>
                               )}
                           </DropdownMenuContent>
@@ -623,7 +1148,7 @@ export default function TutorPaymentsPage() {
         </CardContent>
       </Card>
 
-      {/* Payment Method Dialog */}
+      {/* Payment Method Dialog (Single) */}
       <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -663,6 +1188,418 @@ export default function TutorPaymentsPage() {
             >
               <CheckCircle className="h-4 w-4 mr-2" />
               {t("markAsPaid")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Payment Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("editPayment")}</DialogTitle>
+            <DialogDescription>{t("editPaymentDescription")}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>{t("amount")} (VND)</Label>
+              <Input
+                type="number"
+                value={editAmount}
+                onChange={(e) => setEditAmount(e.target.value)}
+                placeholder={t("enterAmount")}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{t("sessions")}</Label>
+                <Input
+                  type="number"
+                  value={editSessions}
+                  onChange={(e) => setEditSessions(e.target.value)}
+                  placeholder={t("enterSessionsCount")}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{t("students")}</Label>
+                <Input
+                  type="number"
+                  value={editStudents}
+                  onChange={(e) => setEditStudents(e.target.value)}
+                  placeholder={t("enterStudentsCount")}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>{t("notes")}</Label>
+              <Textarea
+                value={editNotes}
+                onChange={(e) => setEditNotes(e.target.value)}
+                placeholder={t("enterNotes")}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              {t("cancel")}
+            </Button>
+            <Button
+              onClick={confirmEditPayment}
+              disabled={updatePaymentMutation.isPending}
+            >
+              <Pencil className="h-4 w-4 mr-2" />
+              {t("editPayment")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Payment Confirmation */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("deletePayment")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("deletePaymentConfirm")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() =>
+                selectedPaymentId &&
+                deletePaymentMutation.mutate(selectedPaymentId)
+              }
+              className="bg-red-600 hover:bg-red-700"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              {t("deletePayment")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Batch Mark as Paid Dialog */}
+      <Dialog open={batchPayDialogOpen} onOpenChange={setBatchPayDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("batchMarkAsPaid")}</DialogTitle>
+            <DialogDescription>
+              {t("selectedCount", { count: selectedPaymentIds.length })}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>{t("selectPaymentMethod")}</Label>
+              <Select
+                value={selectedPaymentMethod}
+                onValueChange={(v) =>
+                  setSelectedPaymentMethod(v as PaymentMethod)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cash">{t("cash")}</SelectItem>
+                  <SelectItem value="bank_transfer">
+                    {t("bankTransfer")}
+                  </SelectItem>
+                  <SelectItem value="momo">{t("momo")}</SelectItem>
+                  <SelectItem value="vnpay">{t("vnpay")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>{t("notes")}</Label>
+              <Textarea
+                value={batchNotes}
+                onChange={(e) => setBatchNotes(e.target.value)}
+                placeholder={t("enterNotes")}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setBatchPayDialogOpen(false)}
+            >
+              {t("cancel")}
+            </Button>
+            <Button
+              onClick={confirmBatchMarkAsPaid}
+              disabled={batchMarkAsPaidMutation.isPending}
+            >
+              <CheckCircle className="h-4 w-4 mr-2" />
+              {t("batchMarkAsPaid")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Payment Details Dialog */}
+      <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              {t("paymentDetails")}
+            </DialogTitle>
+          </DialogHeader>
+          {detailsQuery.isLoading ? (
+            <div className="py-8">
+              <Loader />
+            </div>
+          ) : detailsQuery.data ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-muted-foreground">
+                    {t("invoiceNumber")}
+                  </Label>
+                  <p className="font-medium">
+                    {detailsQuery.data.invoiceNumber}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">{t("status")}</Label>
+                  <div className="mt-1">
+                    {getStatusBadge(detailsQuery.data.status as BillingStatus)}
+                  </div>
+                </div>
+              </div>
+              <Separator />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-muted-foreground">
+                    {t("teacher")}
+                  </Label>
+                  <p className="font-medium">{detailsQuery.data.teacherName}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {detailsQuery.data.teacherEmail}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">
+                    {t("paymentMonth")}
+                  </Label>
+                  <p className="font-medium">
+                    {formatMonth(detailsQuery.data.paymentMonth)}
+                  </p>
+                </div>
+              </div>
+              <Separator />
+              <div>
+                <Label className="text-muted-foreground">
+                  {t("calculationBreakdown")}
+                </Label>
+                <div className="mt-2 space-y-2 bg-slate-50 rounded-lg p-4">
+                  <div className="flex justify-between">
+                    <span>{t("rateType")}</span>
+                    <span className="font-medium">
+                      {getRateTypeLabel(
+                        detailsQuery.data.rateType as RateType | null
+                      )}
+                    </span>
+                  </div>
+                  {detailsQuery.data.rateAmount && (
+                    <div className="flex justify-between">
+                      <span>{t("baseRate")}</span>
+                      <span className="font-medium">
+                        {formatCurrency(detailsQuery.data.rateAmount)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span>{t("sessions")}</span>
+                    <span className="font-medium">
+                      {detailsQuery.data.sessionsCount}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>{t("students")}</span>
+                    <span className="font-medium">
+                      {detailsQuery.data.studentsCount}
+                    </span>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between text-lg font-semibold">
+                    <span>{t("amount")}</span>
+                    <span>{formatCurrency(detailsQuery.data.amount)}</span>
+                  </div>
+                </div>
+              </div>
+              {detailsQuery.data.status === "paid" && (
+                <>
+                  <Separator />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-muted-foreground">
+                        {t("paidAt")}
+                      </Label>
+                      <p className="font-medium">
+                        {detailsQuery.data.paidAt
+                          ? new Date(
+                              detailsQuery.data.paidAt
+                            ).toLocaleDateString()
+                          : "-"}
+                      </p>
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground">
+                        {t("paymentMethod")}
+                      </Label>
+                      <p className="font-medium">
+                        {getPaymentMethodLabel(
+                          detailsQuery.data
+                            .paymentMethod as PaymentMethod | null
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
+              {detailsQuery.data.notes && (
+                <>
+                  <Separator />
+                  <div>
+                    <Label className="text-muted-foreground">
+                      {t("notes")}
+                    </Label>
+                    <p className="mt-1">{detailsQuery.data.notes}</p>
+                  </div>
+                </>
+              )}
+              {detailsQuery.data.classes &&
+                detailsQuery.data.classes.length > 0 && (
+                  <>
+                    <Separator />
+                    <div>
+                      <Label className="text-muted-foreground">
+                        {t("teacherClasses")}
+                      </Label>
+                      <div className="mt-2 space-y-1">
+                        {detailsQuery.data.classes.map((cls) => (
+                          <div
+                            key={cls.classId}
+                            className="text-sm flex items-center gap-2"
+                          >
+                            <Badge variant="outline">{cls.classCode}</Badge>
+                            <span>{cls.className}</span>
+                            {cls.subject && (
+                              <span className="text-muted-foreground">
+                                ({cls.subject})
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+            </div>
+          ) : null}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDetailsDialogOpen(false)}
+            >
+              {t("cancel")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Payment History Dialog */}
+      <Dialog open={historyDialogOpen} onOpenChange={setHistoryDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="h-5 w-5" />
+              {t("paymentHistory")}
+            </DialogTitle>
+          </DialogHeader>
+          {historyQuery.isLoading ? (
+            <div className="py-8">
+              <Loader />
+            </div>
+          ) : historyQuery.data && historyQuery.data.length > 0 ? (
+            <ScrollArea className="h-[400px]">
+              <div className="space-y-4">
+                {historyQuery.data.map((log) => (
+                  <div
+                    key={log.logId}
+                    className="border rounded-lg p-4 space-y-2"
+                  >
+                    <div className="flex items-center justify-between">
+                      <Badge variant="secondary">
+                        {getActionLabel(log.action)}
+                      </Badge>
+                      <span className="text-sm text-muted-foreground">
+                        {new Date(log.createdAt).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="text-sm">
+                      <span className="text-muted-foreground">
+                        {t("historyChangedBy")}:
+                      </span>{" "}
+                      <span className="font-medium">{log.changedByName}</span>
+                    </div>
+                    {log.notes && (
+                      <div className="text-sm text-muted-foreground">
+                        {log.notes}
+                      </div>
+                    )}
+                    {log.transactionId && (
+                      <div className="text-sm">
+                        <span className="text-muted-foreground">
+                          {t("transactionId")}:
+                        </span>{" "}
+                        <code className="bg-slate-100 px-1 rounded">
+                          {log.transactionId}
+                        </code>
+                      </div>
+                    )}
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      {log.oldValues && (
+                        <div>
+                          <Label className="text-xs text-muted-foreground">
+                            {t("historyOldValues")}
+                          </Label>
+                          <pre className="mt-1 bg-red-50 rounded p-2 text-xs overflow-x-auto">
+                            {JSON.stringify(log.oldValues, null, 2)}
+                          </pre>
+                        </div>
+                      )}
+                      {log.newValues && (
+                        <div>
+                          <Label className="text-xs text-muted-foreground">
+                            {t("historyNewValues")}
+                          </Label>
+                          <pre className="mt-1 bg-green-50 rounded p-2 text-xs overflow-x-auto">
+                            {JSON.stringify(log.newValues, null, 2)}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <History className="h-12 w-12 mx-auto mb-4 opacity-20" />
+              <p>{t("noHistory")}</p>
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setHistoryDialogOpen(false)}
+            >
+              {t("cancel")}
             </Button>
           </DialogFooter>
         </DialogContent>

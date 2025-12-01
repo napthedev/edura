@@ -2504,6 +2504,204 @@ export const educationRouter = router({
     }),
 
   // =====================
+  // TEACHER RATES MANAGEMENT
+  // =====================
+
+  // Get teacher rates (manager only)
+  getTeacherRates: protectedProcedure
+    .input(
+      z.object({
+        teacherId: z.string().optional(),
+        activeOnly: z.boolean().optional().default(true),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      const conditions = [];
+
+      if (input.teacherId) {
+        conditions.push(eq(teacherRates.teacherId, input.teacherId));
+      }
+
+      if (input.activeOnly) {
+        conditions.push(eq(teacherRates.isActive, true));
+      }
+
+      // Filter by teachers belonging to this manager
+      const rates = await ctx.db
+        .select({
+          rateId: teacherRates.rateId,
+          teacherId: teacherRates.teacherId,
+          teacherName: user.name,
+          teacherEmail: user.email,
+          rateType: teacherRates.rateType,
+          amount: teacherRates.amount,
+          effectiveDate: teacherRates.effectiveDate,
+          isActive: teacherRates.isActive,
+        })
+        .from(teacherRates)
+        .innerJoin(user, eq(teacherRates.teacherId, user.id))
+        .where(
+          conditions.length > 0
+            ? and(eq(user.managerId, ctx.session.user.id), ...conditions)
+            : eq(user.managerId, ctx.session.user.id)
+        )
+        .orderBy(desc(teacherRates.effectiveDate));
+
+      return rates;
+    }),
+
+  // Create teacher rate (manager only)
+  createTeacherRate: protectedProcedure
+    .input(
+      z.object({
+        teacherId: z.string(),
+        rateType: z.enum(["HOURLY", "PER_STUDENT", "MONTHLY_FIXED"]),
+        amount: z.number().min(0),
+        effectiveDate: z.string().optional(), // ISO date string
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      // Verify teacher belongs to this manager
+      const teacher = await ctx.db
+        .select()
+        .from(user)
+        .where(
+          and(
+            eq(user.id, input.teacherId),
+            eq(user.managerId, ctx.session.user.id)
+          )
+        );
+
+      if (teacher.length === 0) {
+        throw new Error("Teacher not found or access denied");
+      }
+
+      // Deactivate existing rates of the same type for this teacher
+      await ctx.db
+        .update(teacherRates)
+        .set({ isActive: false })
+        .where(
+          and(
+            eq(teacherRates.teacherId, input.teacherId),
+            eq(teacherRates.rateType, input.rateType),
+            eq(teacherRates.isActive, true)
+          )
+        );
+
+      // Create new rate
+      const rateId = crypto.randomUUID();
+      await ctx.db.insert(teacherRates).values({
+        rateId,
+        teacherId: input.teacherId,
+        rateType: input.rateType,
+        amount: input.amount,
+        effectiveDate: input.effectiveDate
+          ? new Date(input.effectiveDate)
+          : new Date(),
+        isActive: true,
+      });
+
+      return { rateId, success: true };
+    }),
+
+  // Update teacher rate (manager only - only for rates not used in payments)
+  updateTeacherRate: protectedProcedure
+    .input(
+      z.object({
+        rateId: z.string(),
+        amount: z.number().min(0).optional(),
+        effectiveDate: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      // Verify rate exists and teacher belongs to manager
+      const rate = await ctx.db
+        .select({
+          rateId: teacherRates.rateId,
+          teacherId: teacherRates.teacherId,
+          managerId: user.managerId,
+        })
+        .from(teacherRates)
+        .innerJoin(user, eq(teacherRates.teacherId, user.id))
+        .where(eq(teacherRates.rateId, input.rateId));
+
+      if (rate.length === 0 || rate[0]!.managerId !== ctx.session.user.id) {
+        throw new Error("Rate not found or access denied");
+      }
+
+      // Check if rate is used in any payments (lock rates once used)
+      const paymentsWithRate = await ctx.db
+        .select({ paymentId: tutorPayments.paymentId })
+        .from(tutorPayments)
+        .where(eq(tutorPayments.rateId, input.rateId))
+        .limit(1);
+
+      if (paymentsWithRate.length > 0) {
+        throw new Error(
+          "Cannot modify rate - it has been used in existing payments. Create a new rate instead."
+        );
+      }
+
+      const updateData: { amount?: number; effectiveDate?: Date } = {};
+      if (input.amount !== undefined) {
+        updateData.amount = input.amount;
+      }
+      if (input.effectiveDate) {
+        updateData.effectiveDate = new Date(input.effectiveDate);
+      }
+
+      await ctx.db
+        .update(teacherRates)
+        .set(updateData)
+        .where(eq(teacherRates.rateId, input.rateId));
+
+      return { success: true };
+    }),
+
+  // Deactivate teacher rate (manager only)
+  deactivateTeacherRate: protectedProcedure
+    .input(z.object({ rateId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      // Verify rate exists and teacher belongs to manager
+      const rate = await ctx.db
+        .select({
+          rateId: teacherRates.rateId,
+          teacherId: teacherRates.teacherId,
+          managerId: user.managerId,
+        })
+        .from(teacherRates)
+        .innerJoin(user, eq(teacherRates.teacherId, user.id))
+        .where(eq(teacherRates.rateId, input.rateId));
+
+      if (rate.length === 0 || rate[0]!.managerId !== ctx.session.user.id) {
+        throw new Error("Rate not found or access denied");
+      }
+
+      await ctx.db
+        .update(teacherRates)
+        .set({ isActive: false })
+        .where(eq(teacherRates.rateId, input.rateId));
+
+      return { success: true };
+    }),
+
+  // =====================
   // TUTOR PAYMENTS
   // =====================
 
