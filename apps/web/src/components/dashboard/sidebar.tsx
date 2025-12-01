@@ -18,6 +18,7 @@ import {
   ClipboardCheck,
   Banknote,
   DollarSign,
+  TrendingUp,
 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useTranslations } from "next-intl";
@@ -108,7 +109,7 @@ function SidebarContent({ role }: { role: "teacher" | "student" | "manager" }) {
     {
       href: "/dashboard/manager/finance",
       label: t("finance"),
-      icon: LayoutDashboard, // Placeholder
+      icon: TrendingUp,
     },
     {
       href: "/dashboard/manager/tuition",
