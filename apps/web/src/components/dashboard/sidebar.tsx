@@ -7,7 +7,6 @@ import {
   LayoutDashboard,
   Users,
   GraduationCap,
-  HeadphonesIcon,
   BookOpen,
   Calendar,
   FileText,
@@ -145,11 +144,6 @@ function SidebarContent({ role }: { role: "teacher" | "student" | "manager" }) {
       href: "/dashboard/manager/attendance",
       label: t("attendance"),
       icon: ClipboardCheck,
-    },
-    {
-      href: "/dashboard/manager/customer-service",
-      label: t("customerService"),
-      icon: HeadphonesIcon,
     },
   ];
 

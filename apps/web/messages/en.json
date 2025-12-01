@@ -618,8 +618,6 @@
   "Dashboard": {
     "managerTitle": "Manager Dashboard",
     "welcomeManager": "Welcome, Manager!",
-    "customerService": "Customer Service",
-    "customerServiceRequests": "Customer service requests.",
     "searchPlaceholder": "Search..."
   },
   "StudentDashboard": {
@@ -736,7 +734,6 @@
     "deadlines": "Deadlines",
     "finance": "Finance",
     "teachers": "Teachers",
-    "customerService": "Customer Service",
     "tuition": "Tuition",
     "tutorPayments": "Tutor Payments",
     "teacherRates": "Teacher Rates",

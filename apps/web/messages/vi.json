@@ -17,7 +17,7 @@
     "about": "Giới thiệu"
   },
   "Hero": {
-    "title": "Nền tảng quản lý giáo dục cho trung tâm",
+    "title": "Nền tảng quản lý giáo dục toàn diện cho trung tâm dạy thêm",
     "subtitle": "Tối ưu hóa hoạt động, quản lý tài chính, theo dõi KPI và tương tác với phụ huynh—mọi thứ bạn cần để điều hành trung tâm dạy thêm thành công",
     "ctaText": "Dùng thử miễn phí",
     "contactUs": "Liên hệ ngay",
@@ -624,8 +624,6 @@
   "Dashboard": {
     "managerTitle": "Bảng điều khiển quản lý",
     "welcomeManager": "Chào mừng, Quản lý!",
-    "customerService": "Dịch vụ khách hàng",
-    "customerServiceRequests": "Yêu cầu dịch vụ khách hàng.",
     "searchPlaceholder": "Tìm kiếm..."
   },
   "StudentDashboard": {
@@ -742,7 +740,6 @@
     "deadlines": "Hạn nộp",
     "finance": "Tài chính",
     "teachers": "Giáo viên",
-    "customerService": "Dịch vụ khách hàng",
     "tuition": "Học phí",
     "tutorPayments": "Lương giáo viên",
     "teacherRates": "Mức lương giáo viên",

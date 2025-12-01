@@ -20,7 +20,7 @@ const Hero = () => {
   };
   return (
     <section
-      className="relative overflow-hidden bg-white py-20 lg:py-28"
+      className="relative overflow-hidden bg-white py-14 lg:py-20"
       id="home"
     >
       {/* Background Decoration */}
@@ -44,7 +44,7 @@ const Hero = () => {
 
             {/* Main Headline */}
             <div className="space-y-4">
-              <h1 className="font-bold text-4xl text-gray-900 leading-tight sm:text-5xl lg:text-6xl">
+              <h1 className="font-bold text-3xl text-gray-900 leading-tight sm:text-4xl lg:text-5xl">
                 {HERO.title}
               </h1>
               <p className="max-w-lg text-gray-600 text-xl leading-relaxed">
