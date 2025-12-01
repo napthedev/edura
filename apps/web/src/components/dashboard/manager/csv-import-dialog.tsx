@@ -46,6 +46,8 @@ interface ParsedRow {
   name: string;
   email: string;
   dateOfBirth?: string;
+  parentEmail?: string;
+  parentPhone?: string;
 }
 
 interface ImportResult {
@@ -138,6 +140,21 @@ export function CSVImportDialog({ type, trigger }: CSVImportDialogProps) {
             h === "ngày sinh" ||
             h === "ngaysinh"
         );
+        const parentEmailIndex = headers.findIndex(
+          (h) =>
+            h === "parentemail" ||
+            h === "parent_email" ||
+            h === "email phụ huynh" ||
+            h === "emailphuhuynh"
+        );
+        const parentPhoneIndex = headers.findIndex(
+          (h) =>
+            h === "parentphone" ||
+            h === "parent_phone" ||
+            h === "sđt phụ huynh" ||
+            h === "sdtphuhuynh" ||
+            h === "điện thoại phụ huynh"
+        );
 
         if (nameIndex === -1) {
           setParseError(t("missingNameColumn"));
@@ -157,9 +174,19 @@ export function CSVImportDialog({ type, trigger }: CSVImportDialogProps) {
           const name = values[nameIndex];
           const email = values[emailIndex];
           const dateOfBirth = dobIndex !== -1 ? values[dobIndex] : undefined;
+          const parentEmail =
+            parentEmailIndex !== -1 ? values[parentEmailIndex] : undefined;
+          const parentPhone =
+            parentPhoneIndex !== -1 ? values[parentPhoneIndex] : undefined;
 
           if (name && email) {
-            data.push({ name, email, dateOfBirth });
+            data.push({
+              name,
+              email,
+              dateOfBirth,
+              parentEmail: parentEmail || undefined,
+              parentPhone: parentPhone || undefined,
+            });
           }
         }
 
@@ -186,7 +213,9 @@ export function CSVImportDialog({ type, trigger }: CSVImportDialogProps) {
 
   const handleDownloadTemplate = () => {
     const template =
-      "name,email,dateOfBirth\nJohn Doe,john@example.com,1990-01-15\nJane Smith,jane@example.com,1985-06-20";
+      type === "student"
+        ? "name,email,dateOfBirth,parentEmail,parentPhone\nJohn Doe,john@example.com,1990-01-15,parent@example.com,+1234567890\nJane Smith,jane@example.com,1985-06-20,,"
+        : "name,email,dateOfBirth\nJohn Doe,john@example.com,1990-01-15\nJane Smith,jane@example.com,1985-06-20";
     const blob = new Blob([template], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -359,6 +388,12 @@ export function CSVImportDialog({ type, trigger }: CSVImportDialogProps) {
                         <TableHead>{t("name")}</TableHead>
                         <TableHead>{t("email")}</TableHead>
                         <TableHead>{t("dateOfBirth")}</TableHead>
+                        {type === "student" && (
+                          <>
+                            <TableHead>{t("parentEmail")}</TableHead>
+                            <TableHead>{t("parentPhone")}</TableHead>
+                          </>
+                        )}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -367,12 +402,18 @@ export function CSVImportDialog({ type, trigger }: CSVImportDialogProps) {
                           <TableCell>{row.name}</TableCell>
                           <TableCell>{row.email}</TableCell>
                           <TableCell>{row.dateOfBirth || "-"}</TableCell>
+                          {type === "student" && (
+                            <>
+                              <TableCell>{row.parentEmail || "-"}</TableCell>
+                              <TableCell>{row.parentPhone || "-"}</TableCell>
+                            </>
+                          )}
                         </TableRow>
                       ))}
                       {parsedData.length > 10 && (
                         <TableRow>
                           <TableCell
-                            colSpan={3}
+                            colSpan={type === "student" ? 5 : 3}
                             className="text-center text-muted-foreground"
                           >
                             {t("moreRows", { count: parsedData.length - 10 })}

@@ -20,9 +20,12 @@ import {
   Copy,
   Check,
   AlertTriangle,
+  Phone,
+  Pencil,
 } from "lucide-react";
 import { AddStudentDialog } from "@/components/dashboard/manager/add-student-dialog";
 import { CSVImportDialog } from "@/components/dashboard/manager/csv-import-dialog";
+import { EditParentContactDialog } from "@/components/dashboard/manager/edit-parent-contact-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -111,7 +114,16 @@ export default function StudentsPage() {
                       {t("dateOfBirth")}
                     </TableHead>
                     <TableHead className="font-semibold">
+                      {t("parentEmail")}
+                    </TableHead>
+                    <TableHead className="font-semibold">
+                      {t("parentPhone")}
+                    </TableHead>
+                    <TableHead className="font-semibold">
                       {t("joinedDate")}
+                    </TableHead>
+                    <TableHead className="font-semibold">
+                      {t("actions")}
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -188,11 +200,39 @@ export default function StudentsPage() {
                           <span className="text-muted-foreground">-</span>
                         )}
                       </TableCell>
+                      <TableCell>
+                        {student.parentEmail ? (
+                          <div className="flex items-center gap-1">
+                            <Mail className="h-4 w-4 text-muted-foreground/60" />
+                            {student.parentEmail}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {student.parentPhone ? (
+                          <div className="flex items-center gap-1">
+                            <Phone className="h-4 w-4 text-muted-foreground/60" />
+                            {student.parentPhone}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <Calendar className="h-4 w-4 text-muted-foreground/60" />
                           {new Date(student.createdAt).toLocaleDateString()}
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <EditParentContactDialog
+                          studentId={student.userId}
+                          studentName={student.name}
+                          currentParentEmail={student.parentEmail}
+                          currentParentPhone={student.parentPhone}
+                        />
                       </TableCell>
                     </TableRow>
                   ))}

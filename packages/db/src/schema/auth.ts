@@ -26,6 +26,9 @@ export const user = pgTable("user", {
   address: text("address"),
   grade: text("grade"), // For students only
   schoolName: text("school_name"),
+  // Parent contact info (for students only, editable by manager/teacher)
+  parentEmail: text("parent_email"),
+  parentPhone: text("parent_phone"),
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updated_at").notNull(),
 });

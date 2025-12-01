@@ -113,6 +113,8 @@ export default function ProfilePage() {
               address: profile.address,
               grade: profile.grade,
               schoolName: profile.schoolName,
+              parentEmail: profile.parentEmail,
+              parentPhone: profile.parentPhone,
               role: profile.role,
             }}
           />

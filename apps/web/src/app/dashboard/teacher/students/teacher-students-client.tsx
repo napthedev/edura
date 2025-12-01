@@ -21,7 +21,10 @@ import {
   MapPin,
   GraduationCap,
   School,
+  Phone,
+  Pencil,
 } from "lucide-react";
+import { EditParentContactDialog } from "@/components/dashboard/manager/edit-parent-contact-dialog";
 
 export default function TeacherStudentsClient() {
   const t = useTranslations("TeacherStudents");
@@ -42,6 +45,8 @@ export default function TeacherStudentsClient() {
       address: string | null;
       grade: string | null;
       schoolName: string | null;
+      parentEmail: string | null;
+      parentPhone: string | null;
       classes: Array<{
         classId: string;
         className: string;
@@ -63,6 +68,8 @@ export default function TeacherStudentsClient() {
           address: enrollment.address,
           grade: enrollment.grade,
           schoolName: enrollment.schoolName,
+          parentEmail: enrollment.parentEmail,
+          parentPhone: enrollment.parentPhone,
           classes: [],
           firstEnrolledAt: enrollment.enrolledAt,
         });
@@ -163,7 +170,16 @@ export default function TeacherStudentsClient() {
                       {t("classes")}
                     </TableHead>
                     <TableHead className="font-semibold">
+                      {t("parentEmail")}
+                    </TableHead>
+                    <TableHead className="font-semibold">
+                      {t("parentPhone")}
+                    </TableHead>
+                    <TableHead className="font-semibold">
                       {t("joinedDate")}
+                    </TableHead>
+                    <TableHead className="font-semibold">
+                      {t("actions")}
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -238,6 +254,26 @@ export default function TeacherStudentsClient() {
                           ))}
                         </div>
                       </TableCell>
+                      <TableCell>
+                        {student.parentEmail ? (
+                          <div className="flex items-center gap-1">
+                            <Mail className="h-4 w-4 text-muted-foreground/60" />
+                            {student.parentEmail}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {student.parentPhone ? (
+                          <div className="flex items-center gap-1">
+                            <Phone className="h-4 w-4 text-muted-foreground/60" />
+                            {student.parentPhone}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <Calendar className="h-4 w-4 text-muted-foreground/60" />
@@ -245,6 +281,14 @@ export default function TeacherStudentsClient() {
                             student.firstEnrolledAt
                           ).toLocaleDateString()}
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <EditParentContactDialog
+                          studentId={student.userId}
+                          studentName={student.name}
+                          currentParentEmail={student.parentEmail}
+                          currentParentPhone={student.parentPhone}
+                        />
                       </TableCell>
                     </TableRow>
                   ))}

@@ -18,7 +18,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
-import { CalendarIcon, User } from "lucide-react";
+import { CalendarIcon, User, Mail, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const profileFormSchema = z.object({
@@ -38,6 +38,8 @@ interface ProfileFormProps {
     address: string | null;
     grade: string | null;
     schoolName: string | null;
+    parentEmail: string | null;
+    parentPhone: string | null;
     role: string;
   };
 }
@@ -171,6 +173,44 @@ export default function ProfileForm({ profile }: ProfileFormProps) {
                   placeholder={t("schoolNamePlaceholder")}
                 />
               </div>
+
+              {/* Parent Contact Info (Read-only) */}
+              {(profile.parentEmail || profile.parentPhone) && (
+                <div className="space-y-4 pt-4 border-t">
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    {t("parentContact")}
+                  </h4>
+                  {profile.parentEmail && (
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-1">
+                        <Mail className="h-4 w-4" />
+                        {t("parentEmail")}
+                      </Label>
+                      <Input
+                        value={profile.parentEmail}
+                        disabled
+                        className="bg-muted"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        {t("parentContactReadOnly")}
+                      </p>
+                    </div>
+                  )}
+                  {profile.parentPhone && (
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-1">
+                        <Phone className="h-4 w-4" />
+                        {t("parentPhone")}
+                      </Label>
+                      <Input
+                        value={profile.parentPhone}
+                        disabled
+                        className="bg-muted"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
             </>
           )}
 

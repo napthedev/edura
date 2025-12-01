@@ -176,6 +176,8 @@ export const educationRouter = router({
           address: user.address,
           grade: user.grade,
           schoolName: user.schoolName,
+          parentEmail: user.parentEmail,
+          parentPhone: user.parentPhone,
         })
         .from(enrollments)
         .innerJoin(user, eq(enrollments.studentId, user.id))
@@ -196,6 +198,8 @@ export const educationRouter = router({
         address: user.address,
         grade: user.grade,
         schoolName: user.schoolName,
+        parentEmail: user.parentEmail,
+        parentPhone: user.parentPhone,
       })
       .from(classes)
       .innerJoin(enrollments, eq(classes.classId, enrollments.classId))
@@ -2158,6 +2162,8 @@ export const educationRouter = router({
         address: user.address,
         grade: user.grade,
         schoolName: user.schoolName,
+        parentEmail: user.parentEmail,
+        parentPhone: user.parentPhone,
         createdAt: user.createdAt,
         generatedPassword: user.generatedPassword,
         hasChangedPassword: user.hasChangedPassword,
@@ -2170,6 +2176,93 @@ export const educationRouter = router({
 
     return students;
   }),
+
+  // Update student parent contact info (manager can update any student under them, teacher can update enrolled students)
+  updateStudentParentContact: protectedProcedure
+    .input(
+      z.object({
+        studentId: z.string(),
+        parentEmail: z.string().email().nullable().optional(),
+        parentPhone: z
+          .string()
+          .regex(/^[+]?[\d\s()-]{7,20}$/, "Invalid phone number format")
+          .nullable()
+          .optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userRole = ctx.session.user.role;
+
+      if (userRole !== "manager" && userRole !== "teacher") {
+        throw new Error("Access denied - manager or teacher only");
+      }
+
+      // Verify the student exists and is a student
+      const studentData = await ctx.db
+        .select({
+          id: user.id,
+          role: user.role,
+          managerId: user.managerId,
+        })
+        .from(user)
+        .where(eq(user.id, input.studentId))
+        .limit(1);
+
+      if (studentData.length === 0 || studentData[0]!.role !== "student") {
+        throw new Error("Student not found");
+      }
+
+      // Manager can update any student under them
+      if (userRole === "manager") {
+        if (studentData[0]!.managerId !== ctx.session.user.id) {
+          throw new Error("Access denied - student not under this manager");
+        }
+      }
+
+      // Teacher can only update students enrolled in their classes
+      if (userRole === "teacher") {
+        const enrollment = await ctx.db
+          .select({ enrollmentId: enrollments.enrollmentId })
+          .from(enrollments)
+          .innerJoin(classes, eq(enrollments.classId, classes.classId))
+          .where(
+            and(
+              eq(enrollments.studentId, input.studentId),
+              eq(classes.teacherId, ctx.session.user.id)
+            )
+          )
+          .limit(1);
+
+        if (enrollment.length === 0) {
+          throw new Error(
+            "Access denied - student not enrolled in any of your classes"
+          );
+        }
+      }
+
+      // Update the student's parent contact info
+      const updateData: {
+        parentEmail?: string | null;
+        parentPhone?: string | null;
+        updatedAt: Date;
+      } = {
+        updatedAt: new Date(),
+      };
+
+      if (input.parentEmail !== undefined) {
+        updateData.parentEmail = input.parentEmail;
+      }
+      if (input.parentPhone !== undefined) {
+        updateData.parentPhone = input.parentPhone;
+      }
+
+      await ctx.db
+        .update(user)
+        .set(updateData)
+        .where(eq(user.id, input.studentId));
+
+      return { success: true };
+    }),
 
   // =====================
   // TUITION BILLING
@@ -3331,6 +3424,11 @@ export const educationRouter = router({
         name: z.string().min(2),
         email: z.string().email(),
         dateOfBirth: z.string().optional(),
+        parentEmail: z.string().email().optional(),
+        parentPhone: z
+          .string()
+          .regex(/^[+]?[\d\s()-]{7,20}$/, "Invalid phone number format")
+          .optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -3365,6 +3463,8 @@ export const educationRouter = router({
         generatedPassword: password,
         hasChangedPassword: false,
         dateOfBirth: input.dateOfBirth ? new Date(input.dateOfBirth) : null,
+        parentEmail: input.parentEmail || null,
+        parentPhone: input.parentPhone || null,
         createdAt: now,
         updatedAt: now,
       });
@@ -3508,6 +3608,11 @@ export const educationRouter = router({
             name: z.string().min(2),
             email: z.string().email(),
             dateOfBirth: z.string().optional(),
+            parentEmail: z.string().email().optional(),
+            parentPhone: z
+              .string()
+              .regex(/^[+]?[\d\s()-]{7,20}$/, "Invalid phone number format")
+              .optional(),
           })
         ),
       })
@@ -3557,6 +3662,8 @@ export const educationRouter = router({
             dateOfBirth: student.dateOfBirth
               ? new Date(student.dateOfBirth)
               : null,
+            parentEmail: student.parentEmail || null,
+            parentPhone: student.parentPhone || null,
             createdAt: now,
             updatedAt: now,
           });

@@ -18,7 +18,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserPlus, Copy, Check, AlertTriangle, Loader2 } from "lucide-react";
+import {
+  UserPlus,
+  Copy,
+  Check,
+  AlertTriangle,
+  Loader2,
+  Mail,
+  Phone,
+} from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface AddStudentDialogProps {
@@ -36,8 +44,13 @@ export function AddStudentDialog({ trigger }: AddStudentDialogProps) {
   const [copied, setCopied] = useState(false);
 
   const createStudentMutation = useMutation({
-    mutationFn: (data: { name: string; email: string; dateOfBirth?: string }) =>
-      trpcClient.education.createStudent.mutate(data),
+    mutationFn: (data: {
+      name: string;
+      email: string;
+      dateOfBirth?: string;
+      parentEmail?: string;
+      parentPhone?: string;
+    }) => trpcClient.education.createStudent.mutate(data),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["all-students"] });
       setCreatedAccount({
@@ -56,12 +69,16 @@ export function AddStudentDialog({ trigger }: AddStudentDialogProps) {
       name: "",
       email: "",
       dateOfBirth: "",
+      parentEmail: "",
+      parentPhone: "",
     },
     onSubmit: async ({ value }) => {
       await createStudentMutation.mutateAsync({
         name: value.name,
         email: value.email,
         dateOfBirth: value.dateOfBirth || undefined,
+        parentEmail: value.parentEmail || undefined,
+        parentPhone: value.parentPhone || undefined,
       });
     },
   });
@@ -204,6 +221,46 @@ export function AddStudentDialog({ trigger }: AddStudentDialogProps) {
                     type="date"
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
+                  />
+                </div>
+              )}
+            </form.Field>
+
+            <form.Field name="parentEmail">
+              {(field) => (
+                <div className="space-y-2">
+                  <Label htmlFor="parentEmail">
+                    <div className="flex items-center gap-1">
+                      <Mail className="h-4 w-4" />
+                      {t("parentEmail")} ({t("optional")})
+                    </div>
+                  </Label>
+                  <Input
+                    id="parentEmail"
+                    type="email"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    placeholder={t("parentEmailPlaceholder")}
+                  />
+                </div>
+              )}
+            </form.Field>
+
+            <form.Field name="parentPhone">
+              {(field) => (
+                <div className="space-y-2">
+                  <Label htmlFor="parentPhone">
+                    <div className="flex items-center gap-1">
+                      <Phone className="h-4 w-4" />
+                      {t("parentPhone")} ({t("optional")})
+                    </div>
+                  </Label>
+                  <Input
+                    id="parentPhone"
+                    type="tel"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    placeholder={t("parentPhonePlaceholder")}
                   />
                 </div>
               )}
