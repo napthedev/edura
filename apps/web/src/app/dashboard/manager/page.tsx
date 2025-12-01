@@ -113,7 +113,7 @@ export default function ManagerDashboardPage() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <LayoutDashboard className="h-6 w-6" />
@@ -121,7 +121,7 @@ export default function ManagerDashboardPage() {
           </h1>
           <p className="text-muted-foreground mt-1">{t("description")}</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex md:justify-end gap-3 flex-wrap">
           <SendBillingReportDialog />
           <SendUrgentAlertDialog isManager={true} />
           <DateRangeFilter value={monthsFilter} onChange={setMonthsFilter} />
