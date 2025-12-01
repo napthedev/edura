@@ -251,6 +251,26 @@ export const teacherRates = pgTable("teacher_rates", {
   isActive: boolean("is_active").default(true),
 });
 
+// Parent Consent (tracks parent communication preferences per student)
+export const parentConsent = pgTable(
+  "parent_consent",
+  {
+    consentId: text("consent_id").primaryKey(),
+    studentId: text("student_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    enableWeekly: boolean("enable_weekly").notNull().default(true),
+    enableMonthly: boolean("enable_monthly").notNull().default(true),
+    enableUrgentAlerts: boolean("enable_urgent_alerts").notNull().default(true),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    // Ensure one consent record per student
+    uniqueStudent: unique().on(table.studentId),
+  })
+);
+
 // Notifications
 export const notifications = pgTable("notifications", {
   notificationId: text("notification_id").primaryKey(),

@@ -21,24 +21,70 @@ import {
   Building2,
   Users,
   CheckCircle,
+  AlertCircle,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function ContactPage() {
   const t = useTranslations("Contact");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
 
-    // Simulate form submission - in production, this would send to an API
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      const formData = new FormData(e.currentTarget);
+      const data = {
+        name: formData.get("name"),
+        email: formData.get("email"),
+        phone: formData.get("phone") || undefined,
+        centerName: formData.get("centerName"),
+        studentCount: formData.get("studentCount")
+          ? parseInt(formData.get("studentCount") as string)
+          : undefined,
+        message: formData.get("message") || undefined,
+      };
 
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.error || "Failed to submit contact form. Please try again."
+        );
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        setIsSubmitted(true);
+        toast.success(
+          "Form submitted successfully! Check your email for account details."
+        );
+      } else {
+        throw new Error(result.error || "An error occurred");
+      }
+    } catch (err: any) {
+      console.error("Contact form error:", err);
+      const errorMsg =
+        err.message || "Failed to submit contact form. Please try again.";
+      setError(errorMsg);
+      toast.error(errorMsg);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isSubmitted) {
@@ -104,6 +150,12 @@ export default function ContactPage() {
               <CardDescription>{t("form.description")}</CardDescription>
             </CardHeader>
             <CardContent>
+              {error && (
+                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex gap-3 items-start">
+                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-red-800">{error}</p>
+                </div>
+              )}
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-2">

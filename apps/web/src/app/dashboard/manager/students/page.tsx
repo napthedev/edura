@@ -26,6 +26,7 @@ import {
 import { AddStudentDialog } from "@/components/dashboard/manager/add-student-dialog";
 import { CSVImportDialog } from "@/components/dashboard/manager/csv-import-dialog";
 import { EditParentContactDialog } from "@/components/dashboard/manager/edit-parent-contact-dialog";
+import { ParentNotificationSettingsDialog } from "@/components/dashboard/manager/parent-notification-settings-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -227,12 +228,18 @@ export default function StudentsPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <EditParentContactDialog
-                          studentId={student.userId}
-                          studentName={student.name}
-                          currentParentEmail={student.parentEmail}
-                          currentParentPhone={student.parentPhone}
-                        />
+                        <div className="flex items-center gap-2">
+                          <ParentNotificationSettingsDialog
+                            studentId={student.userId}
+                            studentName={student.name}
+                          />
+                          <EditParentContactDialog
+                            studentId={student.userId}
+                            studentName={student.name}
+                            currentParentEmail={student.parentEmail}
+                            currentParentPhone={student.parentPhone}
+                          />
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

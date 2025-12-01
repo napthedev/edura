@@ -12,10 +12,18 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { KeyRound, Loader2 } from "lucide-react";
+import { trpcClient } from "@/utils/trpc";
+import { useMutation } from "@tanstack/react-query";
 
 export default function ChangePasswordForm() {
   const t = useTranslations("Profile");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const markPasswordAsChangedMutation = useMutation({
+    mutationFn: async () => {
+      return await trpcClient.profile.markPasswordAsChanged.mutate();
+    },
+  });
 
   const changePasswordSchema = z
     .object({
@@ -63,10 +71,17 @@ export default function ChangePasswordForm() {
         return;
       }
 
+      // Password changed successfully, now mark it in the database
+      await markPasswordAsChangedMutation.mutateAsync();
+
       toast.success(t("changePassword.successMessage"));
       form.reset();
-    } catch {
-      toast.error(t("changePassword.errorMessage"));
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : t("changePassword.errorMessage");
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

@@ -17,6 +17,8 @@ import {
   AssignmentCompletionChart,
   ClassPerformanceChart,
 } from "@/components/dashboard/manager/charts";
+import { SendBillingReportDialog } from "@/components/dashboard/manager/send-billing-report-dialog";
+import { SendUrgentAlertDialog } from "@/components/class/send-urgent-alert-dialog";
 
 // 5 minute cache for analytics queries
 const STALE_TIME = 5 * 60 * 1000;
@@ -120,6 +122,8 @@ export default function ManagerDashboardPage() {
           <p className="text-muted-foreground mt-1">{t("description")}</p>
         </div>
         <div className="flex items-center gap-3">
+          <SendBillingReportDialog />
+          <SendUrgentAlertDialog isManager={true} />
           <DateRangeFilter value={monthsFilter} onChange={setMonthsFilter} />
           <Button
             variant="outline"

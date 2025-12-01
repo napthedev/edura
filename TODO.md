@@ -38,10 +38,12 @@
 ## 👪 Parent Portal
 
 - [ ] View student results
-- [ ] Progress overview
-- [ ] Tuition reminders
+- [x] Progress overview (via Weekly Performance Reports)
+- [x] Tuition reminders (via Monthly Billing Reports)
 - [ ] Online payment integration (VNPay/MoMo)
 - [ ] Zalo message subscription
+- [x] Parent notification preferences (email-based)
+- [x] Urgent alerts for parents
 
 ---
 
@@ -78,10 +80,12 @@
 - [ ] Automate triggers for alerts via Zalo:
   - "Payment Due"
   - "Student Not Logged In"
-- [ ] Daily/weekly class reports
+- [x] Weekly class reports (manual trigger by teacher)
+- [x] Monthly billing reports (manual trigger by manager)
 - [ ] Attendance summaries
 - [ ] Test score breakdown
-- [ ] Tuition invoicing
+- [x] Tuition invoicing (bilingual email templates)
+- [x] Urgent alerts via email (manual trigger by teacher/manager)
 
 ### Attendance System
 

@@ -23,6 +23,7 @@ import {
   GraduationCap,
   School,
 } from "lucide-react";
+import { SendWeeklyReportDialog } from "@/components/class/send-weekly-report-dialog";
 
 export default function StudentsPage() {
   const params = useParams();
@@ -76,6 +77,9 @@ export default function StudentsPage() {
                     </TableHead>
                     <TableHead className="font-semibold">
                       {t("enrolledDate")}
+                    </TableHead>
+                    <TableHead className="font-semibold">
+                      {t("actions")}
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -151,6 +155,13 @@ export default function StudentsPage() {
                             {t("enrolled")}{" "}
                             {new Date(student.enrolledAt).toLocaleDateString()}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <SendWeeklyReportDialog
+                            studentId={student.userId}
+                            studentName={student.name}
+                            classId={classId}
+                          />
                         </TableCell>
                       </TableRow>
                     )

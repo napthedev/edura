@@ -18,11 +18,19 @@ import {
   studentAttendanceLogs,
   expenseCategories,
   expenses,
+  parentConsent,
 } from "@edura/db/schema/education";
 import { eq, and, sql } from "drizzle-orm";
 import { desc, gte, lte, inArray } from "drizzle-orm";
 import { user, account } from "@edura/db/schema/auth";
-import { generateRandomPassword, sendWelcomeEmail } from "../utils/email";
+import {
+  generateRandomPassword,
+  sendWelcomeEmail,
+  sendWeeklyPerformanceReport,
+  sendMonthlyBillingReport,
+  sendUrgentAlert,
+} from "../utils/email";
+import { getStudentPerformanceData } from "../utils/parent-reports";
 import { Scrypt } from "lucia";
 
 // Schedule color type
@@ -2590,11 +2598,6 @@ export const educationRouter = router({
         existingPayments.map((p) => p.teacherId)
       );
 
-      // Parse the payment month to get date range
-      const [year, month] = input.paymentMonth.split("-").map(Number);
-      const monthStart = new Date(year!, month! - 1, 1);
-      const monthEnd = new Date(year!, month!, 0, 23, 59, 59);
-
       const newPayments = [];
 
       for (const teacherRate of teachersWithRates) {
@@ -3822,12 +3825,12 @@ export const educationRouter = router({
 
       if (
         scheduleData.length === 0 ||
-        scheduleData[0].class.teacherId !== ctx.session.user.id
+        scheduleData[0]!.class.teacherId !== ctx.session.user.id
       ) {
         throw new Error("Schedule not found or access denied");
       }
 
-      const classId = scheduleData[0].schedule.classId;
+      const classId = scheduleData[0]!.schedule.classId;
 
       // Get enrolled students
       const students = await ctx.db
@@ -3864,12 +3867,12 @@ export const educationRouter = router({
 
       return {
         schedule: {
-          scheduleId: scheduleData[0].schedule.scheduleId,
-          title: scheduleData[0].schedule.title,
-          startTime: scheduleData[0].schedule.startTime,
-          endTime: scheduleData[0].schedule.endTime,
+          scheduleId: scheduleData[0]!.schedule.scheduleId,
+          title: scheduleData[0]!.schedule.title,
+          startTime: scheduleData[0]!.schedule.startTime,
+          endTime: scheduleData[0]!.schedule.endTime,
         },
-        className: scheduleData[0].class.className,
+        className: scheduleData[0]!.class.className,
         students: studentsWithAttendance,
       };
     }),
@@ -3906,12 +3909,12 @@ export const educationRouter = router({
 
       if (
         scheduleData.length === 0 ||
-        scheduleData[0].class.teacherId !== ctx.session.user.id
+        scheduleData[0]!.class.teacherId !== ctx.session.user.id
       ) {
         throw new Error("Schedule not found or access denied");
       }
 
-      const classId = scheduleData[0].schedule.classId;
+      const classId = scheduleData[0]!.schedule.classId;
       const now = new Date();
 
       // Process each student's attendance
@@ -3940,7 +3943,7 @@ export const educationRouter = router({
                 ? ctx.session.user.id
                 : null,
             })
-            .where(eq(studentAttendanceLogs.logId, existingRecord[0].logId));
+            .where(eq(studentAttendanceLogs.logId, existingRecord[0]!.logId));
         } else {
           // Insert new record
           await ctx.db.insert(studentAttendanceLogs).values({
@@ -4108,9 +4111,6 @@ export const educationRouter = router({
       if (input.endDate) {
         conditions.push(lte(studentAttendanceLogs.sessionDate, input.endDate));
       }
-
-      // Alias for teacher user
-      const teacherUser = user;
 
       const logs = await ctx.db
         .select({
@@ -5666,6 +5666,447 @@ export const educationRouter = router({
       classPerformance.sort((a, b) => b.averageGrade - a.averageGrade);
 
       return { classPerformance };
+    }),
+
+  // ========== PARENT NOTIFICATIONS ==========
+
+  updateParentConsent: protectedProcedure
+    .input(
+      z.object({
+        studentId: z.string(),
+        enableWeekly: z.boolean().optional(),
+        enableMonthly: z.boolean().optional(),
+        enableUrgentAlerts: z.boolean().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Only manager can update parent consent
+      if (ctx.session.user.role !== "manager") {
+        throw new Error(
+          "Unauthorized: Only managers can update parent consent"
+        );
+      }
+
+      // Verify student belongs to this manager's center
+      const student = await ctx.db
+        .select()
+        .from(user)
+        .where(
+          and(
+            eq(user.id, input.studentId),
+            eq(user.managerId, ctx.session.user.id),
+            eq(user.role, "student")
+          )
+        );
+
+      if (student.length === 0) {
+        throw new Error("Student not found or not authorized");
+      }
+
+      // Check if consent record exists
+      const existingConsent = await ctx.db
+        .select()
+        .from(parentConsent)
+        .where(eq(parentConsent.studentId, input.studentId));
+
+      const updateData: Record<string, any> = {
+        updatedAt: new Date(),
+      };
+
+      if (input.enableWeekly !== undefined) {
+        updateData.enableWeekly = input.enableWeekly;
+      }
+      if (input.enableMonthly !== undefined) {
+        updateData.enableMonthly = input.enableMonthly;
+      }
+      if (input.enableUrgentAlerts !== undefined) {
+        updateData.enableUrgentAlerts = input.enableUrgentAlerts;
+      }
+
+      if (existingConsent.length > 0) {
+        // Update existing consent
+        return await ctx.db
+          .update(parentConsent)
+          .set(updateData)
+          .where(eq(parentConsent.studentId, input.studentId))
+          .returning();
+      } else {
+        // Create new consent record
+        const consentId = crypto.randomUUID();
+        return await ctx.db
+          .insert(parentConsent)
+          .values({
+            consentId,
+            studentId: input.studentId,
+            enableWeekly: input.enableWeekly ?? true,
+            enableMonthly: input.enableMonthly ?? true,
+            enableUrgentAlerts: input.enableUrgentAlerts ?? true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .returning();
+      }
+    }),
+
+  getParentConsent: protectedProcedure
+    .input(z.object({ studentId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      // Only manager can view parent consent
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Unauthorized: Only managers can view parent consent");
+      }
+
+      // Verify student belongs to this manager's center
+      const student = await ctx.db
+        .select()
+        .from(user)
+        .where(
+          and(
+            eq(user.id, input.studentId),
+            eq(user.managerId, ctx.session.user.id),
+            eq(user.role, "student")
+          )
+        );
+
+      if (student.length === 0) {
+        throw new Error("Student not found or not authorized");
+      }
+
+      const consent = await ctx.db
+        .select()
+        .from(parentConsent)
+        .where(eq(parentConsent.studentId, input.studentId));
+
+      return {
+        studentId: input.studentId,
+        studentEmail: student[0]!.email,
+        parentEmail: student[0]!.parentEmail,
+        parentPhone: student[0]!.parentPhone,
+        enableWeekly: consent.length > 0 ? consent[0]!.enableWeekly : true,
+        enableMonthly: consent.length > 0 ? consent[0]!.enableMonthly : true,
+        enableUrgentAlerts:
+          consent.length > 0 ? consent[0]!.enableUrgentAlerts : true,
+      };
+    }),
+
+  sendWeeklyReportToParent: protectedProcedure
+    .input(
+      z.object({
+        studentId: z.string(),
+        classId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Only teacher or manager can send weekly report
+      if (!["teacher", "manager"].includes(ctx.session.user.role)) {
+        throw new Error(
+          "Unauthorized: Only teachers and managers can send reports"
+        );
+      }
+
+      // Verify access: teacher must own the class, manager must own the center
+      let classRecord;
+      if (ctx.session.user.role === "teacher") {
+        classRecord = await ctx.db
+          .select()
+          .from(classes)
+          .where(
+            and(
+              eq(classes.classId, input.classId),
+              eq(classes.teacherId, ctx.session.user.id)
+            )
+          );
+      } else {
+        // Manager: verify student and class belong to their center
+        const classData = await ctx.db
+          .select()
+          .from(classes)
+          .where(eq(classes.classId, input.classId));
+
+        if (classData.length === 0) {
+          throw new Error("Class not found");
+        }
+
+        classRecord = classData;
+      }
+
+      if (classRecord.length === 0) {
+        throw new Error("Class not found or not authorized");
+      }
+
+      // Get student
+      const studentData = await ctx.db
+        .select()
+        .from(user)
+        .where(eq(user.id, input.studentId));
+
+      if (studentData.length === 0 || studentData[0]!.role !== "student") {
+        throw new Error("Student not found");
+      }
+
+      const student = studentData[0]!;
+
+      // Check parent consent
+      const consent = await ctx.db
+        .select()
+        .from(parentConsent)
+        .where(eq(parentConsent.studentId, input.studentId));
+
+      const enableWeekly =
+        consent.length === 0 ? true : consent[0]!.enableWeekly;
+
+      if (!enableWeekly) {
+        throw new Error("Parent has disabled weekly reports");
+      }
+
+      // Get performance data
+      const performanceData = await getStudentPerformanceData(
+        ctx.db,
+        input.studentId,
+        input.classId
+      );
+
+      // Send email to both parent and student
+      const recipients: { email?: string | null }[] = [
+        { email: student.email },
+      ];
+      if (student.parentEmail) {
+        recipients.push({ email: student.parentEmail });
+      }
+
+      const validRecipients = recipients
+        .map((r) => r.email)
+        .filter(Boolean) as string[];
+
+      if (validRecipients.length === 0) {
+        throw new Error("No valid email recipient");
+      }
+
+      await sendWeeklyPerformanceReport({
+        studentEmail: student.email,
+        parentEmail: student.parentEmail || "",
+        studentName: student.name,
+        className: classRecord[0]!.className,
+        performanceData,
+      });
+
+      return {
+        success: true,
+        message: "Weekly report sent successfully",
+        recipients: validRecipients,
+      };
+    }),
+
+  sendMonthlyBillingReportToParent: protectedProcedure
+    .input(z.object({ studentId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // Only manager can send billing reports
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Unauthorized: Only managers can send billing reports");
+      }
+
+      // Verify student belongs to manager's center
+      const student = await ctx.db
+        .select()
+        .from(user)
+        .where(
+          and(
+            eq(user.id, input.studentId),
+            eq(user.managerId, ctx.session.user.id),
+            eq(user.role, "student")
+          )
+        );
+
+      if (student.length === 0) {
+        throw new Error("Student not found or not authorized");
+      }
+
+      const studentData = student[0]!;
+
+      // Check parent consent
+      const consent = await ctx.db
+        .select()
+        .from(parentConsent)
+        .where(eq(parentConsent.studentId, input.studentId));
+
+      const enableMonthly =
+        consent.length === 0 ? true : consent[0]!.enableMonthly;
+
+      if (!enableMonthly) {
+        throw new Error("Parent has disabled monthly reports");
+      }
+
+      // Get most recent billing record
+      const billingRecords = await ctx.db
+        .select({
+          billingId: tuitionBilling.billingId,
+          amount: tuitionBilling.amount,
+          billingMonth: tuitionBilling.billingMonth,
+          dueDate: tuitionBilling.dueDate,
+          status: tuitionBilling.status,
+          paymentMethod: tuitionBilling.paymentMethod,
+          invoiceNumber: tuitionBilling.invoiceNumber,
+          classId: tuitionBilling.classId,
+          className: classes.className,
+        })
+        .from(tuitionBilling)
+        .leftJoin(classes, eq(tuitionBilling.classId, classes.classId))
+        .where(eq(tuitionBilling.studentId, input.studentId))
+        .orderBy(desc(tuitionBilling.billingMonth))
+        .limit(1);
+
+      if (billingRecords.length === 0) {
+        throw new Error("No billing records found for this student");
+      }
+
+      const billing = billingRecords[0]!;
+      const billingData = {
+        amount: billing.amount,
+        billingMonth: billing.billingMonth,
+        dueDate: new Date(billing.dueDate).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }),
+        status: billing.status as "pending" | "paid" | "overdue" | "cancelled",
+        paymentMethods: ["Cash", "Bank Transfer", "MoMo", "VNPay"],
+        invoiceNumber: billing.invoiceNumber || undefined,
+      };
+
+      const recipients: { email?: string | null }[] = [
+        { email: studentData.email },
+      ];
+      if (studentData.parentEmail) {
+        recipients.push({ email: studentData.parentEmail });
+      }
+
+      const validRecipients = recipients
+        .map((r) => r.email)
+        .filter(Boolean) as string[];
+
+      if (validRecipients.length === 0) {
+        throw new Error("No valid email recipient");
+      }
+
+      await sendMonthlyBillingReport({
+        studentEmail: studentData.email,
+        parentEmail: studentData.parentEmail || "",
+        studentName: studentData.name,
+        className: billing.className || "N/A",
+        billingData,
+      });
+
+      return {
+        success: true,
+        message: "Monthly billing report sent successfully",
+        recipients: validRecipients,
+      };
+    }),
+
+  sendUrgentAlertToParent: protectedProcedure
+    .input(
+      z.object({
+        studentId: z.string(),
+        title: z.string().min(1),
+        message: z.string().min(1),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Only teacher or manager can send urgent alert
+      if (!["teacher", "manager"].includes(ctx.session.user.role)) {
+        throw new Error(
+          "Unauthorized: Only teachers and managers can send alerts"
+        );
+      }
+
+      // If teacher, verify student is in one of their classes
+      let student;
+      if (ctx.session.user.role === "teacher") {
+        const studentClasses = await ctx.db
+          .select({
+            studentId: enrollments.studentId,
+          })
+          .from(enrollments)
+          .innerJoin(classes, eq(enrollments.classId, classes.classId))
+          .where(eq(classes.teacherId, ctx.session.user.id));
+
+        const studentIds = studentClasses.map((s) => s.studentId);
+        if (!studentIds.includes(input.studentId)) {
+          throw new Error("Student not in any of your classes");
+        }
+
+        const studentData = await ctx.db
+          .select()
+          .from(user)
+          .where(eq(user.id, input.studentId));
+
+        if (studentData.length === 0) {
+          throw new Error("Student not found");
+        }
+
+        student = studentData[0]!;
+      } else {
+        // Manager: verify student belongs to center
+        const studentData = await ctx.db
+          .select()
+          .from(user)
+          .where(
+            and(
+              eq(user.id, input.studentId),
+              eq(user.managerId, ctx.session.user.id),
+              eq(user.role, "student")
+            )
+          );
+
+        if (studentData.length === 0) {
+          throw new Error("Student not found or not authorized");
+        }
+
+        student = studentData[0]!;
+      }
+
+      // Check parent consent
+      const consent = await ctx.db
+        .select()
+        .from(parentConsent)
+        .where(eq(parentConsent.studentId, input.studentId));
+
+      const enableUrgentAlerts =
+        consent.length === 0 ? true : consent[0]!.enableUrgentAlerts;
+
+      if (!enableUrgentAlerts) {
+        throw new Error("Parent has disabled urgent alerts");
+      }
+
+      // Send email
+      const recipients: { email?: string | null }[] = [
+        { email: student.email },
+      ];
+      if (student.parentEmail) {
+        recipients.push({ email: student.parentEmail });
+      }
+
+      const validRecipients = recipients
+        .map((r) => r.email)
+        .filter(Boolean) as string[];
+
+      if (validRecipients.length === 0) {
+        throw new Error("No valid email recipient");
+      }
+
+      await sendUrgentAlert({
+        studentEmail: student.email,
+        parentEmail: student.parentEmail || "",
+        studentName: student.name,
+        title: input.title,
+        message: input.message,
+      });
+
+      return {
+        success: true,
+        message: "Urgent alert sent successfully",
+        recipients: validRecipients,
+      };
     }),
 });
 

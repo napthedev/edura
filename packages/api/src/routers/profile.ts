@@ -37,6 +37,22 @@ export const profileRouter = router({
     };
   }),
 
+  // Mark password as changed (called after successful password change on client)
+  markPasswordAsChanged: protectedProcedure.mutation(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+
+    const [updated] = await ctx.db
+      .update(user)
+      .set({
+        hasChangedPassword: true,
+        updatedAt: new Date(),
+      })
+      .where(eq(user.id, userId))
+      .returning();
+
+    return updated;
+  }),
+
   // Update basic profile information
   updateProfile: protectedProcedure
     .input(
