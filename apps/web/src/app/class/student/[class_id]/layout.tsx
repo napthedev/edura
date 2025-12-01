@@ -5,6 +5,7 @@ import { trpcClient } from "@/utils/trpc";
 import { authClient } from "@/lib/auth-client";
 import Loader from "@/components/loader";
 import { ClassShell } from "@/components/class/class-shell";
+import { useTranslations } from "next-intl";
 
 type SessionUser = {
   id: string;
@@ -19,6 +20,7 @@ export default function StudentClassLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const t = useTranslations("ClassPage");
   const params = useParams();
   const classId = params.class_id as string;
   const router = useRouter();
@@ -72,7 +74,7 @@ export default function StudentClassLayout({
   if (classQuery.error || !classQuery.data) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center text-red-500">Class not found</div>
+        <div className="text-center text-red-500">{t("classNotFound")}</div>
       </div>
     );
   }

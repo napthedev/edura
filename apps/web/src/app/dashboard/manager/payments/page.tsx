@@ -318,8 +318,7 @@ export default function TutorPaymentsPage() {
               <DialogHeader>
                 <DialogTitle>{t("calculatePayments")}</DialogTitle>
                 <DialogDescription>
-                  Calculate monthly payments for all teachers based on their
-                  rates and activity.
+                  {t("calculatePaymentsDescription")}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
@@ -400,7 +399,7 @@ export default function TutorPaymentsPage() {
         <Card className="shadow-sm border-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Teachers
+              {t("totalTeachers")}
             </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -418,12 +417,12 @@ export default function TutorPaymentsPage() {
           <div className="flex items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <Filter className="h-4 w-4" />
-              Filters
+              {t("filters")}
             </CardTitle>
             {hasActiveFilters && (
               <Button variant="ghost" size="sm" onClick={clearFilters}>
                 <X className="h-4 w-4 mr-1" />
-                Clear Filters
+                {t("clearFilters")}
               </Button>
             )}
           </div>

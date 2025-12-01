@@ -320,7 +320,7 @@ export default function TuitionBillingPage() {
               <DialogHeader>
                 <DialogTitle>{t("generateBills")}</DialogTitle>
                 <DialogDescription>
-                  Generate monthly tuition bills for all enrolled students.
+                  {t("generateBillsDescription")}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
@@ -427,7 +427,7 @@ export default function TuitionBillingPage() {
           <div className="flex items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <Filter className="h-4 w-4" />
-              Filters
+              {t("filters")}
             </CardTitle>
             {hasActiveFilters && (
               <Button variant="ghost" size="sm" onClick={clearFilters}>
