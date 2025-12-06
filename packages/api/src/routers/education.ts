@@ -2898,6 +2898,71 @@ export const educationRouter = router({
       };
     }),
 
+  // Create manual tutor payment (manager only)
+  createManualTutorPayment: protectedProcedure
+    .input(
+      z.object({
+        teacherId: z.string(),
+        amount: z.number().min(0),
+        paymentMonth: z.string(), // Format: "YYYY-MM"
+        sessionsCount: z.number().min(0).optional(),
+        studentsCount: z.number().min(0).optional(),
+        notes: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      // Verify teacher belongs to this manager
+      const teacher = await ctx.db
+        .select({ id: user.id, name: user.name })
+        .from(user)
+        .where(
+          and(
+            eq(user.id, input.teacherId),
+            eq(user.role, "teacher"),
+            eq(user.managerId, ctx.session.user.id)
+          )
+        );
+
+      if (teacher.length === 0) {
+        throw new Error("Teacher not found or access denied");
+      }
+
+      // Check for existing payment for this teacher and month
+      const existingPayment = await ctx.db
+        .select({ paymentId: tutorPayments.paymentId })
+        .from(tutorPayments)
+        .where(
+          and(
+            eq(tutorPayments.teacherId, input.teacherId),
+            eq(tutorPayments.paymentMonth, input.paymentMonth)
+          )
+        );
+
+      if (existingPayment.length > 0) {
+        throw new Error("Payment already exists for this teacher and month");
+      }
+
+      const paymentId = crypto.randomUUID();
+
+      await ctx.db.insert(tutorPayments).values({
+        paymentId,
+        teacherId: input.teacherId,
+        amount: input.amount,
+        paymentMonth: input.paymentMonth,
+        sessionsCount: input.sessionsCount || 0,
+        studentsCount: input.studentsCount || 0,
+        rateId: null, // Manual payment, no rate
+        status: "pending",
+        notes: input.notes,
+      });
+
+      return { paymentId };
+    }),
+
   // Update tutor payment status (manager only)
   updateTutorPaymentStatus: protectedProcedure
     .input(
@@ -2944,6 +3009,347 @@ export const educationRouter = router({
         .where(eq(tutorPayments.paymentId, input.paymentId));
 
       return { success: true };
+    }),
+
+  // Update tutor payment details (manager only - only for pending payments)
+  updateTutorPaymentDetails: protectedProcedure
+    .input(
+      z.object({
+        paymentId: z.string(),
+        amount: z.number().min(0).optional(),
+        sessionsCount: z.number().min(0).optional(),
+        studentsCount: z.number().min(0).optional(),
+        notes: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      // Check if payment exists and is pending
+      const payment = await ctx.db
+        .select({
+          paymentId: tutorPayments.paymentId,
+          status: tutorPayments.status,
+          teacherId: tutorPayments.teacherId,
+        })
+        .from(tutorPayments)
+        .innerJoin(user, eq(tutorPayments.teacherId, user.id))
+        .where(
+          and(
+            eq(tutorPayments.paymentId, input.paymentId),
+            eq(user.managerId, ctx.session.user.id)
+          )
+        );
+
+      if (payment.length === 0) {
+        throw new Error("Payment not found or access denied");
+      }
+
+      if (payment[0].status !== "pending") {
+        throw new Error("Only pending payments can be edited");
+      }
+
+      const updateData: {
+        amount?: number;
+        sessionsCount?: number;
+        studentsCount?: number;
+        notes?: string;
+      } = {};
+
+      if (input.amount !== undefined) {
+        updateData.amount = input.amount;
+      }
+      if (input.sessionsCount !== undefined) {
+        updateData.sessionsCount = input.sessionsCount;
+      }
+      if (input.studentsCount !== undefined) {
+        updateData.studentsCount = input.studentsCount;
+      }
+      if (input.notes !== undefined) {
+        updateData.notes = input.notes;
+      }
+
+      await ctx.db
+        .update(tutorPayments)
+        .set(updateData)
+        .where(eq(tutorPayments.paymentId, input.paymentId));
+
+      return { success: true };
+    }),
+
+  // Delete tutor payment (manager only - only for pending payments)
+  deleteTutorPayment: protectedProcedure
+    .input(z.object({ paymentId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      // Check if payment exists, is pending, and belongs to manager's teachers
+      const payment = await ctx.db
+        .select({
+          paymentId: tutorPayments.paymentId,
+          status: tutorPayments.status,
+        })
+        .from(tutorPayments)
+        .innerJoin(user, eq(tutorPayments.teacherId, user.id))
+        .where(
+          and(
+            eq(tutorPayments.paymentId, input.paymentId),
+            eq(user.managerId, ctx.session.user.id)
+          )
+        );
+
+      if (payment.length === 0) {
+        throw new Error("Payment not found or access denied");
+      }
+
+      if (payment[0].status !== "pending") {
+        throw new Error("Only pending payments can be deleted");
+      }
+
+      await ctx.db
+        .delete(tutorPayments)
+        .where(eq(tutorPayments.paymentId, input.paymentId));
+
+      return { success: true };
+    }),
+
+  // Mark multiple tutor payments as paid (manager only)
+  markMultipleTutorPaymentsAsPaid: protectedProcedure
+    .input(
+      z.object({
+        paymentIds: z.array(z.string()),
+        paymentMethod: z.enum(["cash", "bank_transfer", "momo", "vnpay"]),
+        notes: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      if (input.paymentIds.length === 0) {
+        throw new Error("No payment IDs provided");
+      }
+
+      // Verify all payments exist and belong to manager's teachers
+      const payments = await ctx.db
+        .select({
+          paymentId: tutorPayments.paymentId,
+          status: tutorPayments.status,
+        })
+        .from(tutorPayments)
+        .innerJoin(user, eq(tutorPayments.teacherId, user.id))
+        .where(
+          and(
+            inArray(tutorPayments.paymentId, input.paymentIds),
+            eq(user.managerId, ctx.session.user.id)
+          )
+        );
+
+      if (payments.length !== input.paymentIds.length) {
+        throw new Error("Some payments not found or access denied");
+      }
+
+      // Check that all payments are pending
+      const nonPendingPayments = payments.filter((p) => p.status !== "pending");
+      if (nonPendingPayments.length > 0) {
+        throw new Error("All payments must be in pending status");
+      }
+
+      // Update all payments
+      await ctx.db
+        .update(tutorPayments)
+        .set({
+          status: "paid",
+          paidAt: new Date(),
+          paymentMethod: input.paymentMethod,
+          notes: input.notes || null,
+        })
+        .where(inArray(tutorPayments.paymentId, input.paymentIds));
+
+      return {
+        processedCount: input.paymentIds.length,
+        errors: [],
+      };
+    }),
+
+  // Bulk update tutor payment status (manager only)
+  bulkUpdateTutorPaymentStatus: protectedProcedure
+    .input(
+      z.object({
+        paymentIds: z.array(z.string()),
+        status: z.enum(["pending", "overdue", "cancelled"]),
+        notes: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      if (input.paymentIds.length === 0) {
+        throw new Error("No payment IDs provided");
+      }
+
+      // Verify all payments exist and belong to manager's teachers
+      const payments = await ctx.db
+        .select({
+          paymentId: tutorPayments.paymentId,
+          status: tutorPayments.status,
+        })
+        .from(tutorPayments)
+        .innerJoin(user, eq(tutorPayments.teacherId, user.id))
+        .where(
+          and(
+            inArray(tutorPayments.paymentId, input.paymentIds),
+            eq(user.managerId, ctx.session.user.id)
+          )
+        );
+
+      if (payments.length !== input.paymentIds.length) {
+        throw new Error("Some payments not found or access denied");
+      }
+
+      // Update all payments
+      const updateData: {
+        status: "pending" | "overdue" | "cancelled";
+        paidAt?: null;
+        paymentMethod?: null;
+        notes?: string | null;
+      } = {
+        status: input.status,
+        paidAt: null,
+        paymentMethod: null,
+      };
+
+      if (input.notes !== undefined) {
+        updateData.notes = input.notes;
+      }
+
+      await ctx.db
+        .update(tutorPayments)
+        .set(updateData)
+        .where(inArray(tutorPayments.paymentId, input.paymentIds));
+
+      return {
+        processedCount: input.paymentIds.length,
+        errors: [],
+      };
+    }),
+
+  // Get tutor payment history/details (manager only)
+  getTutorPaymentHistory: protectedProcedure
+    .input(z.object({ paymentId: z.string() }))
+    .query(
+      async ({
+        ctx,
+        input,
+      }): Promise<
+        Array<{
+          logId: string;
+          action: string;
+          createdAt: string;
+          changedByName: string;
+          notes?: string;
+          transactionId?: string;
+          oldValues?: any;
+          newValues?: any;
+        }>
+      > => {
+        if (ctx.session.user.role !== "manager") {
+          throw new Error("Access denied - manager only");
+        }
+
+        // Verify payment exists and belongs to manager's teachers
+        const payment = await ctx.db
+          .select({ paymentId: tutorPayments.paymentId })
+          .from(tutorPayments)
+          .innerJoin(user, eq(tutorPayments.teacherId, user.id))
+          .where(
+            and(
+              eq(tutorPayments.paymentId, input.paymentId),
+              eq(user.managerId, ctx.session.user.id)
+            )
+          );
+
+        if (payment.length === 0) {
+          throw new Error("Payment not found or access denied");
+        }
+
+        // TODO: Implement payment history table and return actual history
+        // For now, return empty array
+        return [];
+      }
+    ),
+
+  // Get tutor payment invoice details (manager only)
+  getTutorPaymentInvoice: protectedProcedure
+    .input(z.object({ paymentId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      const payment = await ctx.db
+        .select({
+          paymentId: tutorPayments.paymentId,
+          teacherId: tutorPayments.teacherId,
+          teacherName: user.name,
+          teacherEmail: user.email,
+          amount: tutorPayments.amount,
+          paymentMonth: tutorPayments.paymentMonth,
+          sessionsCount: tutorPayments.sessionsCount,
+          studentsCount: tutorPayments.studentsCount,
+          rateId: tutorPayments.rateId,
+          rateType: teacherRates.rateType,
+          rateAmount: teacherRates.amount,
+          status: tutorPayments.status,
+          paidAt: tutorPayments.paidAt,
+          paymentMethod: tutorPayments.paymentMethod,
+          notes: tutorPayments.notes,
+          createdAt: tutorPayments.createdAt,
+        })
+        .from(tutorPayments)
+        .innerJoin(user, eq(tutorPayments.teacherId, user.id))
+        .leftJoin(teacherRates, eq(tutorPayments.rateId, teacherRates.rateId))
+        .where(
+          and(
+            eq(tutorPayments.paymentId, input.paymentId),
+            eq(user.managerId, ctx.session.user.id)
+          )
+        );
+
+      if (payment.length === 0) {
+        return null;
+      }
+
+      const paymentData = payment[0];
+
+      // Get teacher's classes
+      const teacherClasses = await ctx.db
+        .select({
+          classId: classes.classId,
+          classCode: classes.classCode,
+          className: classes.className,
+          subject: classes.subject,
+        })
+        .from(classes)
+        .where(eq(classes.teacherId, paymentData.teacherId));
+
+      // Generate invoice number (format: INV-YYYY-MM-XXXX)
+      const invoiceNumber = `INV-${
+        paymentData.paymentMonth
+      }-${paymentData.paymentId.slice(-4).toUpperCase()}`;
+
+      return {
+        ...paymentData,
+        invoiceNumber,
+        classes: teacherClasses,
+      };
     }),
 
   // =====================
