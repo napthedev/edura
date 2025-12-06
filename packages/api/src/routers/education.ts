@@ -3130,7 +3130,7 @@ export const educationRouter = router({
   // ========== ATTENDANCE / CHECK-IN PROCEDURES ==========
 
   // Get active schedule for check-in (teacher only)
-  // Returns schedule if current time is within ±5 minutes of start time
+  // Returns schedule if current time is within ±15 minutes of start time
   getActiveScheduleForCheckIn: protectedProcedure.query(async ({ ctx }) => {
     if (ctx.session.user.role !== "teacher") {
       throw new Error("Access denied - teacher only");
@@ -3268,7 +3268,7 @@ export const educationRouter = router({
         throw new Error("This schedule is not for today");
       }
 
-      // Verify within ±5 minutes of start time
+      // Verify within ±15 minutes of start time
       const [startHours, startMinutes] = schedule.startTime
         .split(":")
         .map(Number);
@@ -3358,16 +3358,16 @@ export const educationRouter = router({
         throw new Error("Session is not in checked-in status");
       }
 
-      // Verify within ±5 minutes of end time
+      // Verify within ±15 minutes of end time
       const [endHours, endMinutes] = schedule.endTime.split(":").map(Number);
       const endTimeMinutes = endHours! * 60 + endMinutes!;
 
       if (
-        currentTimeMinutes < endTimeMinutes - 5 ||
-        currentTimeMinutes > endTimeMinutes + 5
+        currentTimeMinutes < endTimeMinutes - 15 ||
+        currentTimeMinutes > endTimeMinutes + 15
       ) {
         throw new Error(
-          "Check-out is only allowed within 5 minutes of the scheduled end time"
+          "Check-out is only allowed within 15 minutes of the scheduled end time"
         );
       }
 
@@ -3938,7 +3938,7 @@ export const educationRouter = router({
   // ========== STUDENT ATTENDANCE / CHECK-IN PROCEDURES ==========
 
   // Get active schedules for student check-in (teacher only)
-  // Returns schedules if current time is within ±5 minutes of start time
+  // Returns schedules if current time is within ±15 minutes of start time
   getActiveSchedulesForStudentCheckIn: protectedProcedure.query(
     async ({ ctx }) => {
       if (ctx.session.user.role !== "teacher") {
@@ -3979,10 +3979,10 @@ export const educationRouter = router({
             .map(Number);
           const endTimeMinutes = endHours! * 60 + endMinutes!;
 
-          // Check if within 15 minutes before start time until 10 minutes after end time
+          // Check if within 15 minutes before start time until 15 minutes after end time
           const isActive =
             currentTimeMinutes >= startTimeMinutes - 15 &&
-            currentTimeMinutes <= endTimeMinutes + 10;
+            currentTimeMinutes <= endTimeMinutes + 15;
 
           return {
             scheduleId: schedule.scheduleId,
