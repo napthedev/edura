@@ -3185,17 +3185,17 @@ export const educationRouter = router({
 
         const existingLog = logsBySchedule.get(schedule.scheduleId);
 
-        // Check if within ±5 minutes of start time (for check-in)
+        // Check if within ±15 minutes of start time (for check-in)
         const canCheckIn =
           !existingLog &&
-          currentTimeMinutes >= startTimeMinutes - 5 &&
-          currentTimeMinutes <= startTimeMinutes + 5;
+          currentTimeMinutes >= startTimeMinutes - 15 &&
+          currentTimeMinutes <= startTimeMinutes + 15;
 
-        // Check if within ±5 minutes of end time (for check-out)
+        // Check if within ±15 minutes of end time (for check-out)
         const canCheckOut =
           existingLog?.status === "checked_in" &&
-          currentTimeMinutes >= endTimeMinutes - 5 &&
-          currentTimeMinutes <= endTimeMinutes + 5;
+          currentTimeMinutes >= endTimeMinutes - 15 &&
+          currentTimeMinutes <= endTimeMinutes + 15;
 
         return {
           scheduleId: schedule.scheduleId,
@@ -3275,11 +3275,11 @@ export const educationRouter = router({
       const startTimeMinutes = startHours! * 60 + startMinutes!;
 
       if (
-        currentTimeMinutes < startTimeMinutes - 5 ||
-        currentTimeMinutes > startTimeMinutes + 5
+        currentTimeMinutes < startTimeMinutes - 15 ||
+        currentTimeMinutes > startTimeMinutes + 15
       ) {
         throw new Error(
-          "Check-in is only allowed within 5 minutes of the scheduled start time"
+          "Check-in is only allowed within 15 minutes of the scheduled start time"
         );
       }
 
@@ -3974,10 +3974,15 @@ export const educationRouter = router({
             .map(Number);
           const startTimeMinutes = startHours! * 60 + startMinutes!;
 
-          // Check if within ±5 minutes of start time
+          const [endHours, endMinutes] = schedule.endTime
+            .split(":")
+            .map(Number);
+          const endTimeMinutes = endHours! * 60 + endMinutes!;
+
+          // Check if within 15 minutes before start time until 10 minutes after end time
           const isActive =
-            currentTimeMinutes >= startTimeMinutes - 5 &&
-            currentTimeMinutes <= startTimeMinutes + 5;
+            currentTimeMinutes >= startTimeMinutes - 15 &&
+            currentTimeMinutes <= endTimeMinutes + 10;
 
           return {
             scheduleId: schedule.scheduleId,
