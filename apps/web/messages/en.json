@@ -1494,7 +1494,7 @@
     "titleStudents": "Import Students from CSV",
     "description": "Upload a CSV file to create multiple accounts at once.",
     "formatDescription": "CSV format: name, email, dateOfBirth (YYYY-MM-DD)",
-    "exampleFormat": "Example: John Doe, john@example.com, 1990-01-15",
+    "exampleFormat": "Example: John Doe, john@edura.work, 1990-01-15",
     "selectFile": "Select CSV File",
     "changeFile": "Change File",
     "selectedFile": "Selected File",

@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
 
     // Generate manager credentials
     const randomString = generateRandomString(5);
-    const managerEmail = `manager_${randomString}@example.com`;
+    const managerEmail = `manager_${randomString}@edura.work`;
     const managerPassword = generateRandomPassword();
 
     // Check if email already exists in users
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
     if (existingUser.length > 0) {
       // Very unlikely but handle collision by regenerating
       const newRandomString = generateRandomString(5);
-      const newManagerEmail = `manager_${newRandomString}@example.com`;
+      const newManagerEmail = `manager_${newRandomString}@edura.work`;
 
       const newExistingUser = await db
         .select()

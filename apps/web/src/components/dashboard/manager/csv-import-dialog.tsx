@@ -214,8 +214,8 @@ export function CSVImportDialog({ type, trigger }: CSVImportDialogProps) {
   const handleDownloadTemplate = () => {
     const template =
       type === "student"
-        ? "name,email,dateOfBirth,parentEmail,parentPhone\nJohn Doe,john@example.com,1990-01-15,parent@example.com,+1234567890\nJane Smith,jane@example.com,1985-06-20,,"
-        : "name,email,dateOfBirth\nJohn Doe,john@example.com,1990-01-15\nJane Smith,jane@example.com,1985-06-20";
+        ? "name,email,dateOfBirth,parentEmail,parentPhone\nJohn Doe,john@edura.work,1990-01-15,parent@edura.work,+1234567890\nJane Smith,jane@edura.work,1985-06-20,,"
+        : "name,email,dateOfBirth\nJohn Doe,john@edura.work,1990-01-15\nJane Smith,jane@edura.work,1985-06-20";
     const blob = new Blob([template], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

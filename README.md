@@ -94,7 +94,7 @@ Send a POST request to `/api/secret/create-manager` with the following JSON body
 
 ```json
 {
-  "email": "manager@example.com",
+  "email": "manager@edura.work",
   "password": "securepassword123",
   "name": "Manager Name",
   "secretKey": "your_super_secret_key"
