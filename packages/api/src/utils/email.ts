@@ -36,7 +36,7 @@ export async function sendWelcomeEmail({
   const roleVi = role === "teacher" ? "Giáo viên" : "Học sinh";
 
   const { data, error } = await resend.emails.send({
-    from: process.env.EMAIL_FROM || "Edura <onboarding@resend.dev>",
+    from: process.env.EMAIL_FROM || "no-reply@edura.work",
     to: [email],
     subject: `Welcome to Edura - Your ${roleLabel} Account Has Been Created`,
     html: `
@@ -199,7 +199,7 @@ export async function sendWeeklyPerformanceReport({
   const recipients = [studentEmail, parentEmail].filter(Boolean);
 
   const { data, error } = await resend.emails.send({
-    from: process.env.EMAIL_FROM || "Edura <onboarding@resend.dev>",
+    from: process.env.EMAIL_FROM || "no-reply@edura.work",
     to: recipients,
     subject: `Weekly Performance Report - ${className}`,
     html: `
@@ -365,7 +365,7 @@ export async function sendMonthlyBillingReport({
   const recipients = [studentEmail, parentEmail].filter(Boolean);
 
   const { data, error } = await resend.emails.send({
-    from: process.env.EMAIL_FROM || "Edura <onboarding@resend.dev>",
+    from: process.env.EMAIL_FROM || "no-reply@edura.work",
     to: recipients,
     subject: `Monthly Billing Report - ${className} (${billingData.billingMonth})`,
     html: `
@@ -539,7 +539,7 @@ export async function sendUrgentAlert({
   const recipients = [studentEmail, parentEmail].filter(Boolean);
 
   const { data, error } = await resend.emails.send({
-    from: process.env.EMAIL_FROM || "Edura <onboarding@resend.dev>",
+    from: process.env.EMAIL_FROM || "no-reply@edura.work",
     to: recipients,
     subject: `⚠️ Urgent Alert from Edura: ${title}`,
     html: `
@@ -628,11 +628,11 @@ export async function sendManagerAccountEmail({
 }: SendManagerAccountEmailParams) {
   const resend = getResendClient();
   const loginUrl = `${
-    process.env.NEXT_PUBLIC_APP_URL || "https://edura.com"
+    process.env.NEXT_PUBLIC_APP_URL || "https://edura.work"
   }/login`;
 
   const { data, error } = await resend.emails.send({
-    from: process.env.EMAIL_FROM || "Edura <onboarding@resend.dev>",
+    from: process.env.EMAIL_FROM || "no-reply@edura.work",
     to: [contactEmail],
     subject:
       "Your Edura Manager Account Has Been Created - Account Details Included",
@@ -710,7 +710,7 @@ export async function sendManagerAccountEmail({
             © ${new Date().getFullYear()} Edura. All rights reserved.
           </p>
           <p style="margin: 10px 0 0 0; color: #6b7280; font-size: 12px;">
-            Questions? Contact our support team at support@edura.com
+            Questions? Contact our support team at support@edura.work
           </p>
         </div>
         

@@ -252,7 +252,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">{t("info.email")}</p>
-                    <p className="font-medium">support@edura.com</p>
+                    <p className="font-medium">support@edura.work</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
