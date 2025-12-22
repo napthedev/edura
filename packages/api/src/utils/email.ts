@@ -48,7 +48,7 @@ export async function sendWelcomeEmail({
         <title>Welcome to Edura</title>
       </head>
       <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+        <div style="background-color: #3762E3; padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
           <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to Edura!</h1>
           <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Your ${roleLabel} Account is Ready</p>
         </div>
@@ -72,14 +72,14 @@ export async function sendWelcomeEmail({
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${loginUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+            <a href="${loginUrl}" style="display: inline-block; background-color: #3762E3; color: white; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: 600; font-size: 16px;">
               Login to Edura
             </a>
           </div>
           
           <p style="color: #6b7280; font-size: 14px;">
             If the button doesn't work, copy and paste this link into your browser:<br>
-            <a href="${loginUrl}" style="color: #667eea;">${loginUrl}</a>
+            <a href="${loginUrl}" style="color: #3762E3;">${loginUrl}</a>
           </p>
         </div>
         
@@ -93,7 +93,7 @@ export async function sendWelcomeEmail({
         
         <!-- Vietnamese version -->
         <div style="background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; border-radius: 10px;">
-          <h2 style="color: #667eea; margin-top: 0;">Chào mừng đến với Edura!</h2>
+          <h2 style="color: #3762E3; margin-top: 0;">Chào mừng đến với Edura!</h2>
           <p>Xin chào <strong>${name}</strong>,</p>
           
           <p>Tài khoản ${roleVi.toLowerCase()} của bạn đã được tạo${
@@ -112,7 +112,7 @@ export async function sendWelcomeEmail({
           </div>
           
           <div style="text-align: center; margin: 20px 0;">
-            <a href="${loginUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+            <a href="${loginUrl}" style="display: inline-block; background-color: #3762E3; color: white; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: 600; font-size: 16px;">
               Đăng nhập Edura
             </a>
           </div>
@@ -212,7 +212,7 @@ export async function sendWeeklyPerformanceReport({
       </head>
       <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
         <!-- English Section -->
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+        <div style="background-color: #3762E3; padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
           <h1 style="color: white; margin: 0; font-size: 28px;">Weekly Performance Report</h1>
           <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;"><strong>${className}</strong></p>
         </div>
@@ -224,9 +224,9 @@ export async function sendWeeklyPerformanceReport({
 
           <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; margin: 20px 0;">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-              <div style="border-left: 4px solid #667eea; padding-left: 15px;">
+              <div style="border-left: 4px solid #3762E3; padding-left: 15px;">
                 <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 12px; text-transform: uppercase;">Assignments Completed</p>
-                <p style="margin: 0; font-size: 28px; font-weight: bold; color: #667eea;">${
+                <p style="margin: 0; font-size: 28px; font-weight: bold; color: #3762E3;">${
                   performanceData.assignmentCount
                 }</p>
               </div>
@@ -261,7 +261,7 @@ export async function sendWeeklyPerformanceReport({
         <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
 
         <!-- Vietnamese Section -->
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+        <div style="background-color: #3762E3; padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
           <h1 style="color: white; margin: 0; font-size: 28px;">Báo Cáo Thành Tích Hàng Tuần</h1>
           <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;"><strong>${className}</strong></p>
         </div>
@@ -273,9 +273,9 @@ export async function sendWeeklyPerformanceReport({
 
           <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; margin: 20px 0;">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-              <div style="border-left: 4px solid #667eea; padding-left: 15px;">
+              <div style="border-left: 4px solid #3762E3; padding-left: 15px;">
                 <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 12px; text-transform: uppercase;">Bài Tập Hoàn Thành</p>
-                <p style="margin: 0; font-size: 28px; font-weight: bold; color: #667eea;">${
+                <p style="margin: 0; font-size: 28px; font-weight: bold; color: #3762E3;">${
                   performanceData.assignmentCount
                 }</p>
               </div>
@@ -378,7 +378,7 @@ export async function sendMonthlyBillingReport({
       </head>
       <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
         <!-- English Section -->
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+        <div style="background-color: #3762E3; padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
           <h1 style="color: white; margin: 0; font-size: 28px;">Monthly Billing Report</h1>
           <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;"><strong>${className}</strong> • ${
       billingData.billingMonth
@@ -410,9 +410,9 @@ export async function sendMonthlyBillingReport({
               </div>
             </div>
 
-            <div style="margin-bottom: 20px; padding: 16px; background: #f0f9ff; border-radius: 8px; border-left: 4px solid #667eea;">
+            <div style="margin-bottom: 20px; padding: 16px; background: #f0f9ff; border-radius: 8px; border-left: 4px solid #3762E3;">
               <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 12px; text-transform: uppercase;">Amount Due</p>
-              <p style="margin: 0; font-size: 32px; font-weight: bold; color: #667eea;">₫${billingData.amount.toLocaleString(
+              <p style="margin: 0; font-size: 32px; font-weight: bold; color: #3762E3;">₫${billingData.amount.toLocaleString(
                 "vi-VN"
               )}</p>
             </div>
@@ -447,7 +447,7 @@ export async function sendMonthlyBillingReport({
         <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
 
         <!-- Vietnamese Section -->
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+        <div style="background-color: #3762E3; padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
           <h1 style="color: white; margin: 0; font-size: 28px;">Báo Cáo Hóa Đơn Hàng Tháng</h1>
           <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;"><strong>${className}</strong> • ${
       billingData.billingMonth
@@ -479,9 +479,9 @@ export async function sendMonthlyBillingReport({
               </div>
             </div>
 
-            <div style="margin-bottom: 20px; padding: 16px; background: #f0f9ff; border-radius: 8px; border-left: 4px solid #667eea;">
+            <div style="margin-bottom: 20px; padding: 16px; background: #f0f9ff; border-radius: 8px; border-left: 4px solid #3762E3;">
               <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 12px; text-transform: uppercase;">Số Tiền Cần Thanh Toán</p>
-              <p style="margin: 0; font-size: 32px; font-weight: bold; color: #667eea;">₫${billingData.amount.toLocaleString(
+              <p style="margin: 0; font-size: 32px; font-weight: bold; color: #3762E3;">₫${billingData.amount.toLocaleString(
                 "vi-VN"
               )}</p>
             </div>
@@ -645,7 +645,7 @@ export async function sendManagerAccountEmail({
         <title>Your Edura Manager Account</title>
       </head>
       <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+        <div style="background-color: #3762E3; padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
           <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to Edura!</h1>
           <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Your Manager Account is Ready</p>
         </div>
@@ -667,19 +667,19 @@ export async function sendManagerAccountEmail({
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${loginUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+            <a href="${loginUrl}" style="display: inline-block; background-color: #3762E3; color: white; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: 600; font-size: 16px;">
               Login to Your Account
             </a>
           </div>
           
           <p style="color: #6b7280; font-size: 14px;">
             If the button doesn't work, copy and paste this link into your browser:<br>
-            <a href="${loginUrl}" style="color: #667eea;">${loginUrl}</a>
+            <a href="${loginUrl}" style="color: #3762E3;">${loginUrl}</a>
           </p>
           
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
           
-          <h3 style="color: #667eea; margin-top: 0;">Your Information Summary</h3>
+          <h3 style="color: #3762E3; margin-top: 0;">Your Information Summary</h3>
           <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin: 20px 0;">
             <p style="margin: 5px 0;"><strong>Contact Person:</strong> ${contactName}</p>
             <p style="margin: 5px 0;"><strong>Center Name:</strong> ${centerName}</p>
@@ -718,7 +718,7 @@ export async function sendManagerAccountEmail({
         
         <!-- Vietnamese version -->
         <div style="background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; border-radius: 10px;">
-          <h2 style="color: #667eea; margin-top: 0;">Chào mừng đến với Edura!</h2>
+          <h2 style="color: #3762E3; margin-top: 0;">Chào mừng đến với Edura!</h2>
           <p>Xin chào <strong>${contactName}</strong>,</p>
           
           <p>Cảm ơn bạn đã quan tâm đến Edura! Tài khoản quản lý viên của bạn cho <strong>${centerName}</strong> đã được tạo. Dưới đây là thông tin đăng nhập của bạn:</p>
@@ -735,12 +735,12 @@ export async function sendManagerAccountEmail({
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${loginUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+            <a href="${loginUrl}" style="display: inline-block; background-color: #3762E3; color: white; text-decoration: none; padding: 14px 30px; border-radius: 8px; font-weight: 600; font-size: 16px;">
               Đăng Nhập Vào Tài Khoản
             </a>
           </div>
           
-          <h3 style="color: #667eea;">Tóm Tắt Thông Tin Của Bạn</h3>
+          <h3 style="color: #3762E3;">Tóm Tắt Thông Tin Của Bạn</h3>
           <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin: 20px 0;">
             <p style="margin: 5px 0;"><strong>Người Liên Hệ:</strong> ${contactName}</p>
             <p style="margin: 5px 0;"><strong>Tên Trung Tâm:</strong> ${centerName}</p>
