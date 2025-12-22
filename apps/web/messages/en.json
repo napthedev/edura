@@ -1595,7 +1595,6 @@
   },
   "Expenses": {
     "title": "Expense Management",
-    "description": "Track and manage facility, marketing, and operational expenses",
     "exportCsv": "Export CSV",
     "addCategory": "Add Category",
     "addCategoryDescription": "Create a new expense category",
