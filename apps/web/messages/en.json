@@ -261,6 +261,7 @@
     "success": {
       "title": "Request Submitted!",
       "message": "Thank you for your interest in Edura. Our team will contact you within 24 hours to set up your account.",
+      "spamNote": "Note: If you don't see our email, please check your spam folder.",
       "backToHome": "Back to Home"
     }
   },

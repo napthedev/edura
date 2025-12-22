@@ -261,6 +261,7 @@
     "success": {
       "title": "Yêu cầu đã được gửi!",
       "message": "Cảm ơn bạn đã quan tâm đến Edura. Đội ngũ của chúng tôi sẽ liên hệ với bạn trong vòng 24 giờ để thiết lập tài khoản.",
+      "spamNote": "Lưu ý: Nếu bạn không thấy email từ chúng tôi, vui lòng kiểm tra thư mục spam.",
       "backToHome": "Quay về trang chủ"
     }
   },
