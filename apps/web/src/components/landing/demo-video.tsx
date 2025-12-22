@@ -62,16 +62,13 @@ export default function DemoVideoSection() {
                     </div>
                   </div>
                 ) : (
-                  <div className="absolute inset-0 flex items-center justify-center bg-muted">
-                    <div className="text-center space-y-4">
-                      <div className="inline-flex items-center gap-2 text-muted-foreground">
-                        <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                        <span className="text-sm font-medium">
-                          {t("demoPlaying")}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                  <iframe
+                    className="absolute inset-0 w-full h-full"
+                    src="https://www.youtube.com/embed/6n5H8XuMwBI?autoplay=1"
+                    title="Edura Demo Video"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
                 )}
 
                 {/* Video overlay with timestamp */}
