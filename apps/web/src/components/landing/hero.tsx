@@ -37,10 +37,10 @@ const Hero = () => {
           {/* Left Content */}
           <div className="space-y-8">
             {/* Badge */}
-            <div className="inline-flex items-center rounded-full bg-gray-100 px-4 py-2 font-medium text-gray-700 text-sm">
+            {/* <div className="inline-flex items-center rounded-full bg-gray-100 px-4 py-2 font-medium text-gray-700 text-sm">
               <Star className="mr-2 h-4 w-4 fill-current text-yellow-500" />
               {t("trustedBadge")}
-            </div>
+            </div> */}
 
             {/* Main Headline */}
             <div className="space-y-4">
