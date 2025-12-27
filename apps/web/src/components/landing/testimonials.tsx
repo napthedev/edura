@@ -138,12 +138,12 @@ export default function Testimonials() {
             {PARENT_TESTIMONIALS.map((testimonial) => (
               <Card
                 key={testimonial.id}
-                className="bg-black text-white hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
+                className="bg-primary text-white hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
               >
                 <CardContent className="p-8">
                   {/* Quote Icon */}
                   <div className="mb-4">
-                    <Quote className="w-10 h-10 text-gray-400" />
+                    <Quote className="w-10 h-10 text-white" />
                   </div>
 
                   {/* Rating */}
@@ -157,7 +157,7 @@ export default function Testimonials() {
                   </div>
 
                   {/* Testimonial Text */}
-                  <p className="text-gray-100 mb-6 text-lg leading-relaxed">
+                  <p className="text-white mb-6 text-lg leading-relaxed">
                     "{testimonial.text}"
                   </p>
 
@@ -166,7 +166,7 @@ export default function Testimonials() {
                     <div className="font-semibold text-white text-lg">
                       {testimonial.name}
                     </div>
-                    <div className="text-gray-300">{testimonial.relation}</div>
+                    <div className="text-white">{testimonial.relation}</div>
                   </div>
                 </CardContent>
               </Card>

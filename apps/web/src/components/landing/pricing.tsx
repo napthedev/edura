@@ -66,9 +66,7 @@ export default function Pricing() {
                     {t("paidTier.perStudent")}
                   </span>
                 </div>
-                <p className="text-gray-600">
-                  {t("paidTier.description")}
-                </p>
+                <p className="text-gray-600">{t("paidTier.description")}</p>
               </div>
             </div>
           </CardHeader>
@@ -89,7 +87,7 @@ export default function Pricing() {
 
           <CardFooter className="flex flex-col gap-4">
             <Link href="/contact" className="w-full">
-              <Button className="w-full py-6 text-lg font-semibold bg-black text-white hover:bg-gray-800">
+              <Button className="w-full py-6 text-lg font-semibold bg-primary text-white hover:bg-primary/80">
                 <MessageCircle className="w-5 h-5 mr-2" />
                 {t("contactCta")}
               </Button>

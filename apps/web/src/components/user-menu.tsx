@@ -43,7 +43,7 @@ export default function UserMenu() {
             {avatarSrc ? (
               <AvatarImage src={avatarSrc} />
             ) : (
-              <AvatarFallback className="bg-black text-white">
+              <AvatarFallback className="bg-primary text-white">
                 {session.user.name?.[0]?.toUpperCase() ?? "U"}
               </AvatarFallback>
             )}

@@ -63,7 +63,7 @@ const Header = () => {
               </Button>
             </Link>
             <Link href="/contact">
-              <Button className="bg-black text-white hover:bg-gray-800">
+              <Button className="bg-primary text-white hover:bg-primary/80">
                 {t("contactUs")}
               </Button>
             </Link>
@@ -126,7 +126,7 @@ const Header = () => {
                 {t("signin")}
               </Button>
               <Link href="/contact">
-                <Button className="w-full bg-black text-white hover:bg-gray-800">
+                <Button className="w-full bg-primary text-white hover:bg-primary/80">
                   {t("contactUs")}
                 </Button>
               </Link>
