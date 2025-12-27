@@ -99,7 +99,7 @@ export default function ContactPage() {
             <CardDescription className="text-base">
               {t("success.message")}
             </CardDescription>
-            <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-lg flex gap-3 items-center justify-center">
+            <div className="mt-4 p-3 bg-primary/10 border border-blue-100 rounded-lg flex gap-3 items-center justify-center">
               <AlertCircle className="w-4 h-4 text-primary flex-shrink-0" />
               <p className="text-sm text-blue-800">{t("success.spamNote")}</p>
             </div>

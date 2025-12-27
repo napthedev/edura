@@ -1013,7 +1013,7 @@ export default function TutorPaymentsPage() {
                       key={payment.paymentId}
                       className={`hover:bg-slate-50 ${
                         selectedPaymentIds.includes(payment.paymentId)
-                          ? "bg-blue-50"
+                          ? "bg-primary/10"
                           : ""
                       }`}
                     >

@@ -26,7 +26,7 @@ import { cn } from "@/lib/utils";
 
 // Predefined colors for schedule items
 const SCHEDULE_COLORS = [
-  { value: "blue", label: "Blue", class: "bg-blue-500" },
+  { value: "blue", label: "Blue", class: "bg-primary/100" },
   { value: "green", label: "Green", class: "bg-green-500" },
   { value: "purple", label: "Purple", class: "bg-purple-500" },
   { value: "orange", label: "Orange", class: "bg-orange-500" },

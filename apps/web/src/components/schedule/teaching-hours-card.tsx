@@ -91,7 +91,7 @@ export function TeachingHoursCard({
       <CardContent className="space-y-4">
         {/* Summary stats */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-blue-50 dark:bg-blue-950 rounded-lg p-4">
+          <div className="bg-primary/10 dark:bg-blue-950 rounded-lg p-4">
             <p className="text-sm text-muted-foreground">{t("weeklyHours")}</p>
             <p className="text-2xl font-bold text-primary dark:text-blue-400">
               {formatHours(data?.totalWeeklyHours || 0)}

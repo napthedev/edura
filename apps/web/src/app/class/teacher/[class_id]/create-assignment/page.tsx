@@ -335,7 +335,7 @@ export default function CreateAssignmentPage() {
                   )}
                 />
                 {generatedQuestions.length > 0 && (
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                  <div className="p-3 bg-primary/10 border border-blue-200 rounded-md">
                     <p className="text-sm text-blue-700">
                       {generatedQuestions.length} {t("questionsGeneratedNote")}
                     </p>
@@ -484,7 +484,7 @@ export default function CreateAssignmentPage() {
                   )}
                 />
                 {generatedQuestions.length > 0 && assignmentType === "quiz" && (
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                  <div className="p-3 bg-primary/10 border border-blue-200 rounded-md">
                     <p className="text-sm text-blue-700">
                       {generatedQuestions.length} {t("questionsGeneratedNote")}
                     </p>

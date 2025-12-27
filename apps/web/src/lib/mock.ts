@@ -26,7 +26,7 @@ export const mockData = {
       description: "From basic arithmetic to advanced calculus",
       courses: 45,
       icon: "Calculator",
-      color: "bg-blue-50 border-blue-200",
+      color: "bg-primary/10 border-blue-200",
     },
     {
       id: 2,

@@ -66,7 +66,7 @@ export function NotificationItem({
       onClick={handleClick}
       className={cn(
         "flex cursor-pointer items-start gap-3 border-b p-4 transition-colors hover:bg-slate-50",
-        !notification.isRead && "bg-blue-50/50"
+        !notification.isRead && "bg-primary/10/50"
       )}
     >
       <div className="mt-1">{getIcon()}</div>
@@ -89,7 +89,7 @@ export function NotificationItem({
         </p>
       </div>
       {!notification.isRead && (
-        <div className="h-2 w-2 rounded-full bg-blue-500 mt-2" />
+        <div className="h-2 w-2 rounded-full bg-primary/100 mt-2" />
       )}
     </div>
   );

@@ -48,7 +48,7 @@ export default function OverviewStats({
       subtitle: t("teachersInOrganization"),
       icon: Users,
       color: "text-blue-500",
-      bgColor: "bg-blue-50 dark:bg-blue-950",
+      bgColor: "bg-primary/10 dark:bg-blue-950",
     },
     {
       title: t("totalStudents"),

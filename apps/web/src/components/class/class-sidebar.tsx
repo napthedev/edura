@@ -168,7 +168,7 @@ function ClassSidebarContent({
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
                 isActive
-                  ? "bg-blue-50 text-primary"
+                  ? "bg-primary/10 text-primary"
                   : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
               )}
             >

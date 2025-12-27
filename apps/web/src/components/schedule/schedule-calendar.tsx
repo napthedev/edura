@@ -33,7 +33,7 @@ const colorClasses: Record<
   { bg: string; border: string; text: string }
 > = {
   blue: {
-    bg: "bg-blue-50 dark:bg-blue-950",
+    bg: "bg-primary/10 dark:bg-blue-950",
     border: "border-l-blue-500",
     text: "text-blue-700 dark:text-blue-300",
   },
