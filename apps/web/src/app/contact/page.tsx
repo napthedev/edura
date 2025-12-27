@@ -100,7 +100,7 @@ export default function ContactPage() {
               {t("success.message")}
             </CardDescription>
             <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-lg flex gap-3 items-center justify-center">
-              <AlertCircle className="w-4 h-4 text-blue-600 flex-shrink-0" />
+              <AlertCircle className="w-4 h-4 text-primary flex-shrink-0" />
               <p className="text-sm text-blue-800">{t("success.spamNote")}</p>
             </div>
           </CardHeader>
@@ -299,7 +299,7 @@ export default function ContactPage() {
                 </div>
                 <div className="flex items-start gap-4">
                   <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Building2 className="w-5 h-5 text-blue-600" />
+                    <Building2 className="w-5 h-5 text-primary" />
                   </div>
                   <div>
                     <p className="font-medium">{t("benefits.setup.title")}</p>

@@ -61,7 +61,7 @@ export function NotificationDropdown() {
             <Button
               variant="ghost"
               size="sm"
-              className="h-auto p-0 text-xs text-blue-500 hover:text-blue-600 hover:bg-transparent"
+              className="h-auto p-0 text-xs text-blue-500 hover:text-primary hover:bg-transparent"
               onClick={() => markAllReadMutation.mutate()}
               disabled={markAllReadMutation.isPending}
             >

@@ -123,7 +123,7 @@ export default function DeadlinesClient() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-            <CalendarClock className="size-6 text-blue-600" />
+            <CalendarClock className="size-6 text-primary" />
             {t("title")}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
@@ -233,7 +233,7 @@ export default function DeadlinesClient() {
                               variant="ghost"
                               size="sm"
                               asChild
-                              className="text-blue-600 hover:text-blue-700"
+                              className="text-primary hover:text-blue-700"
                             >
                               <Link
                                 href={`/view-submission/${assignment.assignmentId}`}
@@ -247,7 +247,7 @@ export default function DeadlinesClient() {
                               variant="ghost"
                               size="sm"
                               asChild
-                              className="text-blue-600 hover:text-blue-700"
+                              className="text-primary hover:text-blue-700"
                             >
                               <Link
                                 href={`/do-assignment/${assignment.assignmentId}`}

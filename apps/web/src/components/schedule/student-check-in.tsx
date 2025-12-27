@@ -318,7 +318,7 @@ export default function StudentCheckIn() {
                   <Button
                     size="sm"
                     onClick={() => handleOpenDialog(schedule)}
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="bg-primary hover:bg-blue-700"
                   >
                     <Users className="size-4 mr-1" />
                     {t("checkInStudents")}

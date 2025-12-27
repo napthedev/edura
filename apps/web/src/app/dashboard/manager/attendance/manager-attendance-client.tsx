@@ -265,7 +265,7 @@ export default function ManagerAttendanceClient() {
         </Card>
         <Card className="shadow-sm border-none">
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-blue-600">
+            <div className="text-2xl font-bold text-primary">
               {attendanceRate}%
             </div>
             <p className="text-sm text-muted-foreground">

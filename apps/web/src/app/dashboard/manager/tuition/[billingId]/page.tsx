@@ -155,7 +155,7 @@ export default function InvoicePage({
           <div className="flex justify-between items-start mb-8">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
+                <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center">
                   <div className="h-4 w-4 rounded-full bg-white" />
                 </div>
                 <span className="font-bold text-2xl text-slate-900">Edura</span>

@@ -109,7 +109,7 @@ export default function StudentDashboardPage() {
               >
                 <div className="border rounded-xl p-5 transition-all hover:shadow-md bg-white h-full flex flex-col justify-between">
                   <div>
-                    <h3 className="font-semibold text-lg group-hover:text-blue-600 transition-colors">
+                    <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
                       {enrollment.className}
                     </h3>
                     <p className="text-sm text-slate-500 mt-1">

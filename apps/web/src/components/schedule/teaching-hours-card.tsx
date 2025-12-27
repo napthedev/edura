@@ -93,7 +93,7 @@ export function TeachingHoursCard({
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-blue-50 dark:bg-blue-950 rounded-lg p-4">
             <p className="text-sm text-muted-foreground">{t("weeklyHours")}</p>
-            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+            <p className="text-2xl font-bold text-primary dark:text-blue-400">
               {formatHours(data?.totalWeeklyHours || 0)}
             </p>
             <p className="text-xs text-muted-foreground">{t("hours")}</p>

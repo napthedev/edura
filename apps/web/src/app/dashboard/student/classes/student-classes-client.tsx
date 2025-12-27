@@ -40,7 +40,7 @@ export default function StudentClassesClient() {
               <Card className="shadow-sm border-none h-full hover:shadow-md transition-all">
                 <CardContent className="p-5 flex flex-col justify-between h-full">
                   <div>
-                    <h3 className="font-semibold text-lg group-hover:text-blue-600 transition-colors">
+                    <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
                       {enrollment.className}
                     </h3>
                     <p className="text-sm text-slate-500 mt-1">

@@ -77,8 +77,8 @@ export default function StudentAssignmentsClient() {
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
-                          <FileText className="h-5 w-5 text-blue-600 flex-shrink-0" />
-                          <h3 className="font-semibold text-lg text-slate-900 group-hover:text-blue-600 transition-colors truncate">
+                          <FileText className="h-5 w-5 text-primary flex-shrink-0" />
+                          <h3 className="font-semibold text-lg text-slate-900 group-hover:text-primary transition-colors truncate">
                             {assignment.title}
                           </h3>
                         </div>

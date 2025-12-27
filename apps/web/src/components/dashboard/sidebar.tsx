@@ -162,7 +162,7 @@ function SidebarContent({ role }: { role: "teacher" | "student" | "manager" }) {
           href={`/dashboard/${role}` as any}
           className="flex items-center gap-2"
         >
-          <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
+          <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
             <div className="h-3 w-3 rounded-full bg-white" />
           </div>
           <span className="font-bold text-xl text-slate-900">Edura</span>
@@ -179,7 +179,7 @@ function SidebarContent({ role }: { role: "teacher" | "student" | "manager" }) {
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
                 isActive
-                  ? "bg-blue-50 text-blue-600"
+                  ? "bg-blue-50 text-primary"
                   : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
               )}
             >

@@ -282,7 +282,7 @@ export default function ExpensesPage() {
       yearly: t("yearly"),
     };
     return (
-      <Badge variant="outline" className="gap-1 text-blue-600 border-blue-200">
+      <Badge variant="outline" className="gap-1 text-primary border-blue-200">
         <RefreshCw className="h-3 w-3" />
         {labels[interval || "monthly"]}
       </Badge>

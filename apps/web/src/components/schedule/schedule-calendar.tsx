@@ -245,7 +245,7 @@ export default function ScheduleCalendar({
                               href={schedule.meetingLink}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-xs text-blue-600 hover:underline flex items-center gap-0.5"
+                              className="text-xs text-primary hover:underline flex items-center gap-0.5"
                             >
                               {t("joinMeeting")}
                               <ExternalLink className="size-3" />
