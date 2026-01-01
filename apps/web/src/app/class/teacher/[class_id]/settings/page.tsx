@@ -3,6 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { trpcClient } from "@/utils/trpc";
+import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,6 +20,7 @@ import {
   GraduationCap,
   Calendar,
   BookOpen,
+  DollarSign,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
@@ -52,11 +54,14 @@ export default function SettingsPage() {
   const router = useRouter();
   const t = useTranslations("ClassPage");
   const ts = useTranslations("ClassPageSettings");
+  const { data: session } = useSession();
+  const isManager = session?.user?.role === "manager";
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editFormData, setEditFormData] = useState({
     className: "",
     subject: "",
     schedule: "",
+    tuitionRate: "",
   });
 
   const classQuery = useQuery({
@@ -71,6 +76,7 @@ export default function SettingsPage() {
         className: classQuery.data.className || "",
         subject: classQuery.data.subject || "",
         schedule: classQuery.data.schedule || "",
+        tuitionRate: classQuery.data.tuitionRate?.toString() || "",
       });
     }
   }, [classQuery.data]);
@@ -80,6 +86,7 @@ export default function SettingsPage() {
       className?: string;
       subject?: string;
       schedule?: string;
+      tuitionRate?: number;
     }) => trpcClient.education.updateClass.mutate({ classId, ...data }),
     onSuccess: () => {
       toast.success(ts("classUpdatedSuccess"));
@@ -111,11 +118,21 @@ export default function SettingsPage() {
 
   const handleUpdate = () => {
     if (editFormData.className.trim()) {
-      updateMutation.mutate({
+      const updateData: any = {
         className: editFormData.className.trim(),
         subject: editFormData.subject.trim() || undefined,
         schedule: editFormData.schedule.trim() || undefined,
-      });
+      };
+
+      // Only include tuition rate if user is manager and value is provided
+      if (isManager && editFormData.tuitionRate) {
+        const tuitionRate = parseFloat(editFormData.tuitionRate);
+        if (!isNaN(tuitionRate) && tuitionRate >= 0) {
+          updateData.tuitionRate = tuitionRate;
+        }
+      }
+
+      updateMutation.mutate(updateData);
     }
   };
 
@@ -243,6 +260,34 @@ export default function SettingsPage() {
                       placeholder={ts("schedulePlaceholder")}
                     />
                   </div>
+                  {isManager && (
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="tuitionRate"
+                        className="flex items-center gap-2"
+                      >
+                        <DollarSign className="size-4" />
+                        {ts("tuitionRate")}
+                      </Label>
+                      <Input
+                        id="tuitionRate"
+                        type="number"
+                        min="0"
+                        step="1000"
+                        value={editFormData.tuitionRate}
+                        onChange={(e) =>
+                          setEditFormData((prev) => ({
+                            ...prev,
+                            tuitionRate: e.target.value,
+                          }))
+                        }
+                        placeholder={ts("tuitionRatePlaceholder")}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        {ts("tuitionRateHint")}
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <DialogFooter>
                   <Button
@@ -287,6 +332,28 @@ export default function SettingsPage() {
               <p className="text-sm text-muted-foreground">
                 {classData.schedule || ts("noSchedule")}
               </p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div className="flex-1 mr-4">
+              <p className="font-medium flex items-center gap-2">
+                <DollarSign className="size-4" />
+                {ts("tuitionRate")}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {classData.tuitionRate
+                  ? new Intl.NumberFormat("vi-VN", {
+                      style: "currency",
+                      currency: "VND",
+                    }).format(classData.tuitionRate)
+                  : ts("noTuitionRate")}
+              </p>
+              {classData.tuitionRate && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  {ts("perMonth")}
+                </p>
+              )}
             </div>
           </div>
         </CardContent>

@@ -64,6 +64,11 @@ function SidebarContent({ role }: { role: "teacher" | "student" | "manager" }) {
       label: t("attendance"),
       icon: ClipboardCheck,
     },
+    {
+      href: "/dashboard/teacher/billings",
+      label: t("billings"),
+      icon: DollarSign,
+    },
   ];
 
   const studentLinks = [
@@ -97,6 +102,11 @@ function SidebarContent({ role }: { role: "teacher" | "student" | "manager" }) {
       label: t("schedule"),
       icon: Calendar,
     },
+    {
+      href: "/dashboard/student/billings",
+      label: t("billings"),
+      icon: Wallet,
+    },
   ];
 
   // Links matching the design image more closely for "manager" or general view if needed
@@ -115,6 +125,11 @@ function SidebarContent({ role }: { role: "teacher" | "student" | "manager" }) {
       href: "/dashboard/manager/tuition",
       label: t("tuition"),
       icon: Receipt,
+    },
+    {
+      href: "/dashboard/manager/tuition-management",
+      label: t("classTuition"),
+      icon: GraduationCap,
     },
     {
       href: "/dashboard/manager/expenses",

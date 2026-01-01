@@ -308,28 +308,32 @@ export const educationRouter = router({
         className: z.string().min(1).optional(),
         subject: z.string().optional(),
         schedule: z.string().optional(),
+        tuitionRate: z.number().min(0).optional(), // Admin-only: monthly tuition rate
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // Check if the class belongs to the teacher
+      // Check if the class belongs to the teacher or if user is manager
       const classData = await ctx.db
         .select()
         .from(classes)
-        .where(
-          and(
-            eq(classes.classId, input.classId),
-            eq(classes.teacherId, ctx.session.user.id)
-          )
-        );
+        .where(eq(classes.classId, input.classId));
 
       if (classData.length === 0) {
-        throw new Error("Class not found or access denied");
+        throw new Error("Class not found");
+      }
+
+      const isTeacher = classData[0]!.teacherId === ctx.session.user.id;
+      const isManager = ctx.session.user.role === "manager";
+
+      if (!isTeacher && !isManager) {
+        throw new Error("Access denied");
       }
 
       const updateData: {
         className?: string;
         subject?: string | null;
         schedule?: string | null;
+        tuitionRate?: number | null;
       } = {};
 
       if (input.className !== undefined) {
@@ -340,6 +344,15 @@ export const educationRouter = router({
       }
       if (input.schedule !== undefined) {
         updateData.schedule = input.schedule || null;
+      }
+
+      // Only managers can update tuition rate
+      if (input.tuitionRate !== undefined) {
+        if (!isManager) {
+          throw new Error("Only managers can set tuition rates");
+        }
+        updateData.tuitionRate =
+          input.tuitionRate > 0 ? input.tuitionRate : null;
       }
 
       if (Object.keys(updateData).length > 0) {
@@ -2273,6 +2286,222 @@ export const educationRouter = router({
     }),
 
   // =====================
+  // STUDENT BILLING QUERIES
+  // =====================
+
+  // Get billings for logged-in student
+  getStudentBillings: protectedProcedure
+    .input(
+      z.object({
+        status: z.enum(["pending", "paid", "overdue", "cancelled"]).optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "student") {
+        throw new Error("Access denied - student only");
+      }
+
+      const conditions = [eq(tuitionBilling.studentId, ctx.session.user.id)];
+
+      if (input.status) {
+        conditions.push(eq(tuitionBilling.status, input.status));
+      }
+
+      const billings = await ctx.db
+        .select({
+          billingId: tuitionBilling.billingId,
+          classId: tuitionBilling.classId,
+          className: classes.className,
+          classCode: classes.classCode,
+          subject: classes.subject,
+          amount: tuitionBilling.amount,
+          billingMonth: tuitionBilling.billingMonth,
+          dueDate: tuitionBilling.dueDate,
+          status: tuitionBilling.status,
+          paidAt: tuitionBilling.paidAt,
+          paymentMethod: tuitionBilling.paymentMethod,
+          invoiceNumber: tuitionBilling.invoiceNumber,
+          createdAt: tuitionBilling.createdAt,
+        })
+        .from(tuitionBilling)
+        .leftJoin(classes, eq(tuitionBilling.classId, classes.classId))
+        .where(and(...conditions))
+        .orderBy(desc(tuitionBilling.createdAt));
+
+      return billings;
+    }),
+
+  // Get single billing details for student
+  getStudentBillingById: protectedProcedure
+    .input(z.object({ billingId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "student") {
+        throw new Error("Access denied - student only");
+      }
+
+      const billing = await ctx.db
+        .select({
+          billingId: tuitionBilling.billingId,
+          classId: tuitionBilling.classId,
+          className: classes.className,
+          classCode: classes.classCode,
+          subject: classes.subject,
+          teacherName: sql<string>`(SELECT name FROM "user" WHERE id = ${classes.teacherId})`,
+          amount: tuitionBilling.amount,
+          billingMonth: tuitionBilling.billingMonth,
+          dueDate: tuitionBilling.dueDate,
+          status: tuitionBilling.status,
+          paidAt: tuitionBilling.paidAt,
+          paymentMethod: tuitionBilling.paymentMethod,
+          invoiceNumber: tuitionBilling.invoiceNumber,
+          notes: tuitionBilling.notes,
+          createdAt: tuitionBilling.createdAt,
+        })
+        .from(tuitionBilling)
+        .leftJoin(classes, eq(tuitionBilling.classId, classes.classId))
+        .where(
+          and(
+            eq(tuitionBilling.billingId, input.billingId),
+            eq(tuitionBilling.studentId, ctx.session.user.id)
+          )
+        );
+
+      if (billing.length === 0) {
+        throw new Error("Billing record not found");
+      }
+
+      return billing[0];
+    }),
+
+  // =====================
+  // TEACHER BILLING OVERVIEW
+  // =====================
+
+  // Get teacher billing overview (revenue stats by class)
+  getTeacherBillingOverview: protectedProcedure.query(async ({ ctx }) => {
+    if (ctx.session.user.role !== "teacher") {
+      throw new Error("Access denied - teacher only");
+    }
+
+    // Get all classes taught by this teacher
+    const teacherClasses = await ctx.db
+      .select({
+        classId: classes.classId,
+        className: classes.className,
+        tuitionRate: classes.tuitionRate,
+      })
+      .from(classes)
+      .where(eq(classes.teacherId, ctx.session.user.id));
+
+    const classIds = teacherClasses.map((c) => c.classId);
+
+    if (classIds.length === 0) {
+      return {
+        totalRevenue: 0,
+        pendingRevenue: 0,
+        paidRevenue: 0,
+        classBillings: [],
+      };
+    }
+
+    // Get billing stats per class
+    const billingStats = await ctx.db
+      .select({
+        classId: tuitionBilling.classId,
+        status: tuitionBilling.status,
+        totalAmount: sql<number>`sum(${tuitionBilling.amount})::int`,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(tuitionBilling)
+      .where(inArray(tuitionBilling.classId, classIds))
+      .groupBy(tuitionBilling.classId, tuitionBilling.status);
+
+    // Organize stats by class
+    const classBillings = teacherClasses.map((cls) => {
+      const stats = billingStats.filter((s) => s.classId === cls.classId);
+      const pending = stats.find((s) => s.status === "pending");
+      const paid = stats.find((s) => s.status === "paid");
+      const overdue = stats.find((s) => s.status === "overdue");
+
+      return {
+        classId: cls.classId,
+        className: cls.className,
+        tuitionRate: cls.tuitionRate,
+        pendingAmount:
+          (pending?.totalAmount || 0) + (overdue?.totalAmount || 0),
+        paidAmount: paid?.totalAmount || 0,
+        pendingCount: (pending?.count || 0) + (overdue?.count || 0),
+        paidCount: paid?.count || 0,
+      };
+    });
+
+    const totalRevenue = classBillings.reduce(
+      (acc, c) => acc + c.paidAmount + c.pendingAmount,
+      0
+    );
+    const paidRevenue = classBillings.reduce((acc, c) => acc + c.paidAmount, 0);
+    const pendingRevenue = classBillings.reduce(
+      (acc, c) => acc + c.pendingAmount,
+      0
+    );
+
+    return {
+      totalRevenue,
+      pendingRevenue,
+      paidRevenue,
+      classBillings,
+    };
+  }),
+
+  // Get student payment status for teacher's classes
+  getTeacherStudentPaymentStatus: protectedProcedure
+    .input(z.object({ classId: z.string().optional() }))
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "teacher") {
+        throw new Error("Access denied - teacher only");
+      }
+
+      // Build conditions
+      const conditions = [eq(classes.teacherId, ctx.session.user.id)];
+      if (input.classId) {
+        conditions.push(eq(classes.classId, input.classId));
+      }
+
+      // Build query to get students with their payment status
+      const students = await ctx.db
+        .select({
+          studentId: user.id,
+          studentName: user.name,
+          studentEmail: user.email,
+          classId: classes.classId,
+          className: classes.className,
+          pendingBills: sql<number>`count(case when ${tuitionBilling.status} in ('pending', 'overdue') then 1 end)::int`,
+          paidBills: sql<number>`count(case when ${tuitionBilling.status} = 'paid' then 1 end)::int`,
+          totalDue: sql<number>`sum(case when ${tuitionBilling.status} in ('pending', 'overdue') then ${tuitionBilling.amount} else 0 end)::int`,
+        })
+        .from(enrollments)
+        .innerJoin(classes, eq(enrollments.classId, classes.classId))
+        .innerJoin(user, eq(enrollments.studentId, user.id))
+        .leftJoin(
+          tuitionBilling,
+          and(
+            eq(tuitionBilling.studentId, user.id),
+            eq(tuitionBilling.classId, classes.classId)
+          )
+        )
+        .where(and(...conditions))
+        .groupBy(
+          user.id,
+          user.name,
+          user.email,
+          classes.classId,
+          classes.className
+        );
+
+      return students;
+    }),
+
+  // =====================
   // TUITION BILLING
   // =====================
 
@@ -2833,20 +3062,6 @@ export const educationRouter = router({
           (sum, log) => sum + (log.actualDurationMinutes || 0),
           0
         );
-
-        // Fallback to schedule approximation if no attendance logs exist
-        if (sessionsCount === 0) {
-          const schedules = await ctx.db
-            .select()
-            .from(classSchedules)
-            .where(inArray(classSchedules.classId, classIds));
-
-          // Calculate weeks in month (approximate: 4 sessions per weekly schedule)
-          const weeksInMonth = 4;
-          sessionsCount = schedules.length * weeksInMonth;
-          // Estimate 90 minutes per session
-          totalMinutes = sessionsCount * 90;
-        }
 
         // Count unique students across all classes
         const studentCounts = await ctx.db

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import Loader from "@/components/loader";
 import { JoinClassForm } from "@/components/join-class-form";
+import { BillingOverviewCard } from "@/components/dashboard/billing-overview-card";
 import { useQuery } from "@tanstack/react-query";
 import { trpcClient } from "@/utils/trpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -84,6 +85,8 @@ export default function StudentDashboardPage() {
             <p className="text-xs text-muted-foreground">{t("dueThisWeek")}</p>
           </CardContent>
         </Card>
+
+        <BillingOverviewCard />
 
         <JoinClassForm
           className="shadow-sm border-none sticky top-24"
