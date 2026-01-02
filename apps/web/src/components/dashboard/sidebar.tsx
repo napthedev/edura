@@ -19,6 +19,7 @@ import {
   Banknote,
   DollarSign,
   TrendingUp,
+  FolderOpen,
 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useTranslations } from "next-intl";
@@ -68,6 +69,11 @@ function SidebarContent({ role }: { role: "teacher" | "student" | "manager" }) {
       href: "/dashboard/teacher/billings",
       label: t("billings"),
       icon: DollarSign,
+    },
+    {
+      href: "/dashboard/teacher/resources",
+      label: t("resources"),
+      icon: FolderOpen,
     },
   ];
 
@@ -160,6 +166,11 @@ function SidebarContent({ role }: { role: "teacher" | "student" | "manager" }) {
       href: "/dashboard/manager/attendance",
       label: t("attendance"),
       icon: ClipboardCheck,
+    },
+    {
+      href: "/dashboard/manager/resources",
+      label: t("resources"),
+      icon: FolderOpen,
     },
   ];
 

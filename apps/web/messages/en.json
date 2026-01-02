@@ -795,7 +795,8 @@
     "teacherRates": "Teacher Rates",
     "attendance": "Attendance",
     "expenses": "Expenses",
-    "billings": "Billings"
+    "billings": "Billings",
+    "resources": "Resources"
   },
   "DoAssignment": {
     "class": "Class",
@@ -1886,6 +1887,38 @@
     "failedToSend": "Failed to send report. Please try again.",
     "saveSettings": "Save Settings",
     "settingsSavedSuccessfully": "Parent notification settings updated successfully"
+  },
+  "Resources": {
+    "title": "Resources",
+    "description": "Upload and manage files for your tutoring centre",
+    "teacherDescription": "View and download resources shared by management",
+    "uploadSection": "Upload New File",
+    "filesSection": "Uploaded Files",
+    "dragDropFiles": "Drag and drop files here",
+    "orClickToSelect": "or click to select files",
+    "dropFileHere": "Drop file here",
+    "noFileSelected": "No file selected",
+    "descriptionOptional": "Description (Optional)",
+    "descriptionPlaceholder": "Add a description for this file...",
+    "uploading": "Uploading...",
+    "uploadFile": "Upload File",
+    "uploadSuccess": "File uploaded successfully",
+    "uploadFailed": "Failed to upload file",
+    "fileName": "File Name",
+    "fileType": "File Type",
+    "fileSize": "File Size",
+    "uploadDate": "Upload Date",
+    "actions": "Actions",
+    "noResources": "No files uploaded yet",
+    "deleteConfirmTitle": "Delete File",
+    "deleteConfirmDescription": "Are you sure you want to delete {fileName}? This action cannot be undone.",
+    "delete": "Delete",
+    "deleting": "Deleting...",
+    "cancel": "Cancel",
+    "deleteSuccess": "File deleted successfully",
+    "deleteFailed": "Failed to delete file",
+    "fetchFailed": "Failed to fetch resources",
+    "videoNotSupported": "Your browser does not support the video element"
   },
   "Common": {
     "close": "Close",

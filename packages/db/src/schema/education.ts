@@ -444,3 +444,17 @@ export const expenses = pgTable("expenses", {
     .references(() => user.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+// Resources (file management for managers)
+export const resources = pgTable("resources", {
+  resourceId: text("resource_id").primaryKey(),
+  fileName: text("file_name").notNull(),
+  fileUrl: text("file_url").notNull(),
+  fileSize: integer("file_size").notNull(), // In bytes
+  fileType: text("file_type").notNull(), // MIME type
+  description: text("description"),
+  uploadedBy: text("uploaded_by")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});

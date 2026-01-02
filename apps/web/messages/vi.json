@@ -796,7 +796,8 @@
     "teacherRates": "Mức lương giáo viên",
     "attendance": "Điểm danh",
     "expenses": "Chi phí",
-    "billings": "Hóa đơn"
+    "billings": "Hóa đơn",
+    "resources": "Tài nguyên"
   },
   "DoAssignment": {
     "class": "Lớp",
@@ -1887,6 +1888,38 @@
     "failedToSend": "Gửi báo cáo thất bại. Vui lòng thử lại.",
     "saveSettings": "Lưu cài đặt",
     "settingsSavedSuccessfully": "Cập nhật cài đặt thông báo phụ huynh thành công"
+  },
+  "Resources": {
+    "title": "Tài nguyên",
+    "description": "Tải lên và quản lý tài liệu cho trung tâm của bạn",
+    "teacherDescription": "Xem và tải xuống tài liệu được chia sẻ bởi ban quản lý",
+    "uploadSection": "Tải lên tài liệu mới",
+    "filesSection": "Các tài liệu đã tải lên",
+    "dragDropFiles": "Kéo thả tập tin vào đây",
+    "orClickToSelect": "hoặc nhấp để chọn tập tin",
+    "dropFileHere": "Thả tập tin vào đây",
+    "noFileSelected": "Chưa chọn tập tin",
+    "descriptionOptional": "Mô tả (Tuỳ chọn)",
+    "descriptionPlaceholder": "Thêm mô tả cho tập tin này...",
+    "uploading": "Đang tải lên...",
+    "uploadFile": "Tải lên tập tin",
+    "uploadSuccess": "Tải tập tin lên thành công",
+    "uploadFailed": "Tải tập tin lên thất bại",
+    "fileName": "Tên tập tin",
+    "fileType": "Loại tập tin",
+    "fileSize": "Kích thước",
+    "uploadDate": "Ngày tải lên",
+    "actions": "Hành động",
+    "noResources": "Chưa có tập tin nào được tải lên",
+    "deleteConfirmTitle": "Xóa tập tin",
+    "deleteConfirmDescription": "Bạn có chắc muốn xóa {fileName} không? Hành động này không thể hoàn tác.",
+    "delete": "Xóa",
+    "deleting": "Đang xóa...",
+    "cancel": "Hủy",
+    "deleteSuccess": "Xóa tập tin thành công",
+    "deleteFailed": "Xóa tập tin thất bại",
+    "fetchFailed": "Tải danh sách tài nguyên thất bại",
+    "videoNotSupported": "Trình duyệt của bạn không hỗ trợ phần tử video"
   },
   "Common": {
     "close": "Đóng",
