@@ -1118,6 +1118,7 @@
     "parentPhone": "Parent Phone",
     "joinedDate": "Joined Date",
     "actions": "Actions",
+    "detail": "Detail",
     "noStudents": "No students registered yet",
     "passwordNotChanged": "Not Changed",
     "passwordNotChangedTooltip": "User has not changed their system-generated password"
@@ -1134,6 +1135,24 @@
     "cancel": "Cancel",
     "success": "Parent contact information updated successfully",
     "error": "Failed to update parent contact information"
+  },
+  "StudentDetailModal": {
+    "title": "Student Details",
+    "description": "View detailed information about {name}",
+    "classes": "Classes",
+    "className": "Class Name",
+    "subject": "Subject",
+    "enrolledDate": "Enrolled Date",
+    "classCount": "Number of Classes",
+    "totalTuition": "Total Tuition Fee",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive",
+    "loading": "Loading details...",
+    "error": "Failed to load student details",
+    "noClasses": "Not enrolled in any classes",
+    "close": "Close",
+    "viewDetails": "View Details"
   },
   "DeadlineManagement": {
     "title": "Deadline Management",

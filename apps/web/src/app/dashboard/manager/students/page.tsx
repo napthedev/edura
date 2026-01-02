@@ -27,6 +27,7 @@ import { AddStudentDialog } from "@/components/dashboard/manager/add-student-dia
 import { CSVImportDialog } from "@/components/dashboard/manager/csv-import-dialog";
 import { EditParentContactDialog } from "@/components/dashboard/manager/edit-parent-contact-dialog";
 import { ParentNotificationSettingsDialog } from "@/components/dashboard/manager/parent-notification-settings-dialog";
+import { StudentDetailModal } from "@/components/dashboard/manager/student-detail-modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -104,6 +105,9 @@ export default function StudentsPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-slate-50 hover:bg-slate-50">
+                    <TableHead className="font-semibold w-[80px]">
+                      {t("detail")}
+                    </TableHead>
                     <TableHead className="font-semibold">{t("name")}</TableHead>
                     <TableHead className="font-semibold">
                       {t("email")}
@@ -134,28 +138,14 @@ export default function StudentsPage() {
                       key={student.userId}
                       className="hover:bg-slate-50"
                     >
+                      <TableCell>
+                        <StudentDetailModal
+                          studentId={student.userId}
+                          studentName={student.name}
+                        />
+                      </TableCell>
                       <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
-                          {student.name}
-                          {!student.hasChangedPassword && (
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <Badge
-                                    variant="outline"
-                                    className="text-amber-600 border-amber-300 bg-amber-50"
-                                  >
-                                    <AlertTriangle className="h-3 w-3 mr-1" />
-                                    {t("passwordNotChanged")}
-                                  </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  {t("passwordNotChangedTooltip")}
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          )}
-                        </div>
+                        {student.name}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
@@ -189,6 +179,24 @@ export default function StudentsPage() {
                           </div>
                         ) : (
                           <span className="text-muted-foreground">-</span>
+                        )}
+                        {!student.hasChangedPassword && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <Badge
+                                  variant="outline"
+                                  className="text-amber-600 border-amber-300 bg-amber-50 mt-1"
+                                >
+                                  <AlertTriangle className="h-3 w-3 mr-1" />
+                                  {t("passwordNotChanged")}
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {t("passwordNotChangedTooltip")}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         )}
                       </TableCell>
                       <TableCell>

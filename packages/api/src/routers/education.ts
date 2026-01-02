@@ -2198,6 +2198,77 @@ export const educationRouter = router({
     return students;
   }),
 
+  getStudentDetails: protectedProcedure
+    .input(z.object({ studentId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      // Check if user is a manager
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      // Get student basic info
+      const studentData = await ctx.db
+        .select({
+          userId: user.id,
+          name: user.name,
+          email: user.email,
+          managerId: user.managerId,
+        })
+        .from(user)
+        .where(
+          and(
+            eq(user.id, input.studentId),
+            eq(user.role, "student"),
+            eq(user.managerId, ctx.session.user.id)
+          )
+        )
+        .limit(1);
+
+      if (studentData.length === 0) {
+        throw new Error("Student not found or access denied");
+      }
+
+      // Get all enrollments with class details
+      const enrollmentsData = await ctx.db
+        .select({
+          classId: classes.classId,
+          className: classes.className,
+          classCode: classes.classCode,
+          subject: classes.subject,
+          tuitionRate: classes.tuitionRate,
+          enrolledAt: enrollments.enrolledAt,
+        })
+        .from(enrollments)
+        .innerJoin(classes, eq(enrollments.classId, classes.classId))
+        .where(eq(enrollments.studentId, input.studentId))
+        .orderBy(enrollments.enrolledAt);
+
+      // Get total tuition from billing records (exclude cancelled bills)
+      const tuitionData = await ctx.db
+        .select({
+          totalTuition: sql<number>`COALESCE(SUM(${tuitionBilling.amount}), 0)::int`,
+        })
+        .from(tuitionBilling)
+        .where(
+          and(
+            eq(tuitionBilling.studentId, input.studentId),
+            sql`${tuitionBilling.status} != 'cancelled'`
+          )
+        );
+
+      const totalTuition = tuitionData[0]?.totalTuition || 0;
+      const classCount = enrollmentsData.length;
+      const isActive = classCount > 0;
+
+      return {
+        student: studentData[0],
+        classes: enrollmentsData,
+        classCount,
+        totalTuition,
+        isActive,
+      };
+    }),
+
   // Update student parent contact info (manager can update any student under them, teacher can update enrolled students)
   updateStudentParentContact: protectedProcedure
     .input(

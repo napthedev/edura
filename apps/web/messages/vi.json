@@ -1119,6 +1119,7 @@
     "parentPhone": "Số điện thoại phụ huynh",
     "joinedDate": "Ngày tham gia",
     "actions": "Hành động",
+    "detail": "Thông tin",
     "noStudents": "Chưa có học sinh đăng ký",
     "passwordNotChanged": "Chưa thay đổi",
     "passwordNotChangedTooltip": "Người dùng chưa thay đổi mật khẩu do hệ thống tạo"
@@ -1135,6 +1136,24 @@
     "cancel": "Hủy",
     "success": "Cập nhật thông tin liên hệ phụ huynh thành công",
     "error": "Cập nhật thông tin liên hệ phụ huynh thất bại"
+  },
+  "StudentDetailModal": {
+    "title": "Chi tiết học sinh",
+    "description": "Xem thông tin chi tiết về {name}",
+    "classes": "Lớp học",
+    "className": "Tên lớp",
+    "subject": "Môn học",
+    "enrolledDate": "Ngày ghi danh",
+    "classCount": "Số lớp học",
+    "totalTuition": "Tổng học phí",
+    "status": "Trạng thái",
+    "active": "Đang hoạt động",
+    "inactive": "Không hoạt động",
+    "loading": "Đang tải chi tiết...",
+    "error": "Không thể tải chi tiết học sinh",
+    "noClasses": "Chưa ghi danh vào lớp nào",
+    "close": "Đóng",
+    "viewDetails": "Xem chi tiết"
   },
   "DeadlineManagement": {
     "title": "Quản lý hạn chót",
