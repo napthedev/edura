@@ -2859,7 +2859,12 @@ export const educationRouter = router({
     .input(
       z.object({
         teacherId: z.string(),
-        rateType: z.enum(["HOURLY", "PER_STUDENT", "MONTHLY_FIXED"]),
+        rateType: z.enum([
+          "HOURLY",
+          "PER_STUDENT",
+          "MONTHLY_FIXED",
+          "PER_MINUTE",
+        ]),
         amount: z.number().min(0),
         effectiveDate: z.string().optional(), // ISO date string
       })
@@ -3157,6 +3162,10 @@ export const educationRouter = router({
             break;
           case "MONTHLY_FIXED":
             amount = teacherRate.amount;
+            break;
+          case "PER_MINUTE":
+            // Use actual minutes from attendance logs
+            amount = teacherRate.amount * totalMinutes;
             break;
         }
 

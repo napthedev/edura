@@ -63,9 +63,10 @@ import {
   Calendar,
   CheckCircle,
   XCircle,
+  Timer,
 } from "lucide-react";
 
-type RateType = "HOURLY" | "PER_STUDENT" | "MONTHLY_FIXED";
+type RateType = "HOURLY" | "PER_STUDENT" | "MONTHLY_FIXED" | "PER_MINUTE";
 
 export default function TeacherRatesPage() {
   const t = useTranslations("TeacherRates");
@@ -174,6 +175,7 @@ export default function TeacherRatesPage() {
       HOURLY: t("hourly"),
       PER_STUDENT: t("perStudent"),
       MONTHLY_FIXED: t("monthlyFixed"),
+      PER_MINUTE: t("perMinute"),
     };
     return labels[rateType];
   };
@@ -183,6 +185,7 @@ export default function TeacherRatesPage() {
       HOURLY: t("hourlyDescription"),
       PER_STUDENT: t("perStudentDescription"),
       MONTHLY_FIXED: t("monthlyFixedDescription"),
+      PER_MINUTE: t("perMinuteDescription"),
     };
     return descriptions[rateType];
   };
@@ -192,6 +195,7 @@ export default function TeacherRatesPage() {
       HOURLY: <Clock className="h-4 w-4" />,
       PER_STUDENT: <Users className="h-4 w-4" />,
       MONTHLY_FIXED: <Calendar className="h-4 w-4" />,
+      PER_MINUTE: <Timer className="h-4 w-4" />,
     };
     return icons[rateType];
   };
@@ -204,6 +208,8 @@ export default function TeacherRatesPage() {
         return t("amountPerStudent");
       case "MONTHLY_FIXED":
         return t("monthlyAmount");
+      case "PER_MINUTE":
+        return t("amountPerMinute");
       default:
         return t("amount");
     }
@@ -326,6 +332,12 @@ export default function TeacherRatesPage() {
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4" />
                         <span>{t("monthlyFixed")}</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="PER_MINUTE">
+                      <div className="flex items-center gap-2">
+                        <Timer className="h-4 w-4" />
+                        <span>{t("perMinute")}</span>
                       </div>
                     </SelectItem>
                   </SelectContent>

@@ -238,6 +238,7 @@ export const teacherRateTypeEnum = pgEnum("teacher_rate_type", [
   "HOURLY",
   "PER_STUDENT",
   "MONTHLY_FIXED",
+  "PER_MINUTE",
 ]);
 
 export const teacherRates = pgTable("teacher_rates", {

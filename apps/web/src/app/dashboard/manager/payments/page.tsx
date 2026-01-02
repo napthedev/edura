@@ -81,7 +81,7 @@ import { exportToCsv } from "@/lib/utils";
 
 type BillingStatus = "pending" | "paid" | "overdue" | "cancelled";
 type PaymentMethod = "cash" | "bank_transfer" | "momo" | "vnpay";
-type RateType = "HOURLY" | "PER_STUDENT" | "MONTHLY_FIXED";
+type RateType = "HOURLY" | "PER_STUDENT" | "MONTHLY_FIXED" | "PER_MINUTE";
 
 export default function TutorPaymentsPage() {
   const t = useTranslations("TutorPayments");
@@ -375,6 +375,7 @@ export default function TutorPaymentsPage() {
       HOURLY: t("hourly"),
       PER_STUDENT: t("perStudent"),
       MONTHLY_FIXED: t("monthlyFixed"),
+      PER_MINUTE: t("perMinute"),
     };
     return labels[rateType];
   };

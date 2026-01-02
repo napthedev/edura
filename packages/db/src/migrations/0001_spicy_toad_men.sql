@@ -1,0 +1,1 @@
+ALTER TYPE "public"."teacher_rate_type" ADD VALUE 'PER_MINUTE';
