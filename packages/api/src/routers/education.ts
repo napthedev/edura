@@ -14,6 +14,7 @@ import {
   tuitionBilling,
   tutorPayments,
   teacherRates,
+  teacherRatePresets,
   attendanceLogs,
   studentAttendanceLogs,
   expenseCategories,
@@ -2841,6 +2842,7 @@ export const educationRouter = router({
           amount: teacherRates.amount,
           effectiveDate: teacherRates.effectiveDate,
           isActive: teacherRates.isActive,
+          presetId: teacherRates.presetId,
         })
         .from(teacherRates)
         .innerJoin(user, eq(teacherRates.teacherId, user.id))
@@ -3005,6 +3007,415 @@ export const educationRouter = router({
 
       return { success: true };
     }),
+
+  // =====================
+  // TEACHER RATE PRESETS
+  // =====================
+
+  // Get all teacher rate presets (manager only, with usage count)
+  getTeacherRatePresets: protectedProcedure
+    .input(
+      z.object({
+        isActive: z.boolean().optional().default(true),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      const conditions = [
+        eq(teacherRatePresets.managerId, ctx.session.user.id),
+      ];
+      if (input.isActive !== undefined) {
+        conditions.push(eq(teacherRatePresets.isActive, input.isActive));
+      }
+
+      // Get presets with usage count (count of active rates referencing each preset)
+      const presets = await ctx.db
+        .select({
+          presetId: teacherRatePresets.presetId,
+          managerId: teacherRatePresets.managerId,
+          presetName: teacherRatePresets.presetName,
+          teacherType: teacherRatePresets.teacherType,
+          customTypeName: teacherRatePresets.customTypeName,
+          rateType: teacherRatePresets.rateType,
+          amount: teacherRatePresets.amount,
+          description: teacherRatePresets.description,
+          isActive: teacherRatePresets.isActive,
+          createdAt: teacherRatePresets.createdAt,
+          updatedAt: teacherRatePresets.updatedAt,
+          usageCount: sql<number>`COUNT(DISTINCT ${teacherRates.rateId})::int`,
+        })
+        .from(teacherRatePresets)
+        .leftJoin(
+          teacherRates,
+          and(
+            eq(teacherRates.presetId, teacherRatePresets.presetId),
+            eq(teacherRates.isActive, true)
+          )
+        )
+        .where(and(...conditions))
+        .groupBy(teacherRatePresets.presetId)
+        .orderBy(desc(teacherRatePresets.createdAt));
+
+      return presets;
+    }),
+
+  // Create a new teacher rate preset
+  createTeacherRatePreset: protectedProcedure
+    .input(
+      z.object({
+        presetName: z.string().min(1),
+        teacherType: z
+          .enum(["NATIVE", "FOREIGN", "TEACHING_ASSISTANT"])
+          .optional(),
+        customTypeName: z.string().optional(),
+        rateType: z.enum([
+          "HOURLY",
+          "PER_STUDENT",
+          "MONTHLY_FIXED",
+          "PER_MINUTE",
+        ]),
+        amount: z.number().int().positive(),
+        description: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      // Validate that either teacherType or customTypeName is provided
+      if (!input.teacherType && !input.customTypeName) {
+        throw new Error(
+          "Either teacherType or customTypeName must be provided"
+        );
+      }
+
+      const presetId = crypto.randomUUID();
+
+      await ctx.db.insert(teacherRatePresets).values({
+        presetId,
+        managerId: ctx.session.user.id,
+        presetName: input.presetName,
+        teacherType: input.teacherType ?? null,
+        customTypeName: input.customTypeName ?? null,
+        rateType: input.rateType,
+        amount: input.amount,
+        description: input.description ?? null,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      return { presetId, success: true };
+    }),
+
+  // Update an existing teacher rate preset
+  updateTeacherRatePreset: protectedProcedure
+    .input(
+      z.object({
+        presetId: z.string(),
+        presetName: z.string().min(1).optional(),
+        amount: z.number().int().positive().optional(),
+        description: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      // Verify preset exists and belongs to manager
+      const preset = await ctx.db
+        .select()
+        .from(teacherRatePresets)
+        .where(eq(teacherRatePresets.presetId, input.presetId));
+
+      if (preset.length === 0 || preset[0]!.managerId !== ctx.session.user.id) {
+        throw new Error("Preset not found or access denied");
+      }
+
+      const updateData: any = {
+        updatedAt: new Date(),
+      };
+
+      if (input.presetName !== undefined) {
+        updateData.presetName = input.presetName;
+      }
+      if (input.amount !== undefined) {
+        updateData.amount = input.amount;
+      }
+      if (input.description !== undefined) {
+        updateData.description = input.description;
+      }
+
+      await ctx.db
+        .update(teacherRatePresets)
+        .set(updateData)
+        .where(eq(teacherRatePresets.presetId, input.presetId));
+
+      return { success: true };
+    }),
+
+  // Delete (soft delete) a teacher rate preset
+  deleteTeacherRatePreset: protectedProcedure
+    .input(z.object({ presetId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      // Verify preset exists and belongs to manager
+      const preset = await ctx.db
+        .select()
+        .from(teacherRatePresets)
+        .where(eq(teacherRatePresets.presetId, input.presetId));
+
+      if (preset.length === 0 || preset[0]!.managerId !== ctx.session.user.id) {
+        throw new Error("Preset not found or access denied");
+      }
+
+      // Check if preset is being used by any active rates
+      const activeRatesUsingPreset = await ctx.db
+        .select({ rateId: teacherRates.rateId })
+        .from(teacherRates)
+        .where(
+          and(
+            eq(teacherRates.presetId, input.presetId),
+            eq(teacherRates.isActive, true)
+          )
+        );
+
+      if (activeRatesUsingPreset.length > 0) {
+        throw new Error(
+          `Cannot delete preset - it is currently used by ${activeRatesUsingPreset.length} active rate(s)`
+        );
+      }
+
+      // Soft delete by setting isActive to false
+      await ctx.db
+        .update(teacherRatePresets)
+        .set({ isActive: false, updatedAt: new Date() })
+        .where(eq(teacherRatePresets.presetId, input.presetId));
+
+      return { success: true };
+    }),
+
+  // Apply a preset to multiple teachers (bulk create rates)
+  applyPresetToTeachers: protectedProcedure
+    .input(
+      z.object({
+        presetId: z.string(),
+        teacherIds: z.array(z.string()).min(1),
+        effectiveDate: z.date().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      // Verify preset exists and belongs to manager
+      const preset = await ctx.db
+        .select()
+        .from(teacherRatePresets)
+        .where(eq(teacherRatePresets.presetId, input.presetId));
+
+      if (preset.length === 0 || preset[0]!.managerId !== ctx.session.user.id) {
+        throw new Error("Preset not found or access denied");
+      }
+
+      const presetData = preset[0]!;
+
+      // Verify all teachers belong to this manager
+      const teachers = await ctx.db
+        .select({ id: user.id })
+        .from(user)
+        .where(
+          and(
+            inArray(user.id, input.teacherIds),
+            eq(user.managerId, ctx.session.user.id),
+            eq(user.role, "teacher")
+          )
+        );
+
+      if (teachers.length !== input.teacherIds.length) {
+        throw new Error("Some teachers not found or do not belong to you");
+      }
+
+      const effectiveDate = input.effectiveDate || new Date();
+
+      // For each teacher, deactivate existing rates of the same type, then create new rate
+      const createdRates: string[] = [];
+
+      for (const teacherId of input.teacherIds) {
+        // Deactivate existing active rates of the same type for this teacher
+        await ctx.db
+          .update(teacherRates)
+          .set({ isActive: false })
+          .where(
+            and(
+              eq(teacherRates.teacherId, teacherId),
+              eq(teacherRates.rateType, presetData.rateType),
+              eq(teacherRates.isActive, true)
+            )
+          );
+
+        // Create new rate from preset
+        const rateId = crypto.randomUUID();
+        await ctx.db.insert(teacherRates).values({
+          rateId,
+          teacherId,
+          rateType: presetData.rateType,
+          amount: presetData.amount,
+          effectiveDate,
+          isActive: true,
+          presetId: input.presetId,
+        });
+
+        createdRates.push(rateId);
+      }
+
+      return { success: true, createdCount: createdRates.length };
+    }),
+
+  // Apply preset update to all teachers currently using it (creates new rates with new effective date)
+  applyPresetUpdateToTeachers: protectedProcedure
+    .input(
+      z.object({
+        presetId: z.string(),
+        effectiveDate: z.date().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied - manager only");
+      }
+
+      // Verify preset exists and belongs to manager
+      const preset = await ctx.db
+        .select()
+        .from(teacherRatePresets)
+        .where(eq(teacherRatePresets.presetId, input.presetId));
+
+      if (preset.length === 0 || preset[0]!.managerId !== ctx.session.user.id) {
+        throw new Error("Preset not found or access denied");
+      }
+
+      const presetData = preset[0]!;
+
+      // Find all active rates using this preset
+      const activeRatesUsingPreset = await ctx.db
+        .select({
+          rateId: teacherRates.rateId,
+          teacherId: teacherRates.teacherId,
+        })
+        .from(teacherRates)
+        .where(
+          and(
+            eq(teacherRates.presetId, input.presetId),
+            eq(teacherRates.isActive, true)
+          )
+        );
+
+      if (activeRatesUsingPreset.length === 0) {
+        return { success: true, updatedCount: 0 };
+      }
+
+      const effectiveDate = input.effectiveDate || new Date();
+
+      // Deactivate all existing rates using this preset
+      await ctx.db
+        .update(teacherRates)
+        .set({ isActive: false })
+        .where(
+          and(
+            eq(teacherRates.presetId, input.presetId),
+            eq(teacherRates.isActive, true)
+          )
+        );
+
+      // Create new rates with updated preset values
+      const newRates = activeRatesUsingPreset.map((rate) => ({
+        rateId: crypto.randomUUID(),
+        teacherId: rate.teacherId,
+        rateType: presetData.rateType,
+        amount: presetData.amount,
+        effectiveDate,
+        isActive: true,
+        presetId: input.presetId,
+      }));
+
+      await ctx.db.insert(teacherRates).values(newRates);
+
+      return { success: true, updatedCount: newRates.length };
+    }),
+
+  // Initialize default rate presets for new managers
+  initializeDefaultRatePresets: protectedProcedure.mutation(async ({ ctx }) => {
+    if (ctx.session.user.role !== "manager") {
+      throw new Error("Access denied - manager only");
+    }
+
+    // Check if manager already has presets
+    const existingPresets = await ctx.db
+      .select()
+      .from(teacherRatePresets)
+      .where(eq(teacherRatePresets.managerId, ctx.session.user.id));
+
+    if (existingPresets.length > 0) {
+      return { alreadyInitialized: true, createdCount: 0 };
+    }
+
+    // Create default presets
+    const defaultPresets = [
+      {
+        presetId: crypto.randomUUID(),
+        managerId: ctx.session.user.id,
+        presetName: "Native Teacher - Hourly",
+        teacherType: "NATIVE" as const,
+        customTypeName: null,
+        rateType: "HOURLY" as const,
+        amount: 20000000, // 200,000 VND per hour (stored in cents)
+        description: "Default hourly rate for native Vietnamese teachers",
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        presetId: crypto.randomUUID(),
+        managerId: ctx.session.user.id,
+        presetName: "Foreign Teacher - Hourly",
+        teacherType: "FOREIGN" as const,
+        customTypeName: null,
+        rateType: "HOURLY" as const,
+        amount: 35000000, // 350,000 VND per hour (stored in cents)
+        description: "Default hourly rate for foreign teachers",
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        presetId: crypto.randomUUID(),
+        managerId: ctx.session.user.id,
+        presetName: "Teaching Assistant - Hourly",
+        teacherType: "TEACHING_ASSISTANT" as const,
+        customTypeName: null,
+        rateType: "HOURLY" as const,
+        amount: 10000000, // 100,000 VND per hour (stored in cents)
+        description: "Default hourly rate for teaching assistants",
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ];
+
+    await ctx.db.insert(teacherRatePresets).values(defaultPresets);
+
+    return { success: true, createdCount: defaultPresets.length };
+  }),
 
   // =====================
   // TUTOR PAYMENTS

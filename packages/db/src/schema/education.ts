@@ -241,6 +241,30 @@ export const teacherRateTypeEnum = pgEnum("teacher_rate_type", [
   "PER_MINUTE",
 ]);
 
+// Teacher Types for rate presets
+export const teacherTypeEnum = pgEnum("teacher_type", [
+  "NATIVE",
+  "FOREIGN",
+  "TEACHING_ASSISTANT",
+]);
+
+// Teacher Rate Presets (reusable rate templates by teacher type)
+export const teacherRatePresets = pgTable("teacher_rate_presets", {
+  presetId: text("preset_id").primaryKey(),
+  managerId: text("manager_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  presetName: text("preset_name").notNull(),
+  teacherType: teacherTypeEnum("teacher_type"),
+  customTypeName: text("custom_type_name"), // For custom teacher types
+  rateType: teacherRateTypeEnum("rate_type").notNull(),
+  amount: integer("amount").notNull(), // Store in cents/smallest currency unit
+  description: text("description"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export const teacherRates = pgTable("teacher_rates", {
   rateId: text("rate_id").primaryKey(),
   teacherId: text("teacher_id")
@@ -250,6 +274,9 @@ export const teacherRates = pgTable("teacher_rates", {
   amount: integer("amount").notNull(), // Store in cents/smallest currency unit
   effectiveDate: timestamp("effective_date").notNull().defaultNow(),
   isActive: boolean("is_active").default(true),
+  presetId: text("preset_id").references(() => teacherRatePresets.presetId, {
+    onDelete: "set null",
+  }), // Track which preset was used to create this rate
 });
 
 // Parent Consent (tracks parent communication preferences per student)
