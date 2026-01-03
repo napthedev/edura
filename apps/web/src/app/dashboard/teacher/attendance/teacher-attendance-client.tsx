@@ -46,7 +46,7 @@ interface AttendanceLog {
   checkedInAt: string | null;
   studentId: string;
   studentName: string;
-  studentEmail: string;
+  studentEmail: string | null;
   classId: string;
   className: string;
   scheduleTitle: string;
@@ -105,13 +105,15 @@ export default function TeacherAttendanceClient() {
       log.className,
       log.scheduleTitle,
       log.studentName,
-      log.studentEmail,
+      log.studentEmail || "",
       log.isPresent ? t("present") : t("absent"),
     ]);
 
     const csvContent = [
       headers.join(","),
-      ...rows.map((row: string[]) => row.map((cell) => `"${cell}"`).join(",")),
+      ...rows.map((row: (string | null)[]) =>
+        row.map((cell) => `"${cell ?? ""}"`).join(",")
+      ),
     ].join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -285,7 +287,7 @@ export default function TeacherAttendanceClient() {
                         {log.studentName}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {log.studentEmail}
+                        {log.studentEmail || "-"}
                       </TableCell>
                       <TableCell>
                         {log.isPresent ? (

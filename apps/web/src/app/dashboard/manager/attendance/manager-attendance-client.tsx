@@ -47,7 +47,7 @@ interface AttendanceLog {
   checkedInAt: string | null;
   studentId: string;
   studentName: string;
-  studentEmail: string;
+  studentEmail: string | null;
   classId: string;
   className: string;
   scheduleTitle: string;
@@ -58,7 +58,7 @@ interface AttendanceLog {
 interface Teacher {
   userId: string;
   name: string;
-  email: string;
+  email: string | null;
 }
 
 export default function ManagerAttendanceClient() {
@@ -119,13 +119,15 @@ export default function ManagerAttendanceClient() {
       log.className,
       log.scheduleTitle,
       log.studentName,
-      log.studentEmail,
+      log.studentEmail || "",
       log.isPresent ? t("present") : t("absent"),
     ]);
 
     const csvContent = [
       headers.join(","),
-      ...rows.map((row: string[]) => row.map((cell) => `"${cell}"`).join(",")),
+      ...rows.map((row: (string | null)[]) =>
+        row.map((cell) => `"${cell ?? ""}"`).join(",")
+      ),
     ].join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -193,7 +195,7 @@ export default function ManagerAttendanceClient() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{t("allTeachers")}</SelectItem>
-                  {teachersQuery.data?.map((teacher: Teacher) => (
+                  {teachersQuery.data?.map((teacher) => (
                     <SelectItem key={teacher.userId} value={teacher.userId}>
                       {teacher.name}
                     </SelectItem>
@@ -313,7 +315,7 @@ export default function ManagerAttendanceClient() {
                         {log.studentName}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {log.studentEmail}
+                        {log.studentEmail || "-"}
                       </TableCell>
                       <TableCell>
                         {log.isPresent ? (

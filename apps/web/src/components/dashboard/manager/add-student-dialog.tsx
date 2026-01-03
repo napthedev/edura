@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   UserPlus,
   Copy,
@@ -46,18 +47,23 @@ export function AddStudentDialog({ trigger }: AddStudentDialogProps) {
   const createStudentMutation = useMutation({
     mutationFn: (data: {
       name: string;
-      email: string;
+      email?: string;
       dateOfBirth?: string;
       parentEmail?: string;
       parentPhone?: string;
     }) => trpcClient.education.createStudent.mutate(data),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["all-students"] });
-      setCreatedAccount({
-        email: data.email,
-        password: data.generatedPassword,
-      });
-      toast.success(t("success"));
+      if (data.email && data.generatedPassword) {
+        setCreatedAccount({
+          email: data.email,
+          password: data.generatedPassword,
+        });
+        toast.success(t("success"));
+      } else {
+        toast.success(t("successNoLogin"));
+        handleClose();
+      }
     },
     onError: (error: any) => {
       toast.error(error.message || t("error"));
@@ -71,11 +77,12 @@ export function AddStudentDialog({ trigger }: AddStudentDialogProps) {
       dateOfBirth: "",
       parentEmail: "",
       parentPhone: "",
+      enableLogin: true,
     },
     onSubmit: async ({ value }) => {
       await createStudentMutation.mutateAsync({
         name: value.name,
-        email: value.email,
+        email: value.enableLogin ? value.email : undefined,
         dateOfBirth: value.dateOfBirth || undefined,
         parentEmail: value.parentEmail || undefined,
         parentPhone: value.parentPhone || undefined,
@@ -194,21 +201,45 @@ export function AddStudentDialog({ trigger }: AddStudentDialogProps) {
               )}
             </form.Field>
 
-            <form.Field name="email">
+            <form.Field name="enableLogin">
               {(field) => (
-                <div className="space-y-2">
-                  <Label htmlFor="email">{t("email")}</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder={t("emailPlaceholder")}
-                    required
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="enableLogin"
+                    checked={field.state.value}
+                    onCheckedChange={(checked) => field.handleChange(!!checked)}
                   />
+                  <Label
+                    htmlFor="enableLogin"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    {t("enableLogin")}
+                  </Label>
                 </div>
               )}
             </form.Field>
+
+            <form.Subscribe selector={(state) => state.values.enableLogin}>
+              {(enableLogin) =>
+                enableLogin ? (
+                  <form.Field name="email">
+                    {(field) => (
+                      <div className="space-y-2">
+                        <Label htmlFor="email">{t("email")}</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          placeholder={t("emailPlaceholder")}
+                          required
+                        />
+                      </div>
+                    )}
+                  </form.Field>
+                ) : null
+              }
+            </form.Subscribe>
 
             <form.Field name="dateOfBirth">
               {(field) => (

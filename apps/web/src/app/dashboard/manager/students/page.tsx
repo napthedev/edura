@@ -148,10 +148,19 @@ export default function StudentsPage() {
                         {student.name}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Mail className="h-4 w-4 text-muted-foreground/60" />
-                          {student.email}
-                        </div>
+                        {student.email ? (
+                          <div className="flex items-center gap-1">
+                            <Mail className="h-4 w-4 text-muted-foreground/60" />
+                            {student.email}
+                          </div>
+                        ) : (
+                          <Badge
+                            variant="secondary"
+                            className="text-muted-foreground"
+                          >
+                            {t("noLoginAccess")}
+                          </Badge>
+                        )}
                       </TableCell>
                       <TableCell>
                         {student.generatedPassword ? (

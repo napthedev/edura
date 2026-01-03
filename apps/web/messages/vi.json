@@ -1122,7 +1122,8 @@
     "detail": "Thông tin",
     "noStudents": "Chưa có học sinh đăng ký",
     "passwordNotChanged": "Chưa thay đổi",
-    "passwordNotChangedTooltip": "Người dùng chưa thay đổi mật khẩu do hệ thống tạo"
+    "passwordNotChangedTooltip": "Người dùng chưa thay đổi mật khẩu do hệ thống tạo",
+    "noLoginAccess": "Không có quyền đăng nhập"
   },
   "EditParentContact": {
     "title": "Chỉnh sửa liên hệ phụ huynh",
@@ -1595,7 +1596,10 @@
     "close": "Đóng",
     "done": "Hoàn tất",
     "addAnother": "Thêm tiếp",
-    "createAnother": "Tạo thêm"
+    "createAnother": "Tạo thêm",
+    "successNoLogin": "Tạo học sinh thành công (không có quyền đăng nhập)",
+    "enableLogin": "Cho phép học sinh đăng nhập",
+    "enableLoginDescription": "Khi bật, học sinh sẽ nhận email và mật khẩu để đăng nhập"
   },
   "CSVImport": {
     "title": "Nhập từ CSV",

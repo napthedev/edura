@@ -88,7 +88,7 @@ export default function StudentsPage() {
                     (student: {
                       userId: string;
                       name: string;
-                      email: string;
+                      email: string | null;
                       enrolledAt: string;
                       dateOfBirth: string | null;
                       address: string | null;
@@ -105,7 +105,7 @@ export default function StudentsPage() {
                         <TableCell className="text-sm text-muted-foreground">
                           <div className="flex items-center gap-1">
                             <Mail className="h-4 w-4 text-muted-foreground/60" />
-                            {student.email}
+                            {student.email || "-"}
                           </div>
                         </TableCell>
                         <TableCell>

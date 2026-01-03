@@ -93,7 +93,7 @@ interface ActiveSchedule {
 interface StudentAttendance {
   userId: string;
   name: string;
-  email: string;
+  email: string | null;
   isPresent: boolean;
   attendanceLogId: string | null;
 }
@@ -426,7 +426,7 @@ export default function StudentCheckIn() {
                             {student.name}
                           </TableCell>
                           <TableCell className="text-muted-foreground">
-                            {student.email}
+                            {student.email || "-"}
                           </TableCell>
                         </TableRow>
                       )

@@ -51,8 +51,17 @@ interface ParsedRow {
 }
 
 interface ImportResult {
-  success: { email: string; password: string }[];
-  failed: { email: string; reason: string }[];
+  success: {
+    name?: string;
+    email: string | null;
+    password?: string | null;
+    hasLoginAccess?: boolean;
+  }[];
+  failed: {
+    name?: string;
+    email: string | null;
+    reason: string;
+  }[];
 }
 
 export function CSVImportDialog({ type, trigger }: CSVImportDialogProps) {
@@ -288,7 +297,7 @@ export function CSVImportDialog({ type, trigger }: CSVImportDialogProps) {
                     <TableBody>
                       {importResult.failed.map((item, i) => (
                         <TableRow key={i}>
-                          <TableCell>{item.email}</TableCell>
+                          <TableCell>{item.email || "-"}</TableCell>
                           <TableCell className="text-red-600">
                             {item.reason}
                           </TableCell>
@@ -307,6 +316,7 @@ export function CSVImportDialog({ type, trigger }: CSVImportDialogProps) {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead>{t("name")}</TableHead>
                         <TableHead>{t("email")}</TableHead>
                         <TableHead>{t("password")}</TableHead>
                       </TableRow>
@@ -314,11 +324,20 @@ export function CSVImportDialog({ type, trigger }: CSVImportDialogProps) {
                     <TableBody>
                       {importResult.success.map((item, i) => (
                         <TableRow key={i}>
-                          <TableCell>{item.email}</TableCell>
                           <TableCell>
-                            <code className="bg-muted px-2 py-1 rounded text-sm">
-                              {item.password}
-                            </code>
+                            {item.name || item.email || "-"}
+                          </TableCell>
+                          <TableCell>{item.email || "-"}</TableCell>
+                          <TableCell>
+                            {item.password ? (
+                              <code className="bg-muted px-2 py-1 rounded text-sm">
+                                {item.password}
+                              </code>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">
+                                -
+                              </span>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -400,7 +419,7 @@ export function CSVImportDialog({ type, trigger }: CSVImportDialogProps) {
                       {parsedData.slice(0, 10).map((row, i) => (
                         <TableRow key={i}>
                           <TableCell>{row.name}</TableCell>
-                          <TableCell>{row.email}</TableCell>
+                          <TableCell>{row.email || "-"}</TableCell>
                           <TableCell>{row.dateOfBirth || "-"}</TableCell>
                           {type === "student" && (
                             <>

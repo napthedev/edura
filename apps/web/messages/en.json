@@ -1102,26 +1102,24 @@
     "passwordNotChangedTooltip": "User has not changed their system-generated password"
   },
   "ManagerStudents": {
-    "title": "Students Management",
-    "description": "View and manage all students in the system",
+    "title": "Students",
+    "description": "Manage all students across your tutoring centre",
     "totalStudents": "Total Students",
     "registeredStudents": "Registered students",
     "studentsList": "Students List",
+    "detail": "Detail",
     "name": "Name",
     "email": "Email",
     "password": "Password",
-    "gradeLevel": "Grade",
-    "schoolName": "School",
-    "address": "Address",
     "dateOfBirth": "Date of Birth",
     "parentEmail": "Parent Email",
     "parentPhone": "Parent Phone",
     "joinedDate": "Joined Date",
     "actions": "Actions",
-    "detail": "Detail",
-    "noStudents": "No students registered yet",
-    "passwordNotChanged": "Not Changed",
-    "passwordNotChangedTooltip": "User has not changed their system-generated password"
+    "noStudents": "No students found",
+    "passwordNotChanged": "Not changed",
+    "passwordNotChangedTooltip": "Student hasn't changed their initial password yet",
+    "noLoginAccess": "No login access"
   },
   "EditParentContact": {
     "title": "Edit Parent Contact",
@@ -1594,7 +1592,10 @@
     "close": "Close",
     "done": "Done",
     "addAnother": "Add Another",
-    "createAnother": "Create Another"
+    "createAnother": "Create Another",
+    "successNoLogin": "Student created successfully (no login access)",
+    "enableLogin": "Enable login access for this student",
+    "enableLoginDescription": "When enabled, the student will receive an email and password to log in"
   },
   "CSVImport": {
     "title": "Import from CSV",

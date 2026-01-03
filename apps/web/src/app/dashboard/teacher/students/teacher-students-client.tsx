@@ -40,7 +40,7 @@ export default function TeacherStudentsClient() {
     {
       userId: string;
       name: string;
-      email: string;
+      email: string | null;
       dateOfBirth: string | null;
       address: string | null;
       grade: string | null;
@@ -195,7 +195,7 @@ export default function TeacherStudentsClient() {
                       <TableCell className="text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <Mail className="h-4 w-4 text-muted-foreground/60" />
-                          {student.email}
+                          {student.email || "-"}
                         </div>
                       </TableCell>
                       <TableCell>

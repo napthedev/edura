@@ -4324,7 +4324,7 @@ export const educationRouter = router({
     .input(
       z.object({
         name: z.string().min(2),
-        email: z.string().email(),
+        email: z.string().email().optional(),
         dateOfBirth: z.string().optional(),
         parentEmail: z.string().email().optional(),
         parentPhone: z
@@ -4338,28 +4338,34 @@ export const educationRouter = router({
         throw new Error("Access denied - manager only");
       }
 
-      // Check if email already exists
-      const existingUser = await ctx.db
-        .select()
-        .from(user)
-        .where(eq(user.email, input.email))
-        .limit(1);
+      // If email is provided, check if it already exists
+      if (input.email) {
+        const existingUser = await ctx.db
+          .select()
+          .from(user)
+          .where(eq(user.email, input.email))
+          .limit(1);
 
-      if (existingUser.length > 0) {
-        throw new Error("Email already exists");
+        if (existingUser.length > 0) {
+          throw new Error("Email already exists");
+        }
       }
 
       const userId = crypto.randomUUID();
-      const password = generateRandomPassword();
-      const hashedPassword = await new Scrypt().hash(password);
       const now = new Date();
+
+      // Only generate password if email is provided
+      const password = input.email ? generateRandomPassword() : null;
+      const hashedPassword = password
+        ? await new Scrypt().hash(password)
+        : null;
 
       // Create user
       await ctx.db.insert(user).values({
         id: userId,
         name: input.name,
-        email: input.email,
-        emailVerified: true,
+        email: input.email || null,
+        emailVerified: input.email ? true : false,
         role: "student",
         managerId: ctx.session.user.id,
         generatedPassword: password,
@@ -4371,35 +4377,42 @@ export const educationRouter = router({
         updatedAt: now,
       });
 
-      // Create account for password authentication
-      await ctx.db.insert(account).values({
-        id: crypto.randomUUID(),
-        accountId: userId,
-        providerId: "credential",
-        userId: userId,
-        password: hashedPassword,
-        createdAt: now,
-        updatedAt: now,
-      });
-
-      // Send welcome email
-      try {
-        const loginUrl = process.env.CORS_ORIGIN
-          ? `${process.env.CORS_ORIGIN}/login`
-          : "/login";
-        await sendWelcomeEmail({
-          name: input.name,
-          email: input.email,
-          password: password,
-          role: "student",
-          loginUrl,
+      // Only create account if email and password exist
+      if (input.email && hashedPassword) {
+        await ctx.db.insert(account).values({
+          id: crypto.randomUUID(),
+          accountId: userId,
+          providerId: "credential",
+          userId: userId,
+          password: hashedPassword,
+          createdAt: now,
+          updatedAt: now,
         });
-      } catch (emailError) {
-        console.error("Failed to send welcome email:", emailError);
-        // Don't throw - user was created successfully, just email failed
+
+        // Send welcome email
+        try {
+          const loginUrl = process.env.CORS_ORIGIN
+            ? `${process.env.CORS_ORIGIN}/login`
+            : "/login";
+          await sendWelcomeEmail({
+            name: input.name,
+            email: input.email,
+            password: password!,
+            role: "student",
+            loginUrl,
+          });
+        } catch (emailError) {
+          console.error("Failed to send welcome email:", emailError);
+          // Don't throw - user was created successfully, just email failed
+        }
       }
 
-      return { userId, email: input.email, generatedPassword: password };
+      return {
+        userId,
+        email: input.email || null,
+        generatedPassword: password || null,
+        hasLoginAccess: !!input.email,
+      };
     }),
 
   // Import teachers from CSV data
@@ -4508,7 +4521,7 @@ export const educationRouter = router({
         students: z.array(
           z.object({
             name: z.string().min(2),
-            email: z.string().email(),
+            email: z.string().email().optional(),
             dateOfBirth: z.string().optional(),
             parentEmail: z.string().email().optional(),
             parentPhone: z
@@ -4525,38 +4538,48 @@ export const educationRouter = router({
       }
 
       const results: {
-        success: { email: string; password: string }[];
-        failed: { email: string; reason: string }[];
+        success: {
+          name: string;
+          email: string | null;
+          password: string | null;
+          hasLoginAccess: boolean;
+        }[];
+        failed: { name: string; email: string | null; reason: string }[];
       } = { success: [], failed: [] };
 
       for (const student of input.students) {
         try {
-          // Check if email already exists
-          const existingUser = await ctx.db
-            .select()
-            .from(user)
-            .where(eq(user.email, student.email))
-            .limit(1);
+          // If email is provided, check if it already exists
+          if (student.email) {
+            const existingUser = await ctx.db
+              .select()
+              .from(user)
+              .where(eq(user.email, student.email))
+              .limit(1);
 
-          if (existingUser.length > 0) {
-            results.failed.push({
-              email: student.email,
-              reason: "Email already exists",
-            });
-            continue;
+            if (existingUser.length > 0) {
+              results.failed.push({
+                name: student.name,
+                email: student.email,
+                reason: "Email already exists",
+              });
+              continue;
+            }
           }
 
           const userId = crypto.randomUUID();
-          const password = generateRandomPassword();
-          const hashedPassword = await new Scrypt().hash(password);
+          const password = student.email ? generateRandomPassword() : null;
+          const hashedPassword = password
+            ? await new Scrypt().hash(password)
+            : null;
           const now = new Date();
 
           // Create user
           await ctx.db.insert(user).values({
             id: userId,
             name: student.name,
-            email: student.email,
-            emailVerified: true,
+            email: student.email || null,
+            emailVerified: student.email ? true : false,
             role: "student",
             managerId: ctx.session.user.id,
             generatedPassword: password,
@@ -4570,35 +4593,50 @@ export const educationRouter = router({
             updatedAt: now,
           });
 
-          // Create account for password authentication
-          await ctx.db.insert(account).values({
-            id: crypto.randomUUID(),
-            accountId: userId,
-            providerId: "credential",
-            userId: userId,
-            password: hashedPassword,
-            createdAt: now,
-            updatedAt: now,
-          });
+          // Only create account if email and password exist
+          if (student.email && hashedPassword) {
+            await ctx.db.insert(account).values({
+              id: crypto.randomUUID(),
+              accountId: userId,
+              providerId: "credential",
+              userId: userId,
+              password: hashedPassword,
+              createdAt: now,
+              updatedAt: now,
+            });
 
-          results.success.push({ email: student.email, password });
+            results.success.push({
+              name: student.name,
+              email: student.email,
+              password,
+              hasLoginAccess: true,
+            });
 
-          // Send welcome email (don't await to speed up bulk import)
-          const loginUrl = process.env.CORS_ORIGIN
-            ? `${process.env.CORS_ORIGIN}/login`
-            : "/login";
-          sendWelcomeEmail({
-            name: student.name,
-            email: student.email,
-            password: password,
-            role: "student",
-            loginUrl,
-          }).catch((err) =>
-            console.error(`Failed to send email to ${student.email}:`, err)
-          );
+            // Send welcome email (don't await to speed up bulk import)
+            const loginUrl = process.env.CORS_ORIGIN
+              ? `${process.env.CORS_ORIGIN}/login`
+              : "/login";
+            sendWelcomeEmail({
+              name: student.name,
+              email: student.email,
+              password: password!,
+              role: "student",
+              loginUrl,
+            }).catch((err) =>
+              console.error(`Failed to send email to ${student.email}:`, err)
+            );
+          } else {
+            results.success.push({
+              name: student.name,
+              email: null,
+              password: null,
+              hasLoginAccess: false,
+            });
+          }
         } catch (error: any) {
           results.failed.push({
-            email: student.email,
+            name: student.name,
+            email: student.email || null,
             reason: error.message || "Unknown error",
           });
         }
@@ -6787,7 +6825,7 @@ export const educationRouter = router({
       }
 
       await sendWeeklyPerformanceReport({
-        studentEmail: student.email,
+        studentEmail: student.email || "",
         parentEmail: student.parentEmail || "",
         studentName: student.name,
         className: classRecord[0]!.className,
@@ -6893,7 +6931,7 @@ export const educationRouter = router({
       }
 
       await sendMonthlyBillingReport({
-        studentEmail: studentData.email,
+        studentEmail: studentData.email || "",
         parentEmail: studentData.parentEmail || "",
         studentName: studentData.name,
         className: billing.className || "N/A",
@@ -6999,7 +7037,7 @@ export const educationRouter = router({
       }
 
       await sendUrgentAlert({
-        studentEmail: student.email,
+        studentEmail: student.email || "",
         parentEmail: student.parentEmail || "",
         studentName: student.name,
         title: input.title,
