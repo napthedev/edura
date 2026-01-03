@@ -31,12 +31,7 @@ export const billingStatusEnum = pgEnum("billing_status", [
 ]);
 
 // Payment method enum
-export const paymentMethodEnum = pgEnum("payment_method", [
-  "cash",
-  "bank_transfer",
-  "momo",
-  "vnpay",
-]);
+export const paymentMethodEnum = pgEnum("payment_method", ["cash"]);
 
 // Attendance status enum
 export const attendanceStatusEnum = pgEnum("attendance_status", [

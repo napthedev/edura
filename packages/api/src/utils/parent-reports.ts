@@ -138,7 +138,7 @@ export async function getStudentBillingData(
   const billing = billingRecord[0]!;
 
   // For now, show all available payment methods; in future, could be customized per center
-  const paymentMethods = ["Cash", "Bank Transfer", "MoMo", "VNPay"];
+  const paymentMethods = ["Cash"];
 
   // Format due date
   const dueDateObj = new Date(billing.dueDate);

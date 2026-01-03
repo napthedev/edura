@@ -59,7 +59,6 @@ import Link from "next/link";
 import { exportToCsv } from "@/lib/utils";
 
 type BillingStatus = "pending" | "paid" | "overdue" | "cancelled";
-type PaymentMethod = "cash" | "bank_transfer" | "momo" | "vnpay";
 
 export default function TuitionBillingPage() {
   const t = useTranslations("TuitionBilling");
@@ -74,10 +73,6 @@ export default function TuitionBillingPage() {
 
   // Dialog states
   const [generateDialogOpen, setGenerateDialogOpen] = useState(false);
-  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
-  const [selectedBillingId, setSelectedBillingId] = useState<string | null>(
-    null
-  );
 
   // Form states
   const [billingMonth, setBillingMonth] = useState(() => {
@@ -93,8 +88,6 @@ export default function TuitionBillingPage() {
     now.setDate(15);
     return now.toISOString().split("T")[0];
   });
-  const [selectedPaymentMethod, setSelectedPaymentMethod] =
-    useState<PaymentMethod>("cash");
 
   // Queries
   const billingsQuery = useQuery({
@@ -138,16 +131,11 @@ export default function TuitionBillingPage() {
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: (data: {
-      billingId: string;
-      status: BillingStatus;
-      paymentMethod?: PaymentMethod;
-    }) => trpcClient.education.updateBillingStatus.mutate(data),
+    mutationFn: (data: { billingId: string; status: BillingStatus }) =>
+      trpcClient.education.updateBillingStatus.mutate(data),
     onSuccess: () => {
       toast.success(t("updateSuccess"));
       queryClient.invalidateQueries({ queryKey: ["tuition-billings"] });
-      setPaymentDialogOpen(false);
-      setSelectedBillingId(null);
     },
   });
 
@@ -195,17 +183,6 @@ export default function TuitionBillingPage() {
     );
   };
 
-  const getPaymentMethodLabel = (method: PaymentMethod | null) => {
-    if (!method) return "-";
-    const labels: Record<PaymentMethod, string> = {
-      cash: t("cash"),
-      bank_transfer: t("bankTransfer"),
-      momo: t("momo"),
-      vnpay: t("vnpay"),
-    };
-    return labels[method];
-  };
-
   // Get unique months from billings for filter
   const uniqueMonths = Array.from(
     new Set(billingsQuery.data?.map((b) => b.billingMonth) || [])
@@ -224,18 +201,10 @@ export default function TuitionBillingPage() {
   };
 
   const handleMarkAsPaid = (billingId: string) => {
-    setSelectedBillingId(billingId);
-    setPaymentDialogOpen(true);
-  };
-
-  const confirmPayment = () => {
-    if (selectedBillingId) {
-      updateStatusMutation.mutate({
-        billingId: selectedBillingId,
-        status: "paid",
-        paymentMethod: selectedPaymentMethod,
-      });
-    }
+    updateStatusMutation.mutate({
+      billingId,
+      status: "paid",
+    });
   };
 
   const clearFilters = () => {
@@ -280,7 +249,6 @@ export default function TuitionBillingPage() {
       { key: "status" as const, header: t("status") },
       { key: "dueDate" as const, header: t("dueDate") },
       { key: "paidAt" as const, header: t("paidAt") },
-      { key: "paymentMethod" as const, header: t("paymentMethod") },
     ];
 
     const filename = `tuition-billings-${
@@ -538,9 +506,7 @@ export default function TuitionBillingPage() {
                     <TableHead className="font-semibold">
                       {t("status")}
                     </TableHead>
-                    <TableHead className="font-semibold">
-                      {t("paymentMethod")}
-                    </TableHead>
+
                     <TableHead className="font-semibold text-right">
                       {t("actions")}
                     </TableHead>
@@ -578,11 +544,7 @@ export default function TuitionBillingPage() {
                       <TableCell>
                         {getStatusBadge(billing.status as BillingStatus)}
                       </TableCell>
-                      <TableCell>
-                        {getPaymentMethodLabel(
-                          billing.paymentMethod as PaymentMethod | null
-                        )}
-                      </TableCell>
+
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -654,51 +616,6 @@ export default function TuitionBillingPage() {
           )}
         </CardContent>
       </Card>
-
-      {/* Payment Method Dialog */}
-      <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("markAsPaid")}</DialogTitle>
-            <DialogDescription>{t("selectPaymentMethod")}</DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <Select
-              value={selectedPaymentMethod}
-              onValueChange={(v) =>
-                setSelectedPaymentMethod(v as PaymentMethod)
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="cash">{t("cash")}</SelectItem>
-                <SelectItem value="bank_transfer">
-                  {t("bankTransfer")}
-                </SelectItem>
-                <SelectItem value="momo">{t("momo")}</SelectItem>
-                <SelectItem value="vnpay">{t("vnpay")}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setPaymentDialogOpen(false)}
-            >
-              {t("cancel")}
-            </Button>
-            <Button
-              onClick={confirmPayment}
-              disabled={updateStatusMutation.isPending}
-            >
-              <CheckCircle className="h-4 w-4 mr-2" />
-              {t("markAsPaid")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

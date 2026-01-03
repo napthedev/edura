@@ -80,7 +80,6 @@ import {
 import { exportToCsv } from "@/lib/utils";
 
 type BillingStatus = "pending" | "paid" | "overdue" | "cancelled";
-type PaymentMethod = "cash" | "bank_transfer" | "momo" | "vnpay";
 type RateType = "HOURLY" | "PER_STUDENT" | "MONTHLY_FIXED" | "PER_MINUTE";
 
 export default function TutorPaymentsPage() {
@@ -96,7 +95,6 @@ export default function TutorPaymentsPage() {
 
   // Dialog states
   const [calculateDialogOpen, setCalculateDialogOpen] = useState(false);
-  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -116,8 +114,6 @@ export default function TutorPaymentsPage() {
       "0"
     )}`;
   });
-  const [selectedPaymentMethod, setSelectedPaymentMethod] =
-    useState<PaymentMethod>("bank_transfer");
 
   // Manual payment form states
   const [manualTeacherId, setManualTeacherId] = useState<string>("");
@@ -181,16 +177,11 @@ export default function TutorPaymentsPage() {
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: (data: {
-      paymentId: string;
-      status: BillingStatus;
-      paymentMethod?: PaymentMethod;
-    }) => trpcClient.education.updateTutorPaymentStatus.mutate(data),
+    mutationFn: (data: { paymentId: string; status: BillingStatus }) =>
+      trpcClient.education.updateTutorPaymentStatus.mutate(data),
     onSuccess: () => {
       toast.success(t("updateSuccess"));
       queryClient.invalidateQueries({ queryKey: ["tutor-payments"] });
-      setPaymentDialogOpen(false);
-      setSelectedPaymentId(null);
     },
   });
 
@@ -252,11 +243,8 @@ export default function TutorPaymentsPage() {
 
   // Batch mark as paid mutation
   const batchMarkAsPaidMutation = useMutation({
-    mutationFn: (data: {
-      paymentIds: string[];
-      paymentMethod: PaymentMethod;
-      notes?: string;
-    }) => trpcClient.education.markMultipleTutorPaymentsAsPaid.mutate(data),
+    mutationFn: (data: { paymentIds: string[]; notes?: string }) =>
+      trpcClient.education.markMultipleTutorPaymentsAsPaid.mutate(data),
     onSuccess: (result) => {
       toast.success(
         t("batchOperationSuccess", { count: result.processedCount })
@@ -358,17 +346,6 @@ export default function TutorPaymentsPage() {
     );
   };
 
-  const getPaymentMethodLabel = (method: PaymentMethod | null) => {
-    if (!method) return "-";
-    const labels: Record<PaymentMethod, string> = {
-      cash: t("cash"),
-      bank_transfer: t("bankTransfer"),
-      momo: t("momo"),
-      vnpay: t("vnpay"),
-    };
-    return labels[method];
-  };
-
   const getRateTypeLabel = (rateType: RateType | null) => {
     if (!rateType) return "-";
     const labels: Record<RateType, string> = {
@@ -397,18 +374,10 @@ export default function TutorPaymentsPage() {
   };
 
   const handleMarkAsPaid = (paymentId: string) => {
-    setSelectedPaymentId(paymentId);
-    setPaymentDialogOpen(true);
-  };
-
-  const confirmPayment = () => {
-    if (selectedPaymentId) {
-      updateStatusMutation.mutate({
-        paymentId: selectedPaymentId,
-        status: "paid",
-        paymentMethod: selectedPaymentMethod,
-      });
-    }
+    updateStatusMutation.mutate({
+      paymentId,
+      status: "paid",
+    });
   };
 
   const clearFilters = () => {
@@ -451,7 +420,6 @@ export default function TutorPaymentsPage() {
       { key: "rateType" as const, header: t("rateType") },
       { key: "status" as const, header: t("status") },
       { key: "paidAt" as const, header: t("paidAt") },
-      { key: "paymentMethod" as const, header: t("paymentMethod") },
     ];
 
     const filename = `tutor-payments-${
@@ -567,7 +535,6 @@ export default function TutorPaymentsPage() {
   const confirmBatchMarkAsPaid = () => {
     batchMarkAsPaidMutation.mutate({
       paymentIds: selectedPaymentIds,
-      paymentMethod: selectedPaymentMethod,
       notes: batchNotes || undefined,
     });
   };
@@ -1000,9 +967,7 @@ export default function TutorPaymentsPage() {
                     <TableHead className="font-semibold">
                       {t("status")}
                     </TableHead>
-                    <TableHead className="font-semibold">
-                      {t("paymentMethod")}
-                    </TableHead>
+
                     <TableHead className="font-semibold text-right">
                       {t("actions")}
                     </TableHead>
@@ -1058,11 +1023,7 @@ export default function TutorPaymentsPage() {
                       <TableCell>
                         {getStatusBadge(payment.status as BillingStatus)}
                       </TableCell>
-                      <TableCell>
-                        {getPaymentMethodLabel(
-                          payment.paymentMethod as PaymentMethod | null
-                        )}
-                      </TableCell>
+
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -1148,51 +1109,6 @@ export default function TutorPaymentsPage() {
           )}
         </CardContent>
       </Card>
-
-      {/* Payment Method Dialog (Single) */}
-      <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("markAsPaid")}</DialogTitle>
-            <DialogDescription>{t("selectPaymentMethod")}</DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <Select
-              value={selectedPaymentMethod}
-              onValueChange={(v) =>
-                setSelectedPaymentMethod(v as PaymentMethod)
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="cash">{t("cash")}</SelectItem>
-                <SelectItem value="bank_transfer">
-                  {t("bankTransfer")}
-                </SelectItem>
-                <SelectItem value="momo">{t("momo")}</SelectItem>
-                <SelectItem value="vnpay">{t("vnpay")}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setPaymentDialogOpen(false)}
-            >
-              {t("cancel")}
-            </Button>
-            <Button
-              onClick={confirmPayment}
-              disabled={updateStatusMutation.isPending}
-            >
-              <CheckCircle className="h-4 w-4 mr-2" />
-              {t("markAsPaid")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Edit Payment Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
@@ -1280,65 +1196,6 @@ export default function TutorPaymentsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Batch Mark as Paid Dialog */}
-      <Dialog open={batchPayDialogOpen} onOpenChange={setBatchPayDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("batchMarkAsPaid")}</DialogTitle>
-            <DialogDescription>
-              {t("selectedCount", { count: selectedPaymentIds.length })}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>{t("selectPaymentMethod")}</Label>
-              <Select
-                value={selectedPaymentMethod}
-                onValueChange={(v) =>
-                  setSelectedPaymentMethod(v as PaymentMethod)
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cash">{t("cash")}</SelectItem>
-                  <SelectItem value="bank_transfer">
-                    {t("bankTransfer")}
-                  </SelectItem>
-                  <SelectItem value="momo">{t("momo")}</SelectItem>
-                  <SelectItem value="vnpay">{t("vnpay")}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>{t("notes")}</Label>
-              <Textarea
-                value={batchNotes}
-                onChange={(e) => setBatchNotes(e.target.value)}
-                placeholder={t("enterNotes")}
-                rows={3}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setBatchPayDialogOpen(false)}
-            >
-              {t("cancel")}
-            </Button>
-            <Button
-              onClick={confirmBatchMarkAsPaid}
-              disabled={batchMarkAsPaidMutation.isPending}
-            >
-              <CheckCircle className="h-4 w-4 mr-2" />
-              {t("batchMarkAsPaid")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Payment Details Dialog */}
       <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
@@ -1446,17 +1303,6 @@ export default function TutorPaymentsPage() {
                               detailsQuery.data.paidAt
                             ).toLocaleDateString()
                           : "-"}
-                      </p>
-                    </div>
-                    <div>
-                      <Label className="text-muted-foreground">
-                        {t("paymentMethod")}
-                      </Label>
-                      <p className="font-medium">
-                        {getPaymentMethodLabel(
-                          detailsQuery.data
-                            .paymentMethod as PaymentMethod | null
-                        )}
                       </p>
                     </div>
                   </div>

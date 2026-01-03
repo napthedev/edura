@@ -25,7 +25,6 @@ import Link from "next/link";
 import { use } from "react";
 
 type BillingStatus = "pending" | "paid" | "overdue" | "cancelled";
-type PaymentMethod = "cash" | "bank_transfer" | "momo" | "vnpay";
 
 export default function InvoicePage({
   params,
@@ -84,17 +83,6 @@ export default function InvoicePage({
         )}
       </Badge>
     );
-  };
-
-  const getPaymentMethodLabel = (method: PaymentMethod | null) => {
-    if (!method) return "-";
-    const labels: Record<PaymentMethod, string> = {
-      cash: tBilling("cash"),
-      bank_transfer: tBilling("bankTransfer"),
-      momo: tBilling("momo"),
-      vnpay: tBilling("vnpay"),
-    };
-    return labels[method];
   };
 
   const handlePrint = () => {
@@ -337,16 +325,6 @@ export default function InvoicePage({
                       {invoice.paidAt
                         ? new Date(invoice.paidAt).toLocaleDateString()
                         : "-"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      {t("paymentMethod")}
-                    </span>
-                    <span className="font-medium">
-                      {getPaymentMethodLabel(
-                        invoice.paymentMethod as PaymentMethod | null
-                      )}
                     </span>
                   </div>
                 </div>

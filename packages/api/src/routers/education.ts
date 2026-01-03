@@ -2721,9 +2721,6 @@ export const educationRouter = router({
       z.object({
         billingId: z.string(),
         status: z.enum(["pending", "paid", "overdue", "cancelled"]),
-        paymentMethod: z
-          .enum(["cash", "bank_transfer", "momo", "vnpay"])
-          .optional(),
         notes: z.string().optional(),
       })
     )
@@ -2735,7 +2732,7 @@ export const educationRouter = router({
       const updateData: {
         status: "pending" | "paid" | "overdue" | "cancelled";
         paidAt?: Date | null;
-        paymentMethod?: "cash" | "bank_transfer" | "momo" | "vnpay" | null;
+        paymentMethod?: "cash" | null;
         notes?: string | null;
       } = {
         status: input.status,
@@ -2743,9 +2740,7 @@ export const educationRouter = router({
 
       if (input.status === "paid") {
         updateData.paidAt = new Date();
-        if (input.paymentMethod) {
-          updateData.paymentMethod = input.paymentMethod;
-        }
+        updateData.paymentMethod = "cash";
       } else {
         updateData.paidAt = null;
         updateData.paymentMethod = null;
@@ -3675,9 +3670,6 @@ export const educationRouter = router({
       z.object({
         paymentId: z.string(),
         status: z.enum(["pending", "paid", "overdue", "cancelled"]),
-        paymentMethod: z
-          .enum(["cash", "bank_transfer", "momo", "vnpay"])
-          .optional(),
         notes: z.string().optional(),
       })
     )
@@ -3689,7 +3681,7 @@ export const educationRouter = router({
       const updateData: {
         status: "pending" | "paid" | "overdue" | "cancelled";
         paidAt?: Date | null;
-        paymentMethod?: "cash" | "bank_transfer" | "momo" | "vnpay" | null;
+        paymentMethod?: "cash" | null;
         notes?: string | null;
       } = {
         status: input.status,
@@ -3697,9 +3689,7 @@ export const educationRouter = router({
 
       if (input.status === "paid") {
         updateData.paidAt = new Date();
-        if (input.paymentMethod) {
-          updateData.paymentMethod = input.paymentMethod;
-        }
+        updateData.paymentMethod = "cash";
       } else {
         updateData.paidAt = null;
         updateData.paymentMethod = null;
@@ -3828,7 +3818,6 @@ export const educationRouter = router({
     .input(
       z.object({
         paymentIds: z.array(z.string()),
-        paymentMethod: z.enum(["cash", "bank_transfer", "momo", "vnpay"]),
         notes: z.string().optional(),
       })
     )
@@ -3872,7 +3861,7 @@ export const educationRouter = router({
         .set({
           status: "paid",
           paidAt: new Date(),
-          paymentMethod: input.paymentMethod,
+          paymentMethod: "cash",
           notes: input.notes || null,
         })
         .where(inArray(tutorPayments.paymentId, input.paymentIds));

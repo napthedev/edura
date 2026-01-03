@@ -11,22 +11,7 @@ import {
 } from "@/components/ui/card";
 import Loader from "@/components/loader";
 import { useTranslations } from "next-intl";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Legend,
-  Tooltip,
-} from "recharts";
-import {
-  CircleDollarSign,
-  TrendingUp,
-  CreditCard,
-  Banknote,
-  Building2,
-  Smartphone,
-} from "lucide-react";
+import { CircleDollarSign, TrendingUp } from "lucide-react";
 
 export default function CollectionMetrics() {
   const t = useTranslations("FinanceDashboard");
@@ -61,34 +46,6 @@ export default function CollectionMetrics() {
   }
 
   const data = metricsQuery.data;
-
-  // Payment method colors and icons
-  const paymentMethodConfig: Record<
-    string,
-    {
-      color: string;
-      label: string;
-      icon: React.ComponentType<{ className?: string; color?: string }>;
-    }
-  > = {
-    cash: { color: "#22c55e", label: t("cash"), icon: Banknote },
-    bank_transfer: {
-      color: "#3b82f6",
-      label: t("bankTransfer"),
-      icon: Building2,
-    },
-    momo: { color: "#ec4899", label: "MoMo", icon: Smartphone },
-    vnpay: { color: "#f97316", label: "VNPay", icon: CreditCard },
-    unknown: { color: "#94a3b8", label: t("unknown"), icon: CircleDollarSign },
-  };
-
-  const pieData =
-    data?.paymentMethodDistribution.map((item) => ({
-      name: paymentMethodConfig[item.method]?.label || item.method,
-      value: item.amount,
-      count: item.count,
-      color: paymentMethodConfig[item.method]?.color || "#94a3b8",
-    })) || [];
 
   // Collection rate ring calculation
   const collectionRate = data?.collectionRate || 0;
@@ -185,101 +142,6 @@ export default function CollectionMetrics() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Payment Method Distribution */}
-      <Card className="shadow-sm border-none">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5" />
-            {t("paymentMethodDistribution")}
-          </CardTitle>
-          <CardDescription>{t("paymentMethodDescription")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {pieData.length > 0 ? (
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Pie Chart */}
-              <div className="h-[250px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={pieData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={90}
-                      paddingAngle={2}
-                      dataKey="value"
-                    >
-                      {pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      formatter={(value: number) => formatCurrencyFull(value)}
-                      contentStyle={{
-                        borderRadius: "8px",
-                        border: "none",
-                        boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-                      }}
-                    />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Method Breakdown List */}
-              <div className="space-y-3">
-                {data?.paymentMethodDistribution.map((item) => {
-                  const config =
-                    paymentMethodConfig[item.method] ||
-                    paymentMethodConfig.unknown;
-                  const Icon = config.icon;
-                  const percentage =
-                    data.totalCollected > 0
-                      ? Math.round((item.amount / data.totalCollected) * 100)
-                      : 0;
-
-                  return (
-                    <div
-                      key={item.method}
-                      className="flex items-center justify-between p-3 rounded-lg bg-slate-50"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="w-10 h-10 rounded-full flex items-center justify-center"
-                          style={{ backgroundColor: `${config.color}20` }}
-                        >
-                          <Icon className="h-5 w-5" color={config.color} />
-                        </div>
-                        <div>
-                          <p className="font-medium">{config.label}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {item.count} {t("transactions")}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold">
-                          {formatCurrency(item.amount)}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {percentage}%
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-12 text-muted-foreground">
-              <CreditCard className="h-12 w-12 mx-auto mb-4 opacity-20" />
-              <p>{t("noPaymentData")}</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }
