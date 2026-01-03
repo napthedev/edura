@@ -114,7 +114,8 @@ export default function TeacherRatesPage() {
   // Check for existing presets
   const presetsCheckQuery = useQuery({
     queryKey: ["teacher-rate-presets-check"],
-    queryFn: () => trpcClient.education.getTeacherRatePresets.query({ isActive: true }),
+    queryFn: () =>
+      trpcClient.education.getTeacherRatePresets.query({ isActive: true }),
     staleTime: Infinity,
   });
 
@@ -198,9 +199,12 @@ export default function TeacherRatesPage() {
   });
 
   const initializePresetsMutation = useMutation({
-    mutationFn: () => trpcClient.education.initializeDefaultRatePresets.mutate(),
+    mutationFn: () =>
+      trpcClient.education.initializeDefaultRatePresets.mutate(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["teacher-rate-presets-check"] });
+      queryClient.invalidateQueries({
+        queryKey: ["teacher-rate-presets-check"],
+      });
       queryClient.invalidateQueries({ queryKey: ["teacher-rate-presets"] });
       toast.success(t("defaultPresetsCreated"));
       setSetupDialogOpen(false);
