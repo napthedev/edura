@@ -1154,7 +1154,42 @@
     "error": "Không thể tải chi tiết học sinh",
     "noClasses": "Chưa ghi danh vào lớp nào",
     "close": "Đóng",
-    "viewDetails": "Xem chi tiết"
+    "viewDetails": "Xem chi tiết",
+    "addToClass": "Thêm vào lớp",
+    "selectClass": "Chọn lớp",
+    "enroll": "Ghi danh",
+    "enrollSuccess": "Ghi danh thành công",
+    "alreadyEnrolled": "Học sinh đã tham gia lớp này"
+  },
+  "ManagerClasses": {
+    "title": "Lớp học",
+    "description": "Quản lý tất cả lớp học và xem chi tiết",
+    "totalClasses": "Tổng số lớp",
+    "totalStudents": "Tổng số học sinh",
+    "activeClasses": "Lớp đang hoạt động",
+    "enrolledStudents": "Học sinh đã ghi danh",
+    "classesList": "Danh sách lớp",
+    "viewDetail": "Xem chi tiết",
+    "className": "Tên lớp",
+    "subject": "Môn học",
+    "teacher": "Giáo viên",
+    "studentCount": "Số học sinh",
+    "classCode": "Mã lớp",
+    "createdDate": "Ngày tạo",
+    "code": "Mã",
+    "noClasses": "Không tìm thấy lớp nào"
+  },
+  "ClassDetailModal": {
+    "title": "Chi tiết lớp học",
+    "classInfo": "Thông tin lớp học",
+    "teacherInfo": "Thông tin giáo viên",
+    "students": "Học sinh đã ghi danh",
+    "studentCount": "Số học sinh",
+    "studentName": "Tên học sinh",
+    "email": "Email",
+    "enrolledDate": "Ngày ghi danh",
+    "noStudents": "Chưa có học sinh nào",
+    "close": "Đóng"
   },
   "DeadlineManagement": {
     "title": "Quản lý hạn chót",

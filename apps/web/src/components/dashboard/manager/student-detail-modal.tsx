@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { trpcClient } from "@/utils/trpc";
 import { useTranslations } from "next-intl";
 import {
@@ -20,7 +20,16 @@ import {
   BookOpen,
   GraduationCap,
   DollarSign,
+  Plus,
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { toast } from "sonner";
 import Loader from "@/components/loader";
 import {
   Table,
@@ -50,6 +59,35 @@ export function StudentDetailModal({
     queryFn: () => trpcClient.education.getStudentDetails.query({ studentId }),
     enabled: open, // Only fetch when modal is open
   });
+
+  const [selectedClassId, setSelectedClassId] = useState<string>("");
+
+  const allClassesQuery = useQuery({
+    queryKey: ["all-classes"],
+    queryFn: () => trpcClient.education.getAllClasses.query(),
+    enabled: open,
+  });
+
+  const queryClient = useQueryClient();
+  const enrollMutation = useMutation({
+    mutationFn: (data: { studentId: string; classId: string }) =>
+      trpcClient.education.manuallyAddStudentToClass.mutate(data),
+    onSuccess: () => {
+      toast.success(t("enrollSuccess"));
+      queryClient.invalidateQueries({
+        queryKey: ["student-details", studentId],
+      });
+      setSelectedClassId("");
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const handleEnroll = () => {
+    if (!selectedClassId) return;
+    enrollMutation.mutate({ studentId, classId: selectedClassId });
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -117,6 +155,42 @@ export function StudentDetailModal({
                     <Badge variant="secondary">{t("inactive")}</Badge>
                   )}
                 </div>
+              </div>
+            </div>
+
+            {/* Add to Class Section */}
+            <div className="rounded-lg border p-4 bg-slate-50/50">
+              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                {t("addToClass")}
+              </h3>
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <Select
+                    value={selectedClassId}
+                    onValueChange={setSelectedClassId}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={t("selectClass")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {allClassesQuery.data?.map((c) => (
+                        <SelectItem key={c.classId} value={c.classId}>
+                          {c.className} ({c.classCode})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button
+                  onClick={handleEnroll}
+                  disabled={!selectedClassId || enrollMutation.isPending}
+                >
+                  {enrollMutation.isPending && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  {t("enroll")}
+                </Button>
               </div>
             </div>
 

@@ -163,6 +163,11 @@ function SidebarContent({ role }: { role: "teacher" | "student" | "manager" }) {
       icon: GraduationCap,
     },
     {
+      href: "/dashboard/manager/classes",
+      label: t("classes"),
+      icon: BookOpen,
+    },
+    {
       href: "/dashboard/manager/attendance",
       label: t("attendance"),
       icon: ClipboardCheck,

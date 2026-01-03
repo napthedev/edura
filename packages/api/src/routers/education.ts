@@ -3746,9 +3746,13 @@ export const educationRouter = router({
         tuitionRate: classes.tuitionRate,
         teacherId: classes.teacherId,
         teacherName: user.name,
+        studentCount: sql<number>`count(${enrollments.enrollmentId})::int`,
+        createdAt: classes.createdAt,
       })
       .from(classes)
       .leftJoin(user, eq(classes.teacherId, user.id))
+      .leftJoin(enrollments, eq(classes.classId, enrollments.classId))
+      .groupBy(classes.classId, user.id)
       .orderBy(classes.className);
 
     return allClasses;
@@ -7048,6 +7052,113 @@ export const educationRouter = router({
         success: true,
         message: "Urgent alert sent successfully",
         recipients: validRecipients,
+      };
+    }),
+  manuallyAddStudentToClass: protectedProcedure
+    .input(
+      z.object({
+        studentId: z.string(),
+        classId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (
+        ctx.session.user.role !== "manager" &&
+        ctx.session.user.role !== "admin"
+      ) {
+        throw new Error(
+          "Unauthorized: Only managers can manually add students to classes"
+        );
+      }
+
+      const classData = await ctx.db
+        .select()
+        .from(classes)
+        .where(eq(classes.classId, input.classId));
+
+      if (classData.length === 0) {
+        throw new Error("Class not found");
+      }
+
+      const studentData = await ctx.db
+        .select()
+        .from(user)
+        .where(eq(user.id, input.studentId));
+
+      if (studentData.length === 0) {
+        throw new Error("Student not found");
+      }
+
+      const existingEnrollment = await ctx.db
+        .select()
+        .from(enrollments)
+        .where(
+          and(
+            eq(enrollments.studentId, input.studentId),
+            eq(enrollments.classId, input.classId)
+          )
+        );
+
+      if (existingEnrollment.length > 0) {
+        throw new Error("Student is already enrolled in this class");
+      }
+
+      await ctx.db.insert(enrollments).values({
+        enrollmentId: crypto.randomUUID(),
+        studentId: input.studentId,
+        classId: input.classId,
+        enrolledAt: new Date(),
+      });
+
+      return { success: true };
+    }),
+
+  getClassDetailById: protectedProcedure
+    .input(z.object({ classId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      if (
+        ctx.session.user.role !== "manager" &&
+        ctx.session.user.role !== "admin"
+      ) {
+        throw new Error("Unauthorized");
+      }
+
+      const classData = await ctx.db
+        .select({
+          classId: classes.classId,
+          className: classes.className,
+          classCode: classes.classCode,
+          subject: classes.subject,
+          schedule: classes.schedule,
+          createdAt: classes.createdAt,
+          teacherId: classes.teacherId,
+          teacherName: user.name,
+          teacherEmail: user.email,
+        })
+        .from(classes)
+        .leftJoin(user, eq(classes.teacherId, user.id))
+        .where(eq(classes.classId, input.classId));
+
+      if (classData.length === 0) {
+        throw new Error("Class not found");
+      }
+
+      const enrolledStudents = await ctx.db
+        .select({
+          userId: user.id,
+          name: user.name,
+          email: user.email,
+          enrolledAt: enrollments.enrolledAt,
+        })
+        .from(enrollments)
+        .innerJoin(user, eq(enrollments.studentId, user.id))
+        .where(eq(enrollments.classId, input.classId))
+        .orderBy(user.name);
+
+      return {
+        ...classData[0],
+        students: enrolledStudents,
+        studentCount: enrolledStudents.length,
       };
     }),
 });
