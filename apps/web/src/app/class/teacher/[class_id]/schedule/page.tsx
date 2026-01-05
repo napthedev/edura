@@ -5,14 +5,18 @@ import { useQuery } from "@tanstack/react-query";
 import { trpcClient } from "@/utils/trpc";
 import CreateScheduleForm from "@/components/schedule/schedule-form";
 import ScheduleCalendar from "@/components/schedule/schedule-calendar";
+import SessionReportsCalendar from "@/components/schedule/session-reports-calendar";
+import StudentCheckIn from "@/components/schedule/student-check-in";
 import Loader from "@/components/loader";
 import { useTranslations } from "next-intl";
-import { Calendar } from "lucide-react";
+import { Calendar, FileText } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function SchedulePage() {
   const params = useParams();
   const classId = params.class_id as string;
   const t = useTranslations("ClassPage");
+  const tReports = useTranslations("SessionReports");
 
   const schedulesQuery = useQuery({
     queryKey: ["class-schedules", classId],
@@ -31,16 +35,41 @@ export default function SchedulePage() {
           onSuccess={() => schedulesQuery.refetch()}
         />
       </div>
-      {schedulesQuery.isLoading ? (
-        <Loader />
-      ) : (
-        <ScheduleCalendar
-          schedules={schedulesQuery.data || []}
-          classId={classId}
-          onScheduleUpdate={() => schedulesQuery.refetch()}
-          isTeacher={true}
-        />
-      )}
+
+      <Tabs defaultValue="schedule" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="schedule">
+            <Calendar className="h-4 w-4 mr-2" />
+            Weekly Schedule
+          </TabsTrigger>
+          <TabsTrigger value="reports">
+            <FileText className="h-4 w-4 mr-2" />
+            {tReports("title")}
+          </TabsTrigger>
+          <TabsTrigger value="attendance">Student Attendance</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="schedule" className="space-y-4">
+          {schedulesQuery.isLoading ? (
+            <Loader />
+          ) : (
+            <ScheduleCalendar
+              schedules={schedulesQuery.data || []}
+              classId={classId}
+              onScheduleUpdate={() => schedulesQuery.refetch()}
+              isTeacher={true}
+            />
+          )}
+        </TabsContent>
+
+        <TabsContent value="reports" className="space-y-4">
+          <SessionReportsCalendar classId={classId} />
+        </TabsContent>
+
+        <TabsContent value="attendance" className="space-y-4">
+          <StudentCheckIn />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

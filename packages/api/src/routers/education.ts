@@ -17,6 +17,7 @@ import {
   teacherRatePresets,
   attendanceLogs,
   studentAttendanceLogs,
+  sessionReports,
   expenseCategories,
   expenses,
   parentConsent,
@@ -3524,26 +3525,42 @@ export const educationRouter = router({
 
         const classIds = teacherClasses.map((c) => c.classId);
 
-        // Get actual attendance logs for this month (completed sessions only)
-        const completedLogs = await ctx.db
-          .select()
-          .from(attendanceLogs)
+        // Get session reports for this month (new approach)
+        const completedReports = await ctx.db
+          .select({
+            report: sessionReports,
+            schedule: classSchedules,
+          })
+          .from(sessionReports)
+          .innerJoin(
+            classSchedules,
+            eq(sessionReports.scheduleId, classSchedules.scheduleId)
+          )
           .where(
             and(
-              eq(attendanceLogs.teacherId, teacherRate.teacherId),
-              eq(attendanceLogs.status, "completed"),
-              sql`${attendanceLogs.sessionDate} LIKE ${
+              eq(sessionReports.teacherId, teacherRate.teacherId),
+              sql`${sessionReports.sessionDate} LIKE ${
                 input.paymentMonth + "%"
               }`
             )
           );
 
-        // Calculate actual sessions and hours from attendance logs
-        let sessionsCount = completedLogs.length;
-        let totalMinutes = completedLogs.reduce(
-          (sum, log) => sum + (log.actualDurationMinutes || 0),
-          0
-        );
+        // Calculate sessions count and total minutes from session reports
+        let sessionsCount = completedReports.length;
+
+        // Calculate total minutes based on scheduled duration
+        let totalMinutes = 0;
+        for (const { schedule } of completedReports) {
+          const [startHours, startMinutes] = schedule.startTime
+            .split(":")
+            .map(Number);
+          const [endHours, endMinutes] = schedule.endTime
+            .split(":")
+            .map(Number);
+          const startTimeMinutes = startHours! * 60 + startMinutes!;
+          const endTimeMinutes = endHours! * 60 + endMinutes!;
+          totalMinutes += endTimeMinutes - startTimeMinutes;
+        }
 
         // Count unique students across all classes
         const studentCounts = await ctx.db
@@ -3559,7 +3576,7 @@ export const educationRouter = router({
         let amount = 0;
         switch (teacherRate.rateType) {
           case "HOURLY":
-            // Use actual hours from attendance logs
+            // Use scheduled hours from session reports
             const totalHours = totalMinutes / 60;
             amount = teacherRate.amount * totalHours;
             break;
@@ -3570,7 +3587,7 @@ export const educationRouter = router({
             amount = teacherRate.amount;
             break;
           case "PER_MINUTE":
-            // Use actual minutes from attendance logs
+            // Use scheduled minutes from session reports
             amount = teacherRate.amount * totalMinutes;
             break;
         }
@@ -4235,18 +4252,23 @@ export const educationRouter = router({
   // ========== ATTENDANCE / CHECK-IN PROCEDURES ==========
 
   // Get active schedule for check-in (teacher only)
-  // Returns schedule if current time is within ±15 minutes of start time
+  // Returns schedule if current time is within ±5 minutes of start time
   getActiveScheduleForCheckIn: protectedProcedure.query(async ({ ctx }) => {
     if (ctx.session.user.role !== "teacher") {
       throw new Error("Access denied - teacher only");
     }
 
+    // Get current time in Vietnam timezone (UTC+7)
     const now = new Date();
-    const currentDayOfWeek = now.getDay(); // 0 = Sunday, 6 = Saturday
-    const currentHours = now.getHours();
-    const currentMinutes = now.getMinutes();
-    const currentTimeMinutes = currentHours * 60 + currentMinutes;
-    const today = now.toISOString().split("T")[0]; // "YYYY-MM-DD"
+    const vietnamTime = new Date(now.getTime() + 7 * 60 * 60 * 1000); // Add 7 hours for Vietnam timezone
+    const utcDate = new Date(now.toISOString());
+
+    // Calculate Vietnam local time components
+    const vietnamHours = vietnamTime.getUTCHours();
+    const vietnamMinutes = vietnamTime.getUTCMinutes();
+    const currentTimeMinutes = vietnamHours * 60 + vietnamMinutes;
+    const currentDayOfWeek = vietnamTime.getUTCDay(); // 0 = Sunday, 6 = Saturday
+    const today = vietnamTime.toISOString().split("T")[0]; // "YYYY-MM-DD" in Vietnam timezone
 
     // Get teacher's schedules for today
     const schedules = await ctx.db
@@ -4290,17 +4312,17 @@ export const educationRouter = router({
 
         const existingLog = logsBySchedule.get(schedule.scheduleId);
 
-        // Check if within ±15 minutes of start time (for check-in)
+        // Check if within ±5 minutes of start time (for check-in)
         const canCheckIn =
           !existingLog &&
-          currentTimeMinutes >= startTimeMinutes - 15 &&
-          currentTimeMinutes <= startTimeMinutes + 15;
+          currentTimeMinutes >= startTimeMinutes - 5 &&
+          currentTimeMinutes <= startTimeMinutes + 5;
 
-        // Check if within ±15 minutes of end time (for check-out)
+        // Check if within ±5 minutes of end time (for check-out)
         const canCheckOut =
           existingLog?.status === "checked_in" &&
-          currentTimeMinutes >= endTimeMinutes - 15 &&
-          currentTimeMinutes <= endTimeMinutes + 15;
+          currentTimeMinutes >= endTimeMinutes - 5 &&
+          currentTimeMinutes <= endTimeMinutes + 5;
 
         return {
           scheduleId: schedule.scheduleId,
@@ -4340,12 +4362,16 @@ export const educationRouter = router({
         throw new Error("Access denied - teacher only");
       }
 
+      // Get current time in Vietnam timezone (UTC+7)
       const now = new Date();
-      const currentDayOfWeek = now.getDay();
-      const currentHours = now.getHours();
-      const currentMinutes = now.getMinutes();
-      const currentTimeMinutes = currentHours * 60 + currentMinutes;
-      const today = now.toISOString().split("T")[0]!;
+      const vietnamTime = new Date(now.getTime() + 7 * 60 * 60 * 1000);
+
+      // Calculate Vietnam local time components
+      const vietnamHours = vietnamTime.getUTCHours();
+      const vietnamMinutes = vietnamTime.getUTCMinutes();
+      const currentTimeMinutes = vietnamHours * 60 + vietnamMinutes;
+      const currentDayOfWeek = vietnamTime.getUTCDay();
+      const today = vietnamTime.toISOString().split("T")[0]!;
 
       // Get the schedule and verify teacher owns the class
       const scheduleData = await ctx.db
@@ -4373,18 +4399,18 @@ export const educationRouter = router({
         throw new Error("This schedule is not for today");
       }
 
-      // Verify within ±15 minutes of start time
+      // Verify within ±5 minutes of start time
       const [startHours, startMinutes] = schedule.startTime
         .split(":")
         .map(Number);
       const startTimeMinutes = startHours! * 60 + startMinutes!;
 
       if (
-        currentTimeMinutes < startTimeMinutes - 15 ||
-        currentTimeMinutes > startTimeMinutes + 15
+        currentTimeMinutes < startTimeMinutes - 5 ||
+        currentTimeMinutes > startTimeMinutes + 5
       ) {
         throw new Error(
-          "Check-in is only allowed within 15 minutes of the scheduled start time"
+          "Check-in is only allowed within 5 minutes of the scheduled start time"
         );
       }
 
@@ -4430,10 +4456,14 @@ export const educationRouter = router({
         throw new Error("Access denied - teacher only");
       }
 
+      // Get current time in Vietnam timezone (UTC+7)
       const now = new Date();
-      const currentHours = now.getHours();
-      const currentMinutes = now.getMinutes();
-      const currentTimeMinutes = currentHours * 60 + currentMinutes;
+      const vietnamTime = new Date(now.getTime() + 7 * 60 * 60 * 1000);
+
+      // Calculate Vietnam local time components
+      const vietnamHours = vietnamTime.getUTCHours();
+      const vietnamMinutes = vietnamTime.getUTCMinutes();
+      const currentTimeMinutes = vietnamHours * 60 + vietnamMinutes;
 
       // Get the attendance log
       const logData = await ctx.db
@@ -4463,16 +4493,16 @@ export const educationRouter = router({
         throw new Error("Session is not in checked-in status");
       }
 
-      // Verify within ±15 minutes of end time
+      // Verify within ±5 minutes of end time
       const [endHours, endMinutes] = schedule.endTime.split(":").map(Number);
       const endTimeMinutes = endHours! * 60 + endMinutes!;
 
       if (
-        currentTimeMinutes < endTimeMinutes - 15 ||
-        currentTimeMinutes > endTimeMinutes + 15
+        currentTimeMinutes < endTimeMinutes - 5 ||
+        currentTimeMinutes > endTimeMinutes + 5
       ) {
         throw new Error(
-          "Check-out is only allowed within 15 minutes of the scheduled end time"
+          "Check-out is only allowed within 5 minutes of the scheduled end time"
         );
       }
 
@@ -4644,7 +4674,343 @@ export const educationRouter = router({
     }),
 
   // =====================
+  // SESSION REPORTS (Teacher session reports replacing check-in/check-out)
+  // =====================
+
+  // Create a session report (teacher only)
+  createSessionReport: protectedProcedure
+    .input(
+      z.object({
+        scheduleId: z.string(),
+        sessionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), // YYYY-MM-DD format
+        reportContent: z
+          .string()
+          .min(200, "Report must be at least 200 characters"),
+        recordingLink: z.string().url("Must be a valid URL"),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "teacher") {
+        throw new Error("Access denied - teacher only");
+      }
+
+      // Verify the schedule belongs to the teacher
+      const scheduleData = await ctx.db
+        .select({
+          schedule: classSchedules,
+          class: classes,
+        })
+        .from(classSchedules)
+        .innerJoin(classes, eq(classSchedules.classId, classes.classId))
+        .where(eq(classSchedules.scheduleId, input.scheduleId));
+
+      if (scheduleData.length === 0) {
+        throw new Error("Schedule not found");
+      }
+
+      const { schedule, class: cls } = scheduleData[0]!;
+
+      if (cls.teacherId !== ctx.session.user.id) {
+        throw new Error("Access denied - you don't own this class");
+      }
+
+      // Check if report already exists for this session
+      const existingReport = await ctx.db
+        .select()
+        .from(sessionReports)
+        .where(
+          and(
+            eq(sessionReports.scheduleId, input.scheduleId),
+            eq(sessionReports.sessionDate, input.sessionDate)
+          )
+        );
+
+      if (existingReport.length > 0) {
+        throw new Error("A report already exists for this session");
+      }
+
+      // Create the report
+      const reportId = crypto.randomUUID();
+      await ctx.db.insert(sessionReports).values({
+        reportId,
+        scheduleId: input.scheduleId,
+        classId: cls.classId,
+        teacherId: ctx.session.user.id,
+        sessionDate: input.sessionDate,
+        reportContent: input.reportContent,
+        recordingLink: input.recordingLink,
+      });
+
+      return { success: true, reportId };
+    }),
+
+  // Update a session report (teacher only)
+  updateSessionReport: protectedProcedure
+    .input(
+      z.object({
+        reportId: z.string(),
+        reportContent: z
+          .string()
+          .min(200, "Report must be at least 200 characters")
+          .optional(),
+        recordingLink: z.string().url("Must be a valid URL").optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "teacher") {
+        throw new Error("Access denied - teacher only");
+      }
+
+      // Verify the report belongs to the teacher
+      const report = await ctx.db
+        .select()
+        .from(sessionReports)
+        .where(
+          and(
+            eq(sessionReports.reportId, input.reportId),
+            eq(sessionReports.teacherId, ctx.session.user.id)
+          )
+        );
+
+      if (report.length === 0) {
+        throw new Error("Report not found or access denied");
+      }
+
+      // Update the report
+      const updateData: {
+        reportContent?: string;
+        recordingLink?: string;
+        updatedAt: Date;
+      } = {
+        updatedAt: new Date(),
+      };
+
+      if (input.reportContent !== undefined) {
+        updateData.reportContent = input.reportContent;
+      }
+
+      if (input.recordingLink !== undefined) {
+        updateData.recordingLink = input.recordingLink;
+      }
+
+      await ctx.db
+        .update(sessionReports)
+        .set(updateData)
+        .where(eq(sessionReports.reportId, input.reportId));
+
+      return { success: true };
+    }),
+
+  // Delete a session report (teacher only)
+  deleteSessionReport: protectedProcedure
+    .input(z.object({ reportId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "teacher") {
+        throw new Error("Access denied - teacher only");
+      }
+
+      // Verify the report belongs to the teacher
+      const report = await ctx.db
+        .select()
+        .from(sessionReports)
+        .where(
+          and(
+            eq(sessionReports.reportId, input.reportId),
+            eq(sessionReports.teacherId, ctx.session.user.id)
+          )
+        );
+
+      if (report.length === 0) {
+        throw new Error("Report not found or access denied");
+      }
+
+      await ctx.db
+        .delete(sessionReports)
+        .where(eq(sessionReports.reportId, input.reportId));
+
+      return { success: true };
+    }),
+
+  // Get session reports for a class (teacher only, their own classes)
+  getSessionReportsForClass: protectedProcedure
+    .input(
+      z.object({
+        classId: z.string(),
+        month: z.string().optional(), // YYYY-MM format
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "teacher") {
+        throw new Error("Access denied - teacher only");
+      }
+
+      // Verify teacher owns the class
+      const classData = await ctx.db
+        .select()
+        .from(classes)
+        .where(
+          and(
+            eq(classes.classId, input.classId),
+            eq(classes.teacherId, ctx.session.user.id)
+          )
+        );
+
+      if (classData.length === 0) {
+        throw new Error("Class not found or access denied");
+      }
+
+      // Get reports for this class
+      let query = ctx.db
+        .select({
+          report: sessionReports,
+          schedule: classSchedules,
+        })
+        .from(sessionReports)
+        .innerJoin(
+          classSchedules,
+          eq(sessionReports.scheduleId, classSchedules.scheduleId)
+        )
+        .where(eq(sessionReports.classId, input.classId))
+        .orderBy(desc(sessionReports.sessionDate));
+
+      const reports = await query;
+
+      // Filter by month if specified
+      if (input.month) {
+        return reports.filter((r) =>
+          r.report.sessionDate.startsWith(input.month!)
+        );
+      }
+
+      return reports;
+    }),
+
+  // Get a specific session report (teacher only)
+  getSessionReport: protectedProcedure
+    .input(z.object({ reportId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "teacher") {
+        throw new Error("Access denied - teacher only");
+      }
+
+      const report = await ctx.db
+        .select({
+          report: sessionReports,
+          schedule: classSchedules,
+          class: classes,
+        })
+        .from(sessionReports)
+        .innerJoin(
+          classSchedules,
+          eq(sessionReports.scheduleId, classSchedules.scheduleId)
+        )
+        .innerJoin(classes, eq(sessionReports.classId, classes.classId))
+        .where(
+          and(
+            eq(sessionReports.reportId, input.reportId),
+            eq(sessionReports.teacherId, ctx.session.user.id)
+          )
+        );
+
+      if (report.length === 0) {
+        return null;
+      }
+
+      return report[0];
+    }),
+
+  // Get schedules with their report status for time-series calendar
+  getSchedulesWithReports: protectedProcedure
+    .input(
+      z.object({
+        classId: z.string(),
+        month: z.string(), // YYYY-MM format
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "teacher") {
+        throw new Error("Access denied - teacher only");
+      }
+
+      // Verify teacher owns the class
+      const classData = await ctx.db
+        .select()
+        .from(classes)
+        .where(
+          and(
+            eq(classes.classId, input.classId),
+            eq(classes.teacherId, ctx.session.user.id)
+          )
+        );
+
+      if (classData.length === 0) {
+        throw new Error("Class not found or access denied");
+      }
+
+      // Get all schedules for this class
+      const schedules = await ctx.db
+        .select()
+        .from(classSchedules)
+        .where(eq(classSchedules.classId, input.classId));
+
+      // Get all reports for this month
+      const reports = await ctx.db
+        .select()
+        .from(sessionReports)
+        .where(
+          and(
+            eq(sessionReports.classId, input.classId),
+            sql`${sessionReports.sessionDate} LIKE ${input.month + "%"}`
+          )
+        );
+
+      // Create a map of schedule+date to report
+      const reportMap = new Map(
+        reports.map((r) => [`${r.scheduleId}-${r.sessionDate}`, r])
+      );
+
+      // Generate all session dates for the month based on schedules
+      const startDate = new Date(input.month + "-01");
+      const endDate = new Date(
+        startDate.getFullYear(),
+        startDate.getMonth() + 1,
+        0
+      );
+
+      const sessions = [];
+      for (const schedule of schedules) {
+        let currentDate = new Date(startDate);
+
+        while (currentDate <= endDate) {
+          if (currentDate.getDay() === schedule.dayOfWeek) {
+            const dateStr = currentDate.toISOString().split("T")[0]!;
+            const report = reportMap.get(`${schedule.scheduleId}-${dateStr}`);
+
+            sessions.push({
+              scheduleId: schedule.scheduleId,
+              sessionDate: dateStr,
+              title: schedule.title,
+              startTime: schedule.startTime,
+              endTime: schedule.endTime,
+              color: schedule.color,
+              location: schedule.location,
+              hasReport: !!report,
+              report: report || null,
+            });
+          }
+          currentDate.setDate(currentDate.getDate() + 1);
+        }
+      }
+
+      return sessions.sort((a, b) =>
+        a.sessionDate.localeCompare(b.sessionDate)
+      );
+    }),
+
+  // =====================
   // ACCOUNT MANAGEMENT (Manager only)
+  // =====================
+
   // =====================
 
   // Create a teacher account

@@ -481,3 +481,33 @@ export const resources = pgTable("resources", {
     .references(() => user.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+// Session Reports (teacher session reports replacing check-in/check-out)
+export const sessionReports = pgTable(
+  "session_reports",
+  {
+    reportId: text("report_id").primaryKey(),
+    scheduleId: text("schedule_id")
+      .notNull()
+      .references(() => classSchedules.scheduleId, { onDelete: "cascade" }),
+    classId: text("class_id")
+      .notNull()
+      .references(() => classes.classId, { onDelete: "cascade" }),
+    teacherId: text("teacher_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    sessionDate: text("session_date").notNull(), // Format: "YYYY-MM-DD"
+    reportContent: text("report_content").notNull(), // Minimum 200 characters
+    recordingLink: text("recording_link").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    // Ensure one report per session per day
+    uniqueScheduleSessionDate: unique().on(table.scheduleId, table.sessionDate),
+    // Index for querying reports by date
+    sessionDateIdx: index("session_reports_session_date_idx").on(
+      table.sessionDate
+    ),
+  })
+);
