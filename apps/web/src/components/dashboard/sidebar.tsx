@@ -168,6 +168,11 @@ function SidebarContent({ role }: { role: "teacher" | "student" | "manager" }) {
       icon: ClipboardCheck,
     },
     {
+      href: "/dashboard/manager/reports",
+      label: t("reports"),
+      icon: FileText,
+    },
+    {
       href: "/dashboard/manager/resources",
       label: t("resources"),
       icon: FolderOpen,

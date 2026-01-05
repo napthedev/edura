@@ -796,7 +796,8 @@
     "attendance": "Attendance",
     "expenses": "Expenses",
     "billings": "Billings",
-    "resources": "Resources"
+    "resources": "Resources",
+    "reports": "Reports"
   },
 
   "DoAssignment": {
@@ -2072,5 +2073,41 @@
     "enrolledDate": "Enrolled Date",
     "noStudents": "No students enrolled yet",
     "close": "Close"
+  },
+  "SessionReportsPage": {
+    "title": "Session Reports",
+    "description": "View and manage tutoring session reports submitted by teachers."
+  },
+  "ReportList": {
+    "searchPlaceholder": "Search by teacher or class...",
+    "filterStatus": "Filter Status",
+    "all": "All",
+    "valid": "Valid",
+    "invalid": "Invalid",
+    "reports": "Reports",
+    "date": "Date",
+    "class": "Class",
+    "teacher": "Teacher",
+    "status": "Status",
+    "actions": "Actions",
+    "unnamed": "Unnamed",
+    "details": "Details",
+    "noResults": "No reports found matching your criteria."
+  },
+  "ReportDetailModal": {
+    "title": "Report Details",
+    "description": "Session on {date} by {teacher}",
+    "classInfo": "Class Information",
+    "status": "Status",
+    "valid": "Valid",
+    "invalid": "Invalid",
+    "content": "Report Content",
+    "recording": "Recording",
+    "noRecording": "No recording link provided",
+    "processing": "Processing...",
+    "markAsInvalid": "Mark as Invalid",
+    "markAsValid": "Mark as Valid",
+    "close": "Close",
+    "statusUpdatedSuccess": "Report status updated successfully"
   }
 }

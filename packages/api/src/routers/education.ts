@@ -7945,6 +7945,52 @@ export const educationRouter = router({
         studentCount: enrolledStudents.length,
       };
     }),
+  getAllSessionReports: protectedProcedure.query(async ({ ctx }) => {
+    if (ctx.session.user.role !== "manager") {
+      throw new Error("Access denied");
+    }
+
+    const reports = await ctx.db
+      .select({
+        reportId: sessionReports.reportId,
+        sessionDate: sessionReports.sessionDate,
+        reportContent: sessionReports.reportContent,
+        recordingLink: sessionReports.recordingLink,
+        isValid: sessionReports.isValid,
+        createdAt: sessionReports.createdAt,
+        teacher: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+        },
+        class: {
+          id: classes.classId,
+          name: classes.className,
+          code: classes.classCode,
+        },
+      })
+      .from(sessionReports)
+      .innerJoin(user, eq(sessionReports.teacherId, user.id))
+      .innerJoin(classes, eq(sessionReports.classId, classes.classId))
+      .orderBy(desc(sessionReports.sessionDate));
+
+    return reports;
+  }),
+
+  toggleSessionReportValidity: protectedProcedure
+    .input(z.object({ reportId: z.string(), isValid: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role !== "manager") {
+        throw new Error("Access denied");
+      }
+
+      await ctx.db
+        .update(sessionReports)
+        .set({ isValid: input.isValid })
+        .where(eq(sessionReports.reportId, input.reportId));
+
+      return { success: true };
+    }),
 });
 
 export type EducationRouter = typeof educationRouter;

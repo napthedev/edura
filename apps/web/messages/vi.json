@@ -797,7 +797,8 @@
     "attendance": "Điểm danh",
     "expenses": "Chi phí",
     "billings": "Hóa đơn",
-    "resources": "Tài nguyên"
+    "resources": "Tài nguyên",
+    "reports": "Báo cáo"
   },
   "DoAssignment": {
     "class": "Lớp",
@@ -2074,5 +2075,41 @@
     "confirm": "Xác nhận",
     "back": "Quay lại",
     "submit": "Gửi"
+  },
+  "SessionReportsPage": {
+    "title": "Báo cáo buổi học",
+    "description": "Xem và quản lý báo cáo buổi học được gửi bởi giáo viên."
+  },
+  "ReportList": {
+    "searchPlaceholder": "Tìm kiếm theo giáo viên hoặc lớp...",
+    "filterStatus": "Lọc trạng thái",
+    "all": "Tất cả",
+    "valid": "Hợp lệ",
+    "invalid": "Không hợp lệ",
+    "reports": "Báo cáo",
+    "date": "Ngày",
+    "class": "Lớp",
+    "teacher": "Giáo viên",
+    "status": "Trạng thái",
+    "actions": "Hành động",
+    "unnamed": "Không tên",
+    "details": "Chi tiết",
+    "noResults": "Không tìm thấy báo cáo nào phù hợp."
+  },
+  "ReportDetailModal": {
+    "title": "Chi tiết báo cáo",
+    "description": "Buổi học ngày {date} bởi {teacher}",
+    "classInfo": "Thông tin lớp học",
+    "status": "Trạng thái",
+    "valid": "Hợp lệ",
+    "invalid": "Không hợp lệ",
+    "content": "Nội dung báo cáo",
+    "recording": "Bản ghi hình",
+    "noRecording": "Không có liên kết bản ghi",
+    "processing": "Đang xử lý...",
+    "markAsInvalid": "Đánh dấu là không hợp lệ",
+    "markAsValid": "Đánh dấu là hợp lệ",
+    "close": "Đóng",
+    "statusUpdatedSuccess": "Cập nhật trạng thái báo cáo thành công"
   }
 }

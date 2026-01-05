@@ -499,6 +499,7 @@ export const sessionReports = pgTable(
     sessionDate: text("session_date").notNull(), // Format: "YYYY-MM-DD"
     reportContent: text("report_content").notNull(), // Minimum 200 characters
     recordingLink: text("recording_link").notNull(),
+    isValid: boolean("is_valid").default(true).notNull(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
