@@ -39,6 +39,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Loader from "@/components/loader";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -54,6 +55,7 @@ import {
   Filter,
   X,
   Download,
+  Info,
 } from "lucide-react";
 import Link from "next/link";
 import { exportToCsv } from "@/lib/utils";
@@ -334,6 +336,21 @@ export default function TuitionBillingPage() {
           </Dialog>
         </div>
       </div>
+
+      {/* Warning Alert */}
+      <Alert>
+        <Info className="h-4 w-4" />
+        <AlertTitle>{t("warningTitle")}</AlertTitle>
+        <AlertDescription>
+          {t("warningDescription")}{" "}
+          <Link
+            href="/dashboard/manager/tuition-management"
+            className="font-medium underline underline-offset-4 hover:text-primary"
+          >
+            {t("tuitionManagementRoute")}
+          </Link>
+        </AlertDescription>
+      </Alert>
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-4">

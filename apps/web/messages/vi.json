@@ -1224,6 +1224,9 @@
     "noDueDate": "Không có hạn nộp"
   },
   "TuitionBilling": {
+    "warningTitle": "Lưu ý quan trọng",
+    "warningDescription": "Học phí lớp học phải được thiết lập trong trang quản lý học phí lớp học trước khi tính tổng.",
+    "tuitionManagementRoute": "Đi tới Quản lý học phí lớp học",
     "title": "Hóa đơn học phí",
     "description": "Quản lý học phí và hóa đơn học sinh",
     "totalBillings": "Tổng hóa đơn",
@@ -1282,6 +1285,9 @@
     "paidAt": "Đã thanh toán lúc"
   },
   "TutorPayments": {
+    "warningTitle": "Lưu ý quan trọng",
+    "warningDescription": "Mỗi giáo viên phải được thiết lập mức lương trong trang quản lý lương giáo viên trước, và sau khi hoàn thành báo cáo sau mỗi buổi dạy kèm, nó sẽ được tính vào lương cuối cùng.",
+    "teacherRatesRoute": "Đi tới Mức lương giáo viên",
     "title": "Thanh toán giáo viên",
     "description": "Quản lý thanh toán lương giáo viên",
     "totalPayments": "Tổng thanh toán",

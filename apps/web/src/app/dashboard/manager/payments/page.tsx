@@ -53,6 +53,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Loader from "@/components/loader";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -76,8 +77,10 @@ import {
   FileText,
   Eye,
   CheckSquare,
+  Info,
 } from "lucide-react";
 import { exportToCsv } from "@/lib/utils";
+import Link from "next/link";
 
 type BillingStatus = "pending" | "paid" | "overdue" | "cancelled";
 type RateType = "HOURLY" | "PER_STUDENT" | "MONTHLY_FIXED" | "PER_MINUTE";
@@ -729,6 +732,21 @@ export default function TutorPaymentsPage() {
           </Dialog>
         </div>
       </div>
+
+      {/* Warning Alert */}
+      <Alert>
+        <Info className="h-4 w-4" />
+        <AlertTitle>{t("warningTitle")}</AlertTitle>
+        <AlertDescription>
+          {t("warningDescription")}{" "}
+          <Link
+            href="/dashboard/manager/rates"
+            className="font-medium underline underline-offset-4 hover:text-primary"
+          >
+            {t("teacherRatesRoute")}
+          </Link>
+        </AlertDescription>
+      </Alert>
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-4">

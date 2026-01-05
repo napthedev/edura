@@ -1169,6 +1169,9 @@
     "noDueDate": "No due date"
   },
   "TuitionBilling": {
+    "warningTitle": "Important Note",
+    "warningDescription": "Class tuition must be set in the class tuition management route first before calculating the total.",
+    "tuitionManagementRoute": "Go to Class Tuition Management",
     "title": "Tuition Billing",
     "description": "Manage student tuition fees and billing",
     "totalBillings": "Total Billings",
@@ -1227,6 +1230,9 @@
     "paidAt": "Paid At"
   },
   "TutorPayments": {
+    "warningTitle": "Important Note",
+    "warningDescription": "Each teacher must be set payment on the teacher rates route first, and then after finishing the report after each tutoring session, it will be counted toward the final wages.",
+    "teacherRatesRoute": "Go to Teacher Rates",
     "title": "Tutor Payments",
     "description": "Manage teacher salary payments",
     "totalPayments": "Total Payments",
