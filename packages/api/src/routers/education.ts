@@ -4970,11 +4970,15 @@ export const educationRouter = router({
       );
 
       // Generate all session dates for the month based on schedules
-      const startDate = new Date(input.month + "-01");
+      // Use Vietnam timezone (UTC+7) for date calculations
+      const startDate = new Date(input.month + "-01T00:00:00+07:00");
       const endDate = new Date(
         startDate.getFullYear(),
         startDate.getMonth() + 1,
-        0
+        0,
+        23,
+        59,
+        59
       );
 
       const sessions = [];
@@ -4982,8 +4986,22 @@ export const educationRouter = router({
         let currentDate = new Date(startDate);
 
         while (currentDate <= endDate) {
-          if (currentDate.getDay() === schedule.dayOfWeek) {
-            const dateStr = currentDate.toISOString().split("T")[0]!;
+          // Get day of week in Vietnam timezone
+          const vietnamTime = new Date(
+            currentDate.getTime() + 7 * 60 * 60 * 1000
+          );
+          const dayOfWeek = vietnamTime.getUTCDay();
+
+          if (dayOfWeek === schedule.dayOfWeek) {
+            // Format date in YYYY-MM-DD format (Vietnam timezone)
+            const year = vietnamTime.getUTCFullYear();
+            const month = String(vietnamTime.getUTCMonth() + 1).padStart(
+              2,
+              "0"
+            );
+            const day = String(vietnamTime.getUTCDate()).padStart(2, "0");
+            const dateStr = `${year}-${month}-${day}`;
+
             const report = reportMap.get(`${schedule.scheduleId}-${dateStr}`);
 
             sessions.push({

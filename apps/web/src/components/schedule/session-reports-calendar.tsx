@@ -118,11 +118,21 @@ export default function SessionReportsCalendar({
     return date.toLocaleDateString("en-US", { year: "numeric", month: "long" });
   };
 
-  const isPastSession = (dateStr: string) => {
+  const isPastSession = (dateStr: string, endTime: string) => {
+    // Parse session date and end time
     const sessionDate = new Date(dateStr);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return sessionDate < today;
+    const [endHours, endMinutes] = endTime.split(":").map(Number);
+
+    // Get current time in Vietnam timezone (UTC+7)
+    const now = new Date();
+    const vietnamTime = new Date(now.getTime() + 7 * 60 * 60 * 1000);
+
+    // Set session end time in Vietnam timezone
+    const sessionEndTime = new Date(sessionDate);
+    sessionEndTime.setUTCHours(endHours!, endMinutes!, 0, 0);
+
+    // Session is "past" if the end time has already occurred in Vietnam timezone
+    return sessionEndTime < vietnamTime;
   };
 
   return (
@@ -161,7 +171,10 @@ export default function SessionReportsCalendar({
             <div className="space-y-2">
               {sessions.map((session: any) => {
                 const colors = colorClasses[session.color] || colorClasses.blue;
-                const isPast = isPastSession(session.sessionDate);
+                const isPast = isPastSession(
+                  session.sessionDate,
+                  session.endTime
+                );
 
                 return (
                   <div
