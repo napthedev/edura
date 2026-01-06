@@ -5591,6 +5591,7 @@ export const educationRouter = router({
         ...student,
         isPresent: attendanceMap.get(student.userId)?.isPresent ?? false,
         attendanceLogId: attendanceMap.get(student.userId)?.logId ?? null,
+        minutesLate: attendanceMap.get(student.userId)?.minutesLate ?? null,
       }));
 
       return {
@@ -5643,10 +5644,34 @@ export const educationRouter = router({
       }
 
       const classId = scheduleData[0]!.schedule.classId;
+      const startTime = scheduleData[0]!.schedule.startTime; // Format: "HH:mm"
       const now = new Date();
+
+      // Calculate minutes late helper function
+      const calculateMinutesLate = (
+        sessionDate: string,
+        startTime: string
+      ): number => {
+        // Parse session date and start time to create expected start datetime
+        const [hours, minutes] = startTime.split(":").map(Number);
+        const sessionStart = new Date(sessionDate);
+        sessionStart.setHours(hours!, minutes!, 0, 0);
+
+        // Calculate difference in minutes
+        const diffMs = now.getTime() - sessionStart.getTime();
+        const diffMinutes = Math.floor(diffMs / 60000);
+
+        // Return 0 if on time or early, otherwise return minutes late
+        return diffMinutes > 0 ? diffMinutes : 0;
+      };
 
       // Process each student's attendance
       for (const student of input.students) {
+        // Calculate minutes late if student is present
+        const minutesLate = student.isPresent
+          ? calculateMinutesLate(input.sessionDate, startTime)
+          : null;
+
         // Check if record exists
         const existingRecord = await ctx.db
           .select()
@@ -5670,6 +5695,7 @@ export const educationRouter = router({
               checkedInByTeacherId: student.isPresent
                 ? ctx.session.user.id
                 : null,
+              minutesLate: minutesLate,
             })
             .where(eq(studentAttendanceLogs.logId, existingRecord[0]!.logId));
         } else {
@@ -5685,6 +5711,7 @@ export const educationRouter = router({
             checkedInByTeacherId: student.isPresent
               ? ctx.session.user.id
               : null,
+            minutesLate: minutesLate,
           });
         }
       }

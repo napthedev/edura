@@ -1787,7 +1787,10 @@
     "saving": "Đang lưu...",
     "saveSuccess": "Lưu điểm danh thành công",
     "cancel": "Hủy",
-    "noStudents": "Chưa có học sinh trong lớp"
+    "noStudents": "Chưa có học sinh trong lớp",
+    "minutesLate": "Số phút trễ",
+    "onTime": "Đúng giờ",
+    "late": "Trễ {minutes} phút"
   },
   "AttendanceHistory": {
     "title": "Lịch sử điểm danh",

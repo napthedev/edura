@@ -96,6 +96,7 @@ interface StudentAttendance {
   email: string | null;
   isPresent: boolean;
   attendanceLogId: string | null;
+  minutesLate: number | null;
 }
 
 export default function StudentCheckIn() {
@@ -405,6 +406,7 @@ export default function StudentCheckIn() {
                       <TableHead className="w-12">{t("present")}</TableHead>
                       <TableHead>{t("studentName")}</TableHead>
                       <TableHead>{t("email")}</TableHead>
+                      <TableHead>{t("minutesLate")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -427,6 +429,13 @@ export default function StudentCheckIn() {
                           </TableCell>
                           <TableCell className="text-muted-foreground">
                             {student.email || "-"}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {student.isPresent && student.minutesLate !== null
+                              ? student.minutesLate === 0
+                                ? t("onTime")
+                                : t("late", { minutes: student.minutesLate })
+                              : "-"}
                           </TableCell>
                         </TableRow>
                       )

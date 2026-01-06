@@ -1732,7 +1732,10 @@
     "saving": "Saving...",
     "saveSuccess": "Attendance saved successfully",
     "cancel": "Cancel",
-    "noStudents": "No students enrolled in this class"
+    "noStudents": "No students enrolled in this class",
+    "minutesLate": "Minutes Late",
+    "onTime": "On time",
+    "late": "{minutes} min late"
   },
   "AttendanceHistory": {
     "title": "Attendance History",

@@ -410,6 +410,7 @@ export const studentAttendanceLogs = pgTable(
       { onDelete: "set null" }
     ),
     isPresent: boolean("is_present").notNull().default(false),
+    minutesLate: integer("minutes_late"), // How many minutes late the student was
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (table) => ({
