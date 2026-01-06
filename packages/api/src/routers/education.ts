@@ -5506,10 +5506,8 @@ export const educationRouter = router({
             .map(Number);
           const endTimeMinutes = endHours! * 60 + endMinutes!;
 
-          // Check if within 15 minutes before start time until 15 minutes after end time
-          const isActive =
-            currentTimeMinutes >= startTimeMinutes - 15 &&
-            currentTimeMinutes <= endTimeMinutes + 15;
+          // Allow teachers to modify attendance anytime after the session starts
+          const isActive = currentTimeMinutes >= startTimeMinutes;
 
           return {
             scheduleId: schedule.scheduleId,

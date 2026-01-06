@@ -1547,7 +1547,7 @@
   "SessionCheckIn": {
     "title": "Session Check-In",
     "noActiveSession": "No active session available",
-    "checkInAvailableHint": "Check-in available within ±5 minutes of scheduled start time",
+    "checkInAvailableHint": "Attendance can be modified anytime after the session starts",
     "checkIn": "Check In",
     "checkOut": "Check Out",
     "checkingIn": "Checking in...",
@@ -1720,7 +1720,7 @@
   "StudentCheckIn": {
     "title": "Student Check-In",
     "noActiveSession": "No active session available",
-    "checkInAvailableHint": "Check-in available within ±5 minutes of scheduled start time",
+    "checkInAvailableHint": "Attendance can be modified anytime after the session starts",
     "checkInStudents": "Check In Students",
     "selectDate": "Select Date",
     "studentName": "Student Name",

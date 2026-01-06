@@ -1602,7 +1602,7 @@
   "SessionCheckIn": {
     "title": "Check-in buổi",
     "noActiveSession": "Không có buổi đang hoạt động",
-    "checkInAvailableHint": "Check-in khả dụng trong khoảng ±5 phút so với thời gian bắt đầu đã lên lịch",
+    "checkInAvailableHint": "Có thể chỉnh sửa điểm danh bất kỳ lúc nào sau khi buổi học bắt đầu",
     "checkIn": "Điểm danh",
     "checkOut": "Kết thúc",
     "checkingIn": "Đang điểm danh...",
@@ -1775,7 +1775,7 @@
   "StudentCheckIn": {
     "title": "Điểm danh học sinh",
     "noActiveSession": "Không có buổi đang hoạt động",
-    "checkInAvailableHint": "Check-in khả dụng trong khoảng ±5 phút so với thời gian bắt đầu đã lên lịch",
+    "checkInAvailableHint": "Có thể chỉnh sửa điểm danh bất kỳ lúc nào sau khi buổi học bắt đầu",
     "checkInStudents": "Điểm danh học sinh",
     "selectDate": "Chọn ngày",
     "studentName": "Tên học sinh",
