@@ -97,7 +97,7 @@ export interface StudentBillingData {
   amount: number;
   billingMonth: string;
   dueDate: string;
-  status: "pending" | "paid" | "overdue" | "cancelled";
+  status: "pending" | "paid" | "cancelled";
   paymentMethods: string[];
   invoiceNumber?: string;
 }

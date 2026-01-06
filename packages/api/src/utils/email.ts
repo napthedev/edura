@@ -319,7 +319,7 @@ interface BillingData {
   amount: number;
   billingMonth: string;
   dueDate: string;
-  status: "pending" | "paid" | "overdue" | "cancelled";
+  status: "pending" | "paid" | "cancelled";
   paymentMethods: string[];
   invoiceNumber?: string;
 }
@@ -341,26 +341,12 @@ export async function sendMonthlyBillingReport({
 }: SendMonthlyBillingReportParams) {
   const resend = getResendClient();
 
-  const statusColor =
-    billingData.status === "paid"
-      ? "#10b981"
-      : billingData.status === "overdue"
-      ? "#ef4444"
-      : "#f59e0b";
+  const statusColor = billingData.status === "paid" ? "#10b981" : "#f59e0b";
 
-  const statusLabel =
-    billingData.status === "paid"
-      ? "Paid ✓"
-      : billingData.status === "overdue"
-      ? "Overdue ⚠️"
-      : "Pending";
+  const statusLabel = billingData.status === "paid" ? "Paid ✓" : "Pending";
 
   const statusLabelVi =
-    billingData.status === "paid"
-      ? "Đã Thanh Toán ✓"
-      : billingData.status === "overdue"
-      ? "Quá Hạn ⚠️"
-      : "Đang Chờ";
+    billingData.status === "paid" ? "Đã Thanh Toán ✓" : "Đang Chờ";
 
   const recipients = [studentEmail, parentEmail].filter(Boolean);
 

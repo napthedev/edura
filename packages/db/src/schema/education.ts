@@ -26,7 +26,6 @@ export const scheduleColorEnum = pgEnum("schedule_color", [
 export const billingStatusEnum = pgEnum("billing_status", [
   "pending",
   "paid",
-  "overdue",
   "cancelled",
 ]);
 

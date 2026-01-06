@@ -82,7 +82,7 @@ import {
 import { exportToCsv } from "@/lib/utils";
 import Link from "next/link";
 
-type BillingStatus = "pending" | "paid" | "overdue" | "cancelled";
+type BillingStatus = "pending" | "paid" | "cancelled";
 type RateType = "HOURLY" | "PER_STUDENT" | "MONTHLY_FIXED" | "PER_MINUTE";
 
 export default function TutorPaymentsPage() {
@@ -334,10 +334,6 @@ export default function TutorPaymentsPage() {
     > = {
       pending: { variant: "secondary", icon: <Clock className="h-3 w-3" /> },
       paid: { variant: "default", icon: <CheckCircle className="h-3 w-3" /> },
-      overdue: {
-        variant: "destructive",
-        icon: <AlertCircle className="h-3 w-3" />,
-      },
       cancelled: { variant: "outline", icon: <XCircle className="h-3 w-3" /> },
     };
     const { variant, icon } = variants[status];
@@ -539,14 +535,6 @@ export default function TutorPaymentsPage() {
     batchMarkAsPaidMutation.mutate({
       paymentIds: selectedPaymentIds,
       notes: batchNotes || undefined,
-    });
-  };
-
-  const handleBatchMarkAsOverdue = () => {
-    if (selectedPaymentIds.length === 0) return;
-    bulkUpdateStatusMutation.mutate({
-      paymentIds: selectedPaymentIds,
-      status: "overdue",
     });
   };
 

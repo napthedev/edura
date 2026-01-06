@@ -55,16 +55,14 @@ export const getTeacherBillingOverview = protectedProcedure.query(
       const stats = billingStats.filter((s) => s.classId === cls.classId);
       const pending = stats.find((s) => s.status === "pending");
       const paid = stats.find((s) => s.status === "paid");
-      const overdue = stats.find((s) => s.status === "overdue");
 
       return {
         classId: cls.classId,
         className: cls.className,
         tuitionRate: cls.tuitionRate,
-        pendingAmount:
-          (pending?.totalAmount || 0) + (overdue?.totalAmount || 0),
+        pendingAmount: pending?.totalAmount || 0,
         paidAmount: paid?.totalAmount || 0,
-        pendingCount: (pending?.count || 0) + (overdue?.count || 0),
+        pendingCount: pending?.count || 0,
         paidCount: paid?.count || 0,
       };
     });
@@ -104,9 +102,9 @@ export const getTeacherStudentPaymentStatus = protectedProcedure
         studentEmail: user.email,
         classId: classes.classId,
         className: classes.className,
-        pendingBills: sql<number>`count(case when ${tuitionBilling.status} in ('pending', 'overdue') then 1 end)::int`,
+        pendingBills: sql<number>`count(case when ${tuitionBilling.status} = 'pending' then 1 end)::int`,
         paidBills: sql<number>`count(case when ${tuitionBilling.status} = 'paid' then 1 end)::int`,
-        totalDue: sql<number>`sum(case when ${tuitionBilling.status} in ('pending', 'overdue') then ${tuitionBilling.amount} else 0 end)::int`,
+        totalDue: sql<number>`sum(case when ${tuitionBilling.status} = 'pending' then ${tuitionBilling.amount} else 0 end)::int`,
       })
       .from(enrollments)
       .innerJoin(classes, eq(enrollments.classId, classes.classId))

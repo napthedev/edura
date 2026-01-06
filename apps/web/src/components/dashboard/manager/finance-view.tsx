@@ -38,7 +38,6 @@ import {
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import CollectionMetrics from "./collection-metrics";
-import OverdueList from "./overdue-list";
 import ProfitabilityView from "./profitability-view";
 import CashFlowChart from "./cash-flow-chart";
 
@@ -107,7 +106,7 @@ export default function FinanceView() {
 
       {/* Tabbed Navigation */}
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview" className="gap-2">
             <TrendingUp className="h-4 w-4" />
             <span className="hidden sm:inline">{t("overview")}</span>
@@ -115,10 +114,6 @@ export default function FinanceView() {
           <TabsTrigger value="collection" className="gap-2">
             <CircleDollarSign className="h-4 w-4" />
             <span className="hidden sm:inline">{t("collection")}</span>
-          </TabsTrigger>
-          <TabsTrigger value="overdue" className="gap-2">
-            <AlertTriangle className="h-4 w-4" />
-            <span className="hidden sm:inline">{t("overdue")}</span>
           </TabsTrigger>
           <TabsTrigger value="profitability" className="gap-2">
             <PieChart className="h-4 w-4" />
@@ -163,8 +158,7 @@ export default function FinanceView() {
                   {formatCurrency(data?.outstandingBills || 0)}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {data?.outstandingCount || 0} {t("bills")} •{" "}
-                  {t("pendingAndOverdue")}
+                  {data?.outstandingCount || 0} {t("bills")} • {t("pending")}
                 </p>
               </CardContent>
             </Card>
@@ -328,11 +322,6 @@ export default function FinanceView() {
         {/* Collection Tab */}
         <TabsContent value="collection">
           <CollectionMetrics />
-        </TabsContent>
-
-        {/* Overdue Tab */}
-        <TabsContent value="overdue">
-          <OverdueList />
         </TabsContent>
 
         {/* Profitability Tab */}

@@ -2366,7 +2366,7 @@ export const educationRouter = router({
   getStudentBillings: protectedProcedure
     .input(
       z.object({
-        status: z.enum(["pending", "paid", "overdue", "cancelled"]).optional(),
+        status: z.enum(["pending", "paid", "cancelled"]).optional(),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -2494,16 +2494,14 @@ export const educationRouter = router({
       const stats = billingStats.filter((s) => s.classId === cls.classId);
       const pending = stats.find((s) => s.status === "pending");
       const paid = stats.find((s) => s.status === "paid");
-      const overdue = stats.find((s) => s.status === "overdue");
 
       return {
         classId: cls.classId,
         className: cls.className,
         tuitionRate: cls.tuitionRate,
-        pendingAmount:
-          (pending?.totalAmount || 0) + (overdue?.totalAmount || 0),
+        pendingAmount: pending?.totalAmount || 0,
         paidAmount: paid?.totalAmount || 0,
-        pendingCount: (pending?.count || 0) + (overdue?.count || 0),
+        pendingCount: pending?.count || 0,
         paidCount: paid?.count || 0,
       };
     });
@@ -2548,9 +2546,9 @@ export const educationRouter = router({
           studentEmail: user.email,
           classId: classes.classId,
           className: classes.className,
-          pendingBills: sql<number>`count(case when ${tuitionBilling.status} in ('pending', 'overdue') then 1 end)::int`,
+          pendingBills: sql<number>`count(case when ${tuitionBilling.status} = 'pending' then 1 end)::int`,
           paidBills: sql<number>`count(case when ${tuitionBilling.status} = 'paid' then 1 end)::int`,
-          totalDue: sql<number>`sum(case when ${tuitionBilling.status} in ('pending', 'overdue') then ${tuitionBilling.amount} else 0 end)::int`,
+          totalDue: sql<number>`sum(case when ${tuitionBilling.status} = 'pending' then ${tuitionBilling.amount} else 0 end)::int`,
         })
         .from(enrollments)
         .innerJoin(classes, eq(enrollments.classId, classes.classId))
@@ -2582,7 +2580,7 @@ export const educationRouter = router({
   getTuitionBillings: protectedProcedure
     .input(
       z.object({
-        status: z.enum(["pending", "paid", "overdue", "cancelled"]).optional(),
+        status: z.enum(["pending", "paid", "cancelled"]).optional(),
         billingMonth: z.string().optional(), // Format: "YYYY-MM"
         classId: z.string().optional(),
       })
@@ -2721,7 +2719,7 @@ export const educationRouter = router({
     .input(
       z.object({
         billingId: z.string(),
-        status: z.enum(["pending", "paid", "overdue", "cancelled"]),
+        status: z.enum(["pending", "paid", "cancelled"]),
         notes: z.string().optional(),
       })
     )
@@ -2731,7 +2729,7 @@ export const educationRouter = router({
       }
 
       const updateData: {
-        status: "pending" | "paid" | "overdue" | "cancelled";
+        status: "pending" | "paid" | "cancelled";
         paidAt?: Date | null;
         paymentMethod?: "cash" | null;
         notes?: string | null;
@@ -3421,7 +3419,7 @@ export const educationRouter = router({
   getTutorPayments: protectedProcedure
     .input(
       z.object({
-        status: z.enum(["pending", "paid", "overdue", "cancelled"]).optional(),
+        status: z.enum(["pending", "paid", "cancelled"]).optional(),
         paymentMonth: z.string().optional(),
         teacherId: z.string().optional(),
       })
@@ -3686,7 +3684,7 @@ export const educationRouter = router({
     .input(
       z.object({
         paymentId: z.string(),
-        status: z.enum(["pending", "paid", "overdue", "cancelled"]),
+        status: z.enum(["pending", "paid", "cancelled"]),
         notes: z.string().optional(),
       })
     )
@@ -3696,7 +3694,7 @@ export const educationRouter = router({
       }
 
       const updateData: {
-        status: "pending" | "paid" | "overdue" | "cancelled";
+        status: "pending" | "paid" | "cancelled";
         paidAt?: Date | null;
         paymentMethod?: "cash" | null;
         notes?: string | null;
@@ -3894,7 +3892,7 @@ export const educationRouter = router({
     .input(
       z.object({
         paymentIds: z.array(z.string()),
-        status: z.enum(["pending", "overdue", "cancelled"]),
+        status: z.enum(["pending", "cancelled"]),
         notes: z.string().optional(),
       })
     )
@@ -3928,7 +3926,7 @@ export const educationRouter = router({
 
       // Update all payments
       const updateData: {
-        status: "pending" | "overdue" | "cancelled";
+        status: "pending" | "cancelled";
         paidAt?: null;
         paymentMethod?: null;
         notes?: string | null;
@@ -4095,14 +4093,14 @@ export const educationRouter = router({
         .from(tuitionBilling)
         .where(eq(tuitionBilling.status, "paid"));
 
-      // Outstanding bills (pending + overdue)
+      // Outstanding bills (pending)
       const outstandingResult = await ctx.db
         .select({
           total: sql<number>`coalesce(sum(${tuitionBilling.amount}), 0)::int`,
           count: sql<number>`count(*)::int`,
         })
         .from(tuitionBilling)
-        .where(sql`${tuitionBilling.status} IN ('pending', 'overdue')`);
+        .where(sql`${tuitionBilling.status} = 'pending'`);
 
       // This month's revenue
       const monthRevenueResult = await ctx.db
@@ -4131,7 +4129,7 @@ export const educationRouter = router({
         .select({
           month: tuitionBilling.billingMonth,
           revenue: sql<number>`coalesce(sum(case when ${tuitionBilling.status} = 'paid' then ${tuitionBilling.amount} else 0 end), 0)::int`,
-          outstanding: sql<number>`coalesce(sum(case when ${tuitionBilling.status} IN ('pending', 'overdue') then ${tuitionBilling.amount} else 0 end), 0)::int`,
+          outstanding: sql<number>`coalesce(sum(case when ${tuitionBilling.status} = 'pending' then ${tuitionBilling.amount} else 0 end), 0)::int`,
         })
         .from(tuitionBilling)
         .groupBy(tuitionBilling.billingMonth)
@@ -5995,78 +5993,6 @@ export const educationRouter = router({
       };
     }),
 
-  // Get overdue billings with aging buckets
-  getOverdueBillings: protectedProcedure.query(async ({ ctx }) => {
-    if (ctx.session.user.role !== "manager") {
-      throw new Error("Access denied - manager only");
-    }
-
-    // Get students belonging to this manager
-    const managerStudents = await ctx.db
-      .select({ id: user.id })
-      .from(user)
-      .where(
-        and(eq(user.role, "student"), eq(user.managerId, ctx.session.user.id))
-      );
-
-    const studentIds = managerStudents.map((s) => s.id);
-
-    if (studentIds.length === 0) {
-      return [];
-    }
-
-    const now = new Date();
-
-    const overdueList = await ctx.db
-      .select({
-        billingId: tuitionBilling.billingId,
-        studentId: tuitionBilling.studentId,
-        studentName: user.name,
-        studentEmail: user.email,
-        classId: tuitionBilling.classId,
-        className: classes.className,
-        amount: tuitionBilling.amount,
-        billingMonth: tuitionBilling.billingMonth,
-        dueDate: tuitionBilling.dueDate,
-        invoiceNumber: tuitionBilling.invoiceNumber,
-      })
-      .from(tuitionBilling)
-      .leftJoin(user, eq(tuitionBilling.studentId, user.id))
-      .leftJoin(classes, eq(tuitionBilling.classId, classes.classId))
-      .where(
-        and(
-          inArray(tuitionBilling.studentId, studentIds),
-          eq(tuitionBilling.status, "overdue")
-        )
-      )
-      .orderBy(tuitionBilling.dueDate);
-
-    // Calculate days overdue and aging bucket
-    return overdueList.map((bill) => {
-      const dueDate = new Date(bill.dueDate!);
-      const daysOverdue = Math.floor(
-        (now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24)
-      );
-
-      let agingBucket: "1-30" | "31-60" | "61-90" | "90+";
-      if (daysOverdue <= 30) {
-        agingBucket = "1-30";
-      } else if (daysOverdue <= 60) {
-        agingBucket = "31-60";
-      } else if (daysOverdue <= 90) {
-        agingBucket = "61-90";
-      } else {
-        agingBucket = "90+";
-      }
-
-      return {
-        ...bill,
-        daysOverdue,
-        agingBucket,
-      };
-    });
-  }),
-
   // =====================
   // EXPENSE MANAGEMENT
   // =====================
@@ -7723,7 +7649,7 @@ export const educationRouter = router({
           month: "long",
           day: "numeric",
         }),
-        status: billing.status as "pending" | "paid" | "overdue" | "cancelled",
+        status: billing.status as "pending" | "paid" | "cancelled",
         paymentMethods: ["Cash", "Bank Transfer", "MoMo", "VNPay"],
         invoiceNumber: billing.invoiceNumber || undefined,
       };

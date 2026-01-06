@@ -20,9 +20,7 @@ export function BillingOverviewCard() {
   });
 
   const pendingBills =
-    billingsQuery.data?.filter(
-      (b) => b.status === "pending" || b.status === "overdue"
-    ) || [];
+    billingsQuery.data?.filter((b) => b.status === "pending") || [];
 
   const totalDue = pendingBills.reduce((acc, b) => acc + b.amount, 0);
 
