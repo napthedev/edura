@@ -60,7 +60,7 @@ import {
 import Link from "next/link";
 import { exportToCsv } from "@/lib/utils";
 
-type BillingStatus = "pending" | "paid" | "overdue" | "cancelled";
+type BillingStatus = "pending" | "paid" | "cancelled";
 
 export default function TuitionBillingPage() {
   const t = useTranslations("TuitionBilling");
@@ -170,10 +170,6 @@ export default function TuitionBillingPage() {
     > = {
       pending: { variant: "secondary", icon: <Clock className="h-3 w-3" /> },
       paid: { variant: "default", icon: <CheckCircle className="h-3 w-3" /> },
-      overdue: {
-        variant: "destructive",
-        icon: <AlertCircle className="h-3 w-3" />,
-      },
       cancelled: { variant: "outline", icon: <XCircle className="h-3 w-3" /> },
     };
     const { variant, icon } = variants[status];
@@ -198,8 +194,6 @@ export default function TuitionBillingPage() {
     pending:
       billingsQuery.data?.filter((b) => b.status === "pending").length || 0,
     paid: billingsQuery.data?.filter((b) => b.status === "paid").length || 0,
-    overdue:
-      billingsQuery.data?.filter((b) => b.status === "overdue").length || 0,
   };
 
   const handleMarkAsPaid = (billingId: string) => {
@@ -353,7 +347,7 @@ export default function TuitionBillingPage() {
       </Alert>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3">
         <Card className="shadow-sm border-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -388,19 +382,6 @@ export default function TuitionBillingPage() {
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
               {stats.paid}
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm border-none">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t("overdueBills")}
-            </CardTitle>
-            <AlertCircle className="h-4 w-4 text-red-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              {stats.overdue}
             </div>
           </CardContent>
         </Card>
@@ -439,7 +420,6 @@ export default function TuitionBillingPage() {
                   <SelectItem value="all">{t("allStatuses")}</SelectItem>
                   <SelectItem value="pending">{t("statusPending")}</SelectItem>
                   <SelectItem value="paid">{t("statusPaid")}</SelectItem>
-                  <SelectItem value="overdue">{t("statusOverdue")}</SelectItem>
                   <SelectItem value="cancelled">
                     {t("statusCancelled")}
                   </SelectItem>
@@ -588,17 +568,6 @@ export default function TuitionBillingPage() {
                                 >
                                   <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
                                   {t("markAsPaid")}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    updateStatusMutation.mutate({
-                                      billingId: billing.billingId,
-                                      status: "overdue",
-                                    })
-                                  }
-                                >
-                                  <AlertCircle className="h-4 w-4 mr-2 text-red-500" />
-                                  {t("markAsOverdue")}
                                 </DropdownMenuItem>
                               </>
                             )}

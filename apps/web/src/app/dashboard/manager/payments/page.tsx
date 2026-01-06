@@ -266,7 +266,7 @@ export default function TutorPaymentsPage() {
   const bulkUpdateStatusMutation = useMutation({
     mutationFn: (data: {
       paymentIds: string[];
-      status: "pending" | "overdue" | "cancelled";
+      status: "pending" | "cancelled";
       notes?: string;
     }) => trpcClient.education.bulkUpdateTutorPaymentStatus.mutate(data),
     onSuccess: (result) => {
@@ -826,7 +826,6 @@ export default function TutorPaymentsPage() {
                   <SelectItem value="all">{t("allStatuses")}</SelectItem>
                   <SelectItem value="pending">{t("statusPending")}</SelectItem>
                   <SelectItem value="paid">{t("statusPaid")}</SelectItem>
-                  <SelectItem value="overdue">{t("statusOverdue")}</SelectItem>
                   <SelectItem value="cancelled">
                     {t("statusCancelled")}
                   </SelectItem>
@@ -895,14 +894,7 @@ export default function TutorPaymentsPage() {
                   <CheckCircle className="h-4 w-4 mr-1 text-green-500" />
                   {t("batchMarkAsPaid")}
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleBatchMarkAsOverdue}
-                >
-                  <AlertCircle className="h-4 w-4 mr-1 text-orange-500" />
-                  {t("batchMarkAsOverdue")}
-                </Button>
+
                 <Button
                   variant="outline"
                   size="sm"

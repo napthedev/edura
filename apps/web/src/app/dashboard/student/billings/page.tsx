@@ -34,7 +34,7 @@ import {
   Wallet,
 } from "lucide-react";
 
-type BillingStatus = "pending" | "paid" | "overdue" | "cancelled";
+type BillingStatus = "pending" | "paid" | "cancelled";
 
 export default function StudentBillingsPage() {
   const t = useTranslations("StudentBilling");
@@ -83,10 +83,6 @@ export default function StudentBillingsPage() {
     > = {
       pending: { variant: "secondary", icon: <Clock className="h-3 w-3" /> },
       paid: { variant: "default", icon: <CheckCircle className="h-3 w-3" /> },
-      overdue: {
-        variant: "destructive",
-        icon: <AlertCircle className="h-3 w-3" />,
-      },
       cancelled: { variant: "outline", icon: <XCircle className="h-3 w-3" /> },
     };
     const { variant, icon } = variants[status];
@@ -104,11 +100,9 @@ export default function StudentBillingsPage() {
     pending:
       billingsQuery.data?.filter((b) => b.status === "pending").length || 0,
     paid: billingsQuery.data?.filter((b) => b.status === "paid").length || 0,
-    overdue:
-      billingsQuery.data?.filter((b) => b.status === "overdue").length || 0,
     totalDue:
       billingsQuery.data
-        ?.filter((b) => b.status === "pending" || b.status === "overdue")
+        ?.filter((b) => b.status === "pending")
         .reduce((acc, b) => acc + b.amount, 0) || 0,
   };
 
@@ -201,7 +195,6 @@ export default function StudentBillingsPage() {
                 <SelectItem value="all">{t("allStatuses")}</SelectItem>
                 <SelectItem value="pending">{t("statusPending")}</SelectItem>
                 <SelectItem value="paid">{t("statusPaid")}</SelectItem>
-                <SelectItem value="overdue">{t("statusOverdue")}</SelectItem>
                 <SelectItem value="cancelled">
                   {t("statusCancelled")}
                 </SelectItem>
