@@ -100,7 +100,7 @@ function SidebarContent({ role }: { role: "teacher" | "student" | "manager" }) {
     },
     {
       href: "/dashboard/student/billings",
-      label: t("billings"),
+      label: t("studentBillings"),
       icon: Wallet,
     },
   ];

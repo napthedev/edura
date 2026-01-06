@@ -654,9 +654,9 @@
     "activeCourses": "Khóa học đang hoạt động",
     "pendingAssignments": "Bài tập chờ nộp",
     "dueThisWeek": "Hạn nộp tuần này",
-    "pendingBills": "Mức lương chờ thanh toán",
+    "pendingBills": "Học phí chờ thanh toán",
     "due": "cần thanh toán",
-    "viewAllBillings": "Xem tất cả mức lương",
+    "viewAllBillings": "Xem tất cả học phí",
     "myClasses": "Lớp học của tôi",
     "code": "Mã",
     "joined": "Đã tham gia",
@@ -671,11 +671,11 @@
     "subject": "Môn học"
   },
   "StudentBilling": {
-    "title": "Hóa đơn & Thanh toán",
-    "description": "Xem và quản lý hóa đơn học phí của bạn",
-    "totalBills": "Tổng mức lương",
-    "pendingBills": "Mức lương chờ thanh toán",
-    "paidBills": "Mức lương đã thanh toán",
+    "title": "Học phí",
+    "description": "Xem và quản lý học phí của bạn",
+    "totalBills": "Tổng hóa đơn",
+    "pendingBills": "Hóa đơn chờ thanh toán",
+    "paidBills": "Hóa đơn đã thanh toán",
     "totalDue": "Tổng cần thanh toán",
     "filters": "Bộ lọc",
     "filterByStatus": "Lọc theo trạng thái",
@@ -684,14 +684,14 @@
     "statusPaid": "Đã thanh toán",
     "statusOverdue": "Quá hạn",
     "statusCancelled": "Đã hủy",
-    "billingsList": "Danh sách mức lương",
+    "billingsList": "Danh sách học phí",
     "invoiceNumber": "Số hóa đơn",
     "class": "Lớp học",
     "amount": "Số tiền",
     "billingMonth": "Tháng",
     "dueDate": "Hạn thanh toán",
     "status": "Trạng thái",
-    "noBillings": "Không tìm thấy mức lương nào"
+    "noBillings": "Không tìm thấy học phí nào"
   },
   "JoinClass": {
     "title": "Tham gia lớp",
@@ -797,6 +797,7 @@
     "attendance": "Điểm danh",
     "expenses": "Chi phí",
     "billings": "Mức lương",
+    "studentBillings": "Học phí",
     "resources": "Tài nguyên",
     "reports": "Báo cáo"
   },

@@ -655,7 +655,7 @@
     "dueThisWeek": "Due this week",
     "pendingBills": "Pending Bills",
     "due": "due",
-    "viewAllBillings": "View all salaries",
+    "viewAllBillings": "View all tuition fees",
     "myClasses": "My Classes",
     "code": "Code",
     "joined": "Joined",
@@ -670,8 +670,8 @@
     "students": "students"
   },
   "StudentBilling": {
-    "title": "Salary & Payments",
-    "description": "View and manage your tuition bills",
+    "title": "Tuition Fees",
+    "description": "View and manage your tuition fees",
     "totalBills": "Total Bills",
     "pendingBills": "Pending Bills",
     "paidBills": "Paid Bills",
@@ -683,14 +683,14 @@
     "statusPaid": "Paid",
     "statusOverdue": "Overdue",
     "statusCancelled": "Cancelled",
-    "billingsList": "Salaries List",
+    "billingsList": "Tuition Fees List",
     "invoiceNumber": "Invoice Number",
     "class": "Class",
     "amount": "Amount",
     "billingMonth": "Month",
     "dueDate": "Due Date",
     "status": "Status",
-    "noBillings": "No salaries found"
+    "noBillings": "No tuition fees found"
   },
   "JoinClass": {
     "title": "Join a Class",
@@ -796,6 +796,7 @@
     "attendance": "Attendance",
     "expenses": "Expenses",
     "billings": "Salaries",
+    "studentBillings": "Tuition Fees",
     "resources": "Resources",
     "reports": "Reports"
   },
