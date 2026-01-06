@@ -61,11 +61,6 @@ function SidebarContent({ role }: { role: "teacher" | "student" | "manager" }) {
       icon: Calendar,
     },
     {
-      href: "/dashboard/teacher/billings",
-      label: t("billings"),
-      icon: DollarSign,
-    },
-    {
       href: "/dashboard/teacher/resources",
       label: t("resources"),
       icon: FolderOpen,
