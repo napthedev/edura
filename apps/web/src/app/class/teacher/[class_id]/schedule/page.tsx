@@ -9,7 +9,7 @@ import SessionReportsCalendar from "@/components/schedule/session-reports-calend
 import StudentCheckIn from "@/components/schedule/student-check-in";
 import Loader from "@/components/loader";
 import { useTranslations } from "next-intl";
-import { Calendar, FileText } from "lucide-react";
+import { Calendar, FileText, Users } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function SchedulePage() {
@@ -17,6 +17,7 @@ export default function SchedulePage() {
   const classId = params.class_id as string;
   const t = useTranslations("ClassPage");
   const tReports = useTranslations("SessionReports");
+  const tStudentCheckIn = useTranslations("StudentCheckIn");
 
   const schedulesQuery = useQuery({
     queryKey: ["class-schedules", classId],
@@ -46,7 +47,10 @@ export default function SchedulePage() {
             <FileText className="h-4 w-4 mr-2" />
             {tReports("title")}
           </TabsTrigger>
-          <TabsTrigger value="attendance">Student Attendance</TabsTrigger>
+          <TabsTrigger value="attendance">
+            <Users className="h-4 w-4 mr-2" />
+            {tStudentCheckIn("title")}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="schedule" className="space-y-4">
