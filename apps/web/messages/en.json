@@ -1828,7 +1828,10 @@
     "errorDeletingCategory": "Failed to delete category",
     "invalidExpenseData": "Please fill in all required fields",
     "noDataToExport": "No data to export",
-    "exportSuccess": "Data exported successfully"
+    "exportSuccess": "Data exported successfully",
+    "createNewCategory": "Create New Category",
+    "categoryNameRequired": "Category name is required",
+    "createCategory": "Create Category"
   },
   "ManagerOverview": {
     "title": "Dashboard Overview",

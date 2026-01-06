@@ -105,7 +105,8 @@ export default function ExpensesPage() {
   const [recurringInterval, setRecurringInterval] =
     useState<RecurringInterval>("monthly");
 
-  // Form states - Category
+  // Form states - Category (within expense modal)
+  const [showNewCategoryForm, setShowNewCategoryForm] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newCategoryType, setNewCategoryType] =
     useState<ExpenseCategoryType>("operational");
@@ -204,11 +205,13 @@ export default function ExpensesPage() {
   const createCategoryMutation = useMutation({
     mutationFn: (data: { name: string; type: ExpenseCategoryType }) =>
       trpcClient.education.createExpenseCategory.mutate(data),
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast.success(t("categoryCreated"));
       queryClient.invalidateQueries({ queryKey: ["expense-categories"] });
+      // Auto-select the newly created category
+      setExpenseCategoryId(data.categoryId);
       setNewCategoryName("");
-      setCategoryDialogOpen(false);
+      setShowNewCategoryForm(false);
     },
     onError: (error: any) => {
       toast.error(error.message || t("errorCreatingCategory"));
@@ -297,6 +300,9 @@ export default function ExpensesPage() {
     setIsRecurring(false);
     setRecurringInterval("monthly");
     setEditingExpense(null);
+    setShowNewCategoryForm(false);
+    setNewCategoryName("");
+    setNewCategoryType("operational");
   };
 
   const handleEditExpense = (expense: typeof editingExpense) => {
@@ -411,91 +417,6 @@ export default function ExpensesPage() {
             {t("exportCsv")}
           </Button>
           <Dialog
-            open={categoryDialogOpen}
-            onOpenChange={setCategoryDialogOpen}
-          >
-            <DialogTrigger asChild>
-              <Button variant="outline">
-                <FolderPlus className="h-4 w-4 mr-2" />
-                {t("addCategory")}
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{t("addCategory")}</DialogTitle>
-                <DialogDescription>
-                  {t("addCategoryDescription")}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label>{t("categoryName")}</Label>
-                  <Input
-                    value={newCategoryName}
-                    onChange={(e) => setNewCategoryName(e.target.value)}
-                    placeholder={t("categoryNamePlaceholder")}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>{t("categoryType")}</Label>
-                  <Select
-                    value={newCategoryType}
-                    onValueChange={(v) =>
-                      setNewCategoryType(v as ExpenseCategoryType)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="facility">
-                        <div className="flex items-center gap-2">
-                          <Building2 className="h-4 w-4" />
-                          {t("typeFacility")}
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="marketing">
-                        <div className="flex items-center gap-2">
-                          <Megaphone className="h-4 w-4" />
-                          {t("typeMarketing")}
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="operational">
-                        <div className="flex items-center gap-2">
-                          <Settings className="h-4 w-4" />
-                          {t("typeOperational")}
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => setCategoryDialogOpen(false)}
-                >
-                  {t("cancel")}
-                </Button>
-                <Button
-                  onClick={() =>
-                    createCategoryMutation.mutate({
-                      name: newCategoryName,
-                      type: newCategoryType,
-                    })
-                  }
-                  disabled={
-                    !newCategoryName || createCategoryMutation.isPending
-                  }
-                >
-                  {createCategoryMutation.isPending
-                    ? t("creating")
-                    : t("create")}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-          <Dialog
             open={expenseDialogOpen}
             onOpenChange={(open) => {
               setExpenseDialogOpen(open);
@@ -520,27 +441,128 @@ export default function ExpensesPage() {
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label>{t("category")}</Label>
-                  <Select
-                    value={expenseCategoryId}
-                    onValueChange={setExpenseCategoryId}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={t("selectCategory")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categoriesQuery.data?.map((cat) => (
-                        <SelectItem key={cat.categoryId} value={cat.categoryId}>
-                          <div className="flex items-center gap-2">
-                            <Tag className="h-4 w-4" />
-                            {cat.name}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {!showNewCategoryForm ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label>{t("category")}</Label>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowNewCategoryForm(true)}
+                        className="text-xs h-auto py-1"
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        {t("addCategory")}
+                      </Button>
+                    </div>
+                    <Select
+                      value={expenseCategoryId}
+                      onValueChange={setExpenseCategoryId}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("selectCategory")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categoriesQuery.data?.map((cat) => (
+                          <SelectItem
+                            key={cat.categoryId}
+                            value={cat.categoryId}
+                          >
+                            <div className="flex items-center gap-2">
+                              <Tag className="h-4 w-4" />
+                              {cat.name}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : (
+                  <div className="space-y-4 border-2 border-dashed border-blue-200 bg-blue-50/50 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-blue-900 font-semibold flex items-center gap-2">
+                        <FolderPlus className="h-4 w-4" />
+                        {t("createNewCategory")}
+                      </Label>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setShowNewCategoryForm(false);
+                          setNewCategoryName("");
+                        }}
+                        className="text-xs h-auto py-1"
+                      >
+                        <X className="h-3 w-3 mr-1" />
+                        {t("cancel")}
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>{t("categoryName")}</Label>
+                      <Input
+                        value={newCategoryName}
+                        onChange={(e) => setNewCategoryName(e.target.value)}
+                        placeholder={t("categoryNamePlaceholder")}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>{t("categoryType")}</Label>
+                      <Select
+                        value={newCategoryType}
+                        onValueChange={(v) =>
+                          setNewCategoryType(v as ExpenseCategoryType)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="facility">
+                            <div className="flex items-center gap-2">
+                              <Building2 className="h-4 w-4" />
+                              {t("typeFacility")}
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="marketing">
+                            <div className="flex items-center gap-2">
+                              <Megaphone className="h-4 w-4" />
+                              {t("typeMarketing")}
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="operational">
+                            <div className="flex items-center gap-2">
+                              <Settings className="h-4 w-4" />
+                              {t("typeOperational")}
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        if (!newCategoryName) {
+                          toast.error(t("categoryNameRequired"));
+                          return;
+                        }
+                        createCategoryMutation.mutate({
+                          name: newCategoryName,
+                          type: newCategoryType,
+                        });
+                      }}
+                      disabled={
+                        !newCategoryName || createCategoryMutation.isPending
+                      }
+                      className="w-full"
+                    >
+                      {createCategoryMutation.isPending
+                        ? t("creating")
+                        : t("createCategory")}
+                    </Button>
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label>{t("amount")} (VND)</Label>
                   <Input

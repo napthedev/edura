@@ -1883,7 +1883,10 @@
     "errorDeletingCategory": "Xóa danh mục thất bại",
     "invalidExpenseData": "Vui lòng điền các trường bắt buộc",
     "noDataToExport": "Không có dữ liệu để xuất",
-    "exportSuccess": "Xuất dữ liệu thành công"
+    "exportSuccess": "Xuất dữ liệu thành công",
+    "createNewCategory": "Tạo danh mục mới",
+    "categoryNameRequired": "Tên danh mục là bắt buộc",
+    "createCategory": "Tạo danh mục"
   },
   "ManagerOverview": {
     "title": "Tổng quan bảng điều khiển",
