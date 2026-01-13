@@ -953,7 +953,9 @@ export const educationRouter = router({
         description: z.string().optional(),
         dueDate: z.string().optional(),
         testingDuration: z.number().min(1).optional(),
-        assignmentType: z.enum(["quiz", "written"]).default("quiz"),
+        assignmentType: z
+          .enum(["quiz", "written", "flashcard"])
+          .default("quiz"),
         assignmentContent: z.string().optional(),
       })
     )
@@ -1021,7 +1023,7 @@ export const educationRouter = router({
         title: z.string().min(1).optional(),
         description: z.string().optional(),
         dueDate: z.string().optional(),
-        assignmentType: z.enum(["quiz", "written"]).optional(),
+        assignmentType: z.enum(["quiz", "written", "flashcard"]).optional(),
         assignmentContent: z.string().optional(),
         testingDuration: z.number().min(1).optional(),
       })
@@ -1170,12 +1172,25 @@ export const educationRouter = router({
       // Calculate grade - only auto-grade quiz assignments
       const assignment = assignmentData[0]!.assignment;
       const isWrittenAssignment = assignment.assignmentType === "written";
-      const grade = isWrittenAssignment
-        ? null // Written assignments require manual grading
-        : gradeSubmission(
-            assignment.assignmentContent,
-            input.submissionContent
-          );
+      const isFlashcardAssignment = assignment.assignmentType === "flashcard";
+
+      let grade: number | null;
+      if (isWrittenAssignment) {
+        grade = null; // Written assignments require manual grading
+      } else if (isFlashcardAssignment) {
+        // Flashcard assignments get 100% on completion
+        try {
+          const submissionData = JSON.parse(input.submissionContent);
+          grade = submissionData.completed ? 100 : null;
+        } catch {
+          grade = 100; // Default to completed if parsing fails
+        }
+      } else {
+        grade = gradeSubmission(
+          assignment.assignmentContent,
+          input.submissionContent
+        );
+      }
 
       // Create submission
       const submission = await ctx.db

@@ -1,5 +1,5 @@
 // Assignment types
-export type AssignmentType = "quiz" | "written";
+export type AssignmentType = "quiz" | "written" | "flashcard";
 
 // Quiz question types
 export type QuestionType = "simple" | "multiple" | "truefalse";
@@ -56,6 +56,24 @@ export interface WrittenSubmissionContent {
   files: FileAttachment[];
 }
 
+// Flashcard types
+export interface Flashcard {
+  id: string;
+  index: number;
+  front: string; // Term or question
+  back: string; // Definition or answer
+}
+
+export interface FlashcardContent {
+  cards: Flashcard[];
+}
+
+// Flashcard submission content (tracks completion)
+export interface FlashcardSubmissionContent {
+  completed: boolean;
+  completedAt: string;
+}
+
 // Type guards
 export function isQuizContent(content: any): content is AssignmentContent {
   return content && Array.isArray(content.questions);
@@ -75,4 +93,14 @@ export function isWrittenSubmission(
   content: any
 ): content is WrittenSubmissionContent {
   return content && Array.isArray(content.files);
+}
+
+export function isFlashcardContent(content: any): content is FlashcardContent {
+  return content && Array.isArray(content.cards);
+}
+
+export function isFlashcardSubmission(
+  content: any
+): content is FlashcardSubmissionContent {
+  return content && typeof content.completed === "boolean";
 }

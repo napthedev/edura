@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, FileText, Brain, PenLine, Upload } from "lucide-react";
+import { FileText, Brain, PenLine, Upload, Layers } from "lucide-react";
 import { trpcClient } from "@/utils/trpc";
 import { useMutation } from "@tanstack/react-query";
 import {
@@ -18,7 +18,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -39,11 +38,17 @@ import { useQuery } from "@tanstack/react-query";
 import { GenerateQuestions } from "@/components/assignment/generate-questions";
 import { FileUploader } from "@/components/assignment/file-uploader";
 import { RichTextEditor } from "@/components/assignment/rich-text-editor";
+import { AssignmentTypeGuide } from "@/components/assignment/assignment-type-guide";
+import { FlashcardEditor } from "@/components/assignment/flashcard-editor";
+import { AddFlashcard } from "@/components/assignment/add-flashcard";
+import { BulkImportDialog } from "@/components/assignment/bulk-import-dialog";
 import type {
   Question,
   AssignmentType,
   FileAttachment,
   WrittenAssignmentContent,
+  Flashcard,
+  FlashcardContent,
 } from "@/lib/assignment-types";
 import Loader from "@/components/loader";
 import { useTranslations } from "next-intl";
@@ -86,8 +91,11 @@ export default function CreateAssignmentPage() {
   const [writtenAttachments, setWrittenAttachments] = useState<
     FileAttachment[]
   >([]);
+  // Flashcard state
+  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const t = useTranslations("CreateAssignment");
   const tWritten = useTranslations("WrittenAssignment");
+  const tFlashcard = useTranslations("FlashcardAssignment");
 
   const sessionQuery = useQuery({
     queryKey: ["session"],
@@ -177,6 +185,13 @@ export default function CreateAssignmentPage() {
     setGeneratedQuestions([]);
   };
 
+  const handleFlashcardAssignment = () => {
+    setAssignmentType("flashcard");
+    setShowForm(true);
+    setShowAIGeneration(false);
+    setGeneratedQuestions([]);
+  };
+
   const handleQuestionsGenerated = (questions: Question[]) => {
     setGeneratedQuestions(questions);
     setShowAIGeneration(false);
@@ -194,7 +209,36 @@ export default function CreateAssignmentPage() {
     setGeneratedQuestions([]);
     setWrittenInstructions("");
     setWrittenAttachments([]);
+    setFlashcards([]);
     form.reset();
+  };
+
+  // Flashcard handlers
+  const handleAddFlashcard = (card: Flashcard) => {
+    setFlashcards((prev) => [...prev, card]);
+  };
+
+  const handleUpdateFlashcard = (updatedCard: Flashcard) => {
+    setFlashcards((prev) =>
+      prev.map((c) => (c.id === updatedCard.id ? updatedCard : c))
+    );
+  };
+
+  const handleDeleteFlashcard = (cardId: string) => {
+    setFlashcards((prev) => {
+      const filtered = prev.filter((c) => c.id !== cardId);
+      return filtered.map((c, index) => ({ ...c, index: index + 1 }));
+    });
+  };
+
+  const handleImportFlashcards = (cards: Flashcard[]) => {
+    setFlashcards((prev) => {
+      const newCards = cards.map((card, index) => ({
+        ...card,
+        index: prev.length + index + 1,
+      }));
+      return [...prev, ...newCards];
+    });
   };
 
   const onSubmit = (data: CreateAssignmentForm) => {
@@ -204,6 +248,11 @@ export default function CreateAssignmentPage() {
       const content: WrittenAssignmentContent = {
         instructions: writtenInstructions,
         attachments: writtenAttachments,
+      };
+      assignmentContent = JSON.stringify(content);
+    } else if (assignmentType === "flashcard") {
+      const content: FlashcardContent = {
+        cards: flashcards.map((c, index) => ({ ...c, index: index + 1 })),
       };
       assignmentContent = JSON.stringify(content);
     } else if (generatedQuestions.length > 0) {
@@ -218,16 +267,12 @@ export default function CreateAssignmentPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-2xl mx-auto">
-      <div className="flex items-center gap-4">
-        <Button
-          variant="outline"
-          onClick={() => router.push(`/class/teacher/${classId}/assignments`)}
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          {t("back")}
-        </Button>
-        <h1 className="text-3xl font-bold">{t("title")}</h1>
+    <div className="space-y-6 overflow-hidden">
+      <div className="flex items-center gap-4 min-w-0">
+        <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2 truncate">
+          <FileText className="h-6 w-6" />
+          {t("title")}
+        </h2>
       </div>
 
       {!assignmentType && (
@@ -235,35 +280,39 @@ export default function CreateAssignmentPage() {
           <CardHeader>
             <CardTitle>{t("chooseAssignmentType")}</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-2">
+          <CardContent className="overflow-hidden">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {/* Quiz Assignment Options */}
-              <div className="space-y-3">
+              <div className="space-y-3 min-w-0">
                 <p className="text-sm font-medium text-muted-foreground">
                   {t("quizAssignment")}
                 </p>
                 <Button
                   variant="outline"
-                  className="w-full justify-start h-auto py-4"
+                  className="w-full justify-start h-auto py-4 overflow-hidden"
                   onClick={handleManualInput}
                 >
-                  <PenLine className="w-5 h-5 mr-3" />
-                  <div className="text-left">
-                    <p className="font-medium">{t("manuallyInputQuestions")}</p>
-                    <p className="text-xs text-muted-foreground">
+                  <PenLine className="w-5 h-5 mr-3 shrink-0" />
+                  <div className="text-left min-w-0">
+                    <p className="font-medium truncate">
+                      {t("manuallyInputQuestions")}
+                    </p>
+                    <p className="text-xs text-muted-foreground line-clamp-2">
                       {t("manualInputDescription")}
                     </p>
                   </div>
                 </Button>
                 <Button
                   variant="outline"
-                  className="w-full justify-start h-auto py-4"
+                  className="w-full justify-start h-auto py-4 overflow-hidden"
                   onClick={handleAIGeneration}
                 >
-                  <Brain className="w-5 h-5 mr-3" />
-                  <div className="text-left">
-                    <p className="font-medium">{t("generateQuestionsAI")}</p>
-                    <p className="text-xs text-muted-foreground">
+                  <Brain className="w-5 h-5 mr-3 shrink-0" />
+                  <div className="text-left min-w-0">
+                    <p className="font-medium truncate">
+                      {t("generateQuestionsAI")}
+                    </p>
+                    <p className="text-xs text-muted-foreground line-clamp-2">
                       {t("aiGenerationDescription")}
                     </p>
                   </div>
@@ -271,22 +320,44 @@ export default function CreateAssignmentPage() {
               </div>
 
               {/* Written Assignment Option */}
-              <div className="space-y-3">
-                <p className="text-sm font-medium text-muted-foreground">
+              <div className="space-y-3 min-w-0">
+                <p className="text-sm font-medium text-muted-foreground truncate">
                   {tWritten("writtenAssignment")}
                 </p>
                 <Button
                   variant="outline"
-                  className="w-full justify-start h-auto py-4"
+                  className="w-full justify-start h-auto py-4 overflow-hidden"
                   onClick={handleWrittenAssignment}
                 >
-                  <Upload className="w-5 h-5 mr-3" />
-                  <div className="text-left">
-                    <p className="font-medium">
+                  <Upload className="w-5 h-5 mr-3 shrink-0" />
+                  <div className="text-left min-w-0">
+                    <p className="font-medium truncate">
                       {tWritten("writtenAssignment")}
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground line-clamp-2">
                       {tWritten("writtenAssignmentDescription")}
+                    </p>
+                  </div>
+                </Button>
+              </div>
+
+              {/* Flashcard Assignment Option */}
+              <div className="space-y-3 min-w-0">
+                <p className="text-sm font-medium text-muted-foreground truncate">
+                  {tFlashcard("flashcardAssignment")}
+                </p>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start h-auto py-4 overflow-hidden"
+                  onClick={handleFlashcardAssignment}
+                >
+                  <Layers className="w-5 h-5 mr-3 shrink-0" />
+                  <div className="text-left min-w-0">
+                    <p className="font-medium truncate">
+                      {tFlashcard("flashcardAssignment")}
+                    </p>
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {tFlashcard("flashcardDescription")}
                     </p>
                   </div>
                 </Button>
@@ -295,6 +366,8 @@ export default function CreateAssignmentPage() {
           </CardContent>
         </Card>
       )}
+
+      {!assignmentType && <AssignmentTypeGuide />}
 
       {showAIGeneration && (
         <GenerateQuestions
@@ -309,6 +382,8 @@ export default function CreateAssignmentPage() {
             <CardTitle>
               {assignmentType === "written"
                 ? tWritten("createWrittenAssignment")
+                : assignmentType === "flashcard"
+                ? tFlashcard("createFlashcard")
                 : t("createAssignment")}
             </CardTitle>
           </CardHeader>
@@ -450,6 +525,44 @@ export default function CreateAssignmentPage() {
                       </FormItem>
                     )}
                   />
+                )}
+
+                {/* Flashcard specific fields */}
+                {assignmentType === "flashcard" && (
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <Layers className="h-5 w-5" />
+                          {tFlashcard("cardsCount")} ({flashcards.length})
+                        </CardTitle>
+                        <BulkImportDialog
+                          onImport={handleImportFlashcards}
+                          startIndex={flashcards.length + 1}
+                        />
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {flashcards.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          {tFlashcard("noCards")}
+                        </p>
+                      ) : (
+                        flashcards.map((card) => (
+                          <FlashcardEditor
+                            key={card.id}
+                            card={card}
+                            onUpdate={handleUpdateFlashcard}
+                            onDelete={() => handleDeleteFlashcard(card.id)}
+                          />
+                        ))
+                      )}
+                      <AddFlashcard
+                        onAdd={handleAddFlashcard}
+                        nextIndex={flashcards.length + 1}
+                      />
+                    </CardContent>
+                  </Card>
                 )}
 
                 <FormField

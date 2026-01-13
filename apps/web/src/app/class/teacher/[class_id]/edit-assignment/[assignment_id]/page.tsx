@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RichTextEditor } from "@/components/assignment/rich-text-editor";
 import {
@@ -14,11 +13,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Save, Copy, Trash2 } from "lucide-react";
+import { Save, Copy, Trash2, Layers, FileText } from "lucide-react";
 import { trpcClient } from "@/utils/trpc";
 import { QuestionEditor } from "@/components/assignment/question-editor";
 import { AddQuestion } from "@/components/assignment/add-question";
-import type { Question, AssignmentContent } from "@/lib/assignment-types";
+import { FlashcardEditor } from "@/components/assignment/flashcard-editor";
+import { AddFlashcard } from "@/components/assignment/add-flashcard";
+import { BulkImportDialog } from "@/components/assignment/bulk-import-dialog";
+import type {
+  Question,
+  AssignmentContent,
+  Flashcard,
+  FlashcardContent,
+} from "@/lib/assignment-types";
 import {
   Form,
   FormControl,
@@ -64,7 +71,9 @@ export default function EditAssignmentPage() {
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, boolean>>({});
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const t = useTranslations("EditAssignment");
+  const tFlashcard = useTranslations("FlashcardAssignment");
 
   const sessionQuery = useQuery({
     queryKey: ["session"],
@@ -146,13 +155,21 @@ export default function EditAssignmentPage() {
 
       if (assignment.assignmentContent) {
         try {
-          const content: AssignmentContent = JSON.parse(
-            assignment.assignmentContent
-          );
-          setQuestions(content.questions || []);
+          if (assignment.assignmentType === "flashcard") {
+            const content: FlashcardContent = JSON.parse(
+              assignment.assignmentContent
+            );
+            setFlashcards(content.cards || []);
+          } else {
+            const content: AssignmentContent = JSON.parse(
+              assignment.assignmentContent
+            );
+            setQuestions(content.questions || []);
+          }
         } catch (error) {
           console.error("Failed to parse assignment content:", error);
           setQuestions([]);
+          setFlashcards([]);
         }
       }
     }
@@ -181,6 +198,34 @@ export default function EditAssignmentPage() {
       }
     }
   }, [assignmentQuery.data, router, assignmentId, classId]);
+
+  // Flashcard handlers
+  const handleAddFlashcard = (card: Flashcard) => {
+    setFlashcards((prev) => [...prev, card]);
+  };
+
+  const handleUpdateFlashcard = (updatedCard: Flashcard) => {
+    setFlashcards((prev) =>
+      prev.map((c) => (c.id === updatedCard.id ? updatedCard : c))
+    );
+  };
+
+  const handleDeleteFlashcard = (cardId: string) => {
+    setFlashcards((prev) => {
+      const filtered = prev.filter((c) => c.id !== cardId);
+      return filtered.map((c, index) => ({ ...c, index: index + 1 }));
+    });
+  };
+
+  const handleImportFlashcards = (cards: Flashcard[]) => {
+    setFlashcards((prev) => {
+      const newCards = cards.map((card, index) => ({
+        ...card,
+        index: prev.length + index + 1,
+      }));
+      return [...prev, ...newCards];
+    });
+  };
 
   const handleAddQuestion = (question: Question) => {
     setQuestions((prev) => [...prev, question]);
@@ -244,23 +289,60 @@ export default function EditAssignmentPage() {
     return Object.keys(errors).length === 0;
   };
 
+  const validateFlashcards = (): boolean => {
+    const errors: Record<string, boolean> = {};
+
+    flashcards.forEach((card) => {
+      const cardKey = `card-${card.id}`;
+
+      if (!card.front.trim()) {
+        errors[`${cardKey}-front`] = true;
+      }
+
+      if (!card.back.trim()) {
+        errors[`${cardKey}-back`] = true;
+      }
+    });
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSave = (formData: AssignmentForm) => {
     // Clear previous validation errors
     setFieldErrors({});
 
-    // Validate questions
-    if (!validateQuestions()) {
-      return;
+    const isFlashcardAssignment =
+      assignmentQuery.data?.assignments.assignmentType === "flashcard";
+
+    // Validate based on assignment type
+    if (isFlashcardAssignment) {
+      if (!validateFlashcards()) {
+        return;
+      }
+
+      const flashcardContent: FlashcardContent = {
+        cards: flashcards.map((c, index) => ({ ...c, index: index + 1 })),
+      };
+
+      updateAssignmentMutation.mutate({
+        ...formData,
+        assignmentContent: JSON.stringify(flashcardContent),
+      });
+    } else {
+      if (!validateQuestions()) {
+        return;
+      }
+
+      const assignmentContent: AssignmentContent = {
+        questions: questions.map((q, index) => ({ ...q, index: index + 1 })),
+      };
+
+      updateAssignmentMutation.mutate({
+        ...formData,
+        assignmentContent: JSON.stringify(assignmentContent),
+      });
     }
-
-    const assignmentContent: AssignmentContent = {
-      questions: questions.map((q, index) => ({ ...q, index: index + 1 })),
-    };
-
-    updateAssignmentMutation.mutate({
-      ...formData,
-      assignmentContent: JSON.stringify(assignmentContent),
-    });
   };
 
   const handleCopyAssignmentUrl = async () => {
@@ -294,33 +376,40 @@ export default function EditAssignmentPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      <div className="flex items-center gap-4 flex-wrap">
-        <Button
-          variant="outline"
-          onClick={() => router.push(`/class/teacher/${classId}/assignments`)}
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          {t("back")}
-        </Button>
-        <h1 className="text-3xl font-bold">{t("title")}</h1>
-        <Button
-          variant="outline"
-          onClick={handleCopyAssignmentUrl}
-          className="flex items-center gap-2"
-        >
-          <Copy className="w-4 h-4" />
-          {t("copyAssignmentUrl")}
-        </Button>
-        <Button
-          variant="destructive"
-          onClick={handleDeleteAssignment}
-          disabled={deleteAssignmentMutation.isPending}
-          className="flex items-center gap-2"
-        >
-          <Trash2 className="w-4 h-4" />
-          {t("deleteAssignment")}
-        </Button>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+          {assignmentQuery.data?.assignments.assignmentType === "flashcard" ? (
+            <>
+              <Layers className="h-6 w-6" />
+              {tFlashcard("editFlashcard")}
+            </>
+          ) : (
+            <>
+              <FileText className="h-6 w-6" />
+              {t("title")}
+            </>
+          )}
+        </h2>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={handleCopyAssignmentUrl}
+            className="flex items-center gap-2"
+          >
+            <Copy className="w-4 h-4" />
+            {t("copyAssignmentUrl")}
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleDeleteAssignment}
+            disabled={deleteAssignmentMutation.isPending}
+            className="flex items-center gap-2"
+          >
+            <Trash2 className="w-4 h-4" />
+            {t("deleteAssignment")}
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -433,29 +522,71 @@ export default function EditAssignmentPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {t("questionsCount")} ({questions.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {questions.map((question) => (
-            <QuestionEditor
-              key={question.id}
-              question={question}
-              onUpdate={handleUpdateQuestion}
-              onDelete={() => handleDeleteQuestion(question.id)}
-              fieldErrors={fieldErrors}
-            />
-          ))}
+      {/* Quiz Questions Card */}
+      {assignmentQuery.data?.assignments.assignmentType === "quiz" && (
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              {t("questionsCount")} ({questions.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {questions.map((question) => (
+              <QuestionEditor
+                key={question.id}
+                question={question}
+                onUpdate={handleUpdateQuestion}
+                onDelete={() => handleDeleteQuestion(question.id)}
+                fieldErrors={fieldErrors}
+              />
+            ))}
 
-          <AddQuestion
-            onAdd={handleAddQuestion}
-            nextIndex={questions.length + 1}
-          />
-        </CardContent>
-      </Card>
+            <AddQuestion
+              onAdd={handleAddQuestion}
+              nextIndex={questions.length + 1}
+            />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Flashcard Cards */}
+      {assignmentQuery.data?.assignments.assignmentType === "flashcard" && (
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Layers className="h-5 w-5" />
+                {tFlashcard("cardsCount")} ({flashcards.length})
+              </CardTitle>
+              <BulkImportDialog
+                onImport={handleImportFlashcards}
+                startIndex={flashcards.length + 1}
+              />
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {flashcards.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                {tFlashcard("noCards")}
+              </p>
+            ) : (
+              flashcards.map((card) => (
+                <FlashcardEditor
+                  key={card.id}
+                  card={card}
+                  onUpdate={handleUpdateFlashcard}
+                  onDelete={() => handleDeleteFlashcard(card.id)}
+                  fieldErrors={fieldErrors}
+                />
+              ))
+            )}
+            <AddFlashcard
+              onAdd={handleAddFlashcard}
+              nextIndex={flashcards.length + 1}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       <div className="flex justify-end">
         <Button

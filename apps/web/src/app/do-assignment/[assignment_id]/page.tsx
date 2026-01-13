@@ -17,15 +17,18 @@ import type {
   WrittenAssignmentContent,
   WrittenSubmissionContent,
   FileAttachment,
+  FlashcardContent,
+  FlashcardSubmissionContent,
   isWrittenContent,
   isQuizContent,
 } from "@/lib/assignment-types";
 import Loader from "@/components/loader";
 import { useTranslations } from "next-intl";
-import { ArrowLeft, Send, FileQuestion, Upload } from "lucide-react";
+import { ArrowLeft, Send, FileQuestion, Upload, Layers } from "lucide-react";
 import { FileUploader } from "@/components/assignment/file-uploader";
 import { FilePreview } from "@/components/assignment/file-preview";
 import { RichTextDisplay } from "@/components/assignment/rich-text-editor";
+import { FlashcardViewer } from "@/components/assignment/flashcard-viewer";
 
 export default function DoAssignmentPage() {
   const params = useParams();
@@ -33,6 +36,7 @@ export default function DoAssignmentPage() {
   const router = useRouter();
   const t = useTranslations("DoAssignment");
   const tWritten = useTranslations("WrittenAssignment");
+  const tFlashcard = useTranslations("FlashcardAssignment");
 
   const { data: session, isPending: sessionPending } = authClient.useSession();
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -110,16 +114,21 @@ export default function DoAssignmentPage() {
 
   // Determine assignment type
   const isWrittenAssignment = (assignment as any).assignmentType === "written";
+  const isFlashcardAssignment =
+    (assignment as any).assignmentType === "flashcard";
 
   // Parse assignment content based on type
   let quizContent: AssignmentContent | null = null;
   let writtenContent: WrittenAssignmentContent | null = null;
+  let flashcardContent: FlashcardContent | null = null;
 
   try {
     if (assignment.assignmentContent) {
       const parsed = JSON.parse(assignment.assignmentContent);
       if (isWrittenAssignment) {
         writtenContent = parsed as WrittenAssignmentContent;
+      } else if (isFlashcardAssignment) {
+        flashcardContent = parsed as FlashcardContent;
       } else {
         quizContent = parsed as AssignmentContent;
       }
@@ -153,6 +162,15 @@ export default function DoAssignmentPage() {
 
     const content: WrittenSubmissionContent = {
       files: uploadedFiles,
+    };
+
+    submitMutation.mutate(JSON.stringify(content));
+  };
+
+  const handleFlashcardComplete = () => {
+    const content: FlashcardSubmissionContent = {
+      completed: true,
+      completedAt: new Date().toISOString(),
     };
 
     submitMutation.mutate(JSON.stringify(content));
@@ -246,8 +264,33 @@ export default function DoAssignmentPage() {
             </>
           )}
 
+          {/* Flashcard Assignment Content */}
+          {isFlashcardAssignment && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Layers className="h-5 w-5" />
+                  {tFlashcard("flashcardPractice")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {flashcardContent && flashcardContent.cards.length > 0 ? (
+                  <FlashcardViewer
+                    cards={flashcardContent.cards}
+                    onComplete={handleFlashcardComplete}
+                    isSubmitting={submitMutation.isPending}
+                  />
+                ) : (
+                  <p className="text-muted-foreground">
+                    {tFlashcard("noCards")}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Quiz Assignment Content */}
-          {!isWrittenAssignment && (
+          {!isWrittenAssignment && !isFlashcardAssignment && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -281,19 +324,24 @@ export default function DoAssignmentPage() {
             </Card>
           )}
 
-          {/* Submit Button */}
-          <div className="flex justify-end">
-            <Button onClick={handleSubmit} disabled={submitMutation.isPending}>
-              {submitMutation.isPending ? (
-                t("submitting")
-              ) : (
-                <>
-                  <Send className="h-4 w-4 mr-2" />
-                  {t("submitAssignment")}
-                </>
-              )}
-            </Button>
-          </div>
+          {/* Submit Button - only for quiz and written assignments */}
+          {!isFlashcardAssignment && (
+            <div className="flex justify-end">
+              <Button
+                onClick={handleSubmit}
+                disabled={submitMutation.isPending}
+              >
+                {submitMutation.isPending ? (
+                  t("submitting")
+                ) : (
+                  <>
+                    <Send className="h-4 w-4 mr-2" />
+                    {t("submitAssignment")}
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>
