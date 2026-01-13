@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   Clock,
 } from "lucide-react";
+import { RichTextDisplay } from "@/components/assignment/rich-text-editor";
 
 export default function StudentAssignmentsClient() {
   const t = useTranslations("StudentDashboard");
@@ -83,9 +84,9 @@ export default function StudentAssignmentsClient() {
                           </h3>
                         </div>
                         {assignment.description && (
-                          <p className="text-sm text-slate-600 mb-3 line-clamp-2">
-                            {assignment.description}
-                          </p>
+                          <div className="text-sm text-slate-600 mb-3 line-clamp-2">
+                            <RichTextDisplay content={assignment.description} />
+                          </div>
                         )}
                         <div className="flex flex-wrap gap-4 text-sm text-slate-500">
                           <div className="flex items-center gap-2">

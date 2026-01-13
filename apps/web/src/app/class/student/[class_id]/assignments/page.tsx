@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Loader from "@/components/loader";
 import { useTranslations } from "next-intl";
 import { FileText, Eye, Pencil } from "lucide-react";
+import { RichTextDisplay } from "@/components/assignment/rich-text-editor";
 
 export default function AssignmentsPage() {
   const params = useParams();
@@ -69,9 +70,9 @@ export default function AssignmentsPage() {
                         </div>
                       </div>
                       {assignment.description && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {assignment.description}
-                        </p>
+                        <div className="text-sm text-muted-foreground mt-1">
+                          <RichTextDisplay content={assignment.description} />
+                        </div>
                       )}
                       <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                         <span>
