@@ -34,6 +34,12 @@ import {
 } from "../utils/email";
 import { getStudentPerformanceData } from "../utils/parent-reports";
 import { Scrypt } from "lucia";
+import {
+  getManagerTeacherIds,
+  getManagerStudentIds,
+  getManagerClassIds,
+  verifyClassBelongsToManager,
+} from "../utils/authorization";
 
 // Schedule color type
 const scheduleColorSchema = z.enum([
@@ -171,11 +177,80 @@ export const educationRouter = router({
         throw new Error("Class not found");
       }
 
-      return classData[0];
+      const classInfo = classData[0]!;
+
+      // Authorization: Check if user has access
+      if (ctx.session.user.role === "teacher") {
+        // Teacher must own the class
+        if (classInfo.teacherId !== ctx.session.user.id) {
+          throw new Error("Access denied - you do not own this class");
+        }
+      } else if (ctx.session.user.role === "student") {
+        // Student must be enrolled
+        const enrollment = await ctx.db
+          .select()
+          .from(enrollments)
+          .where(
+            and(
+              eq(enrollments.classId, input.classId),
+              eq(enrollments.studentId, ctx.session.user.id)
+            )
+          );
+        if (enrollment.length === 0) {
+          throw new Error("Access denied - you are not enrolled in this class");
+        }
+      } else if (ctx.session.user.role === "manager") {
+        // Manager must own the teacher
+        const isAuthorized = await verifyClassBelongsToManager(
+          ctx.db,
+          input.classId,
+          ctx.session.user.id
+        );
+        if (!isAuthorized) {
+          throw new Error(
+            "Access denied - class does not belong to your organization"
+          );
+        }
+      }
+
+      return classInfo;
     }),
   getClassStudents: protectedProcedure
     .input(z.object({ classId: z.string() }))
     .query(async ({ ctx, input }) => {
+      // Authorization check: verify user has access to this class
+      if (ctx.session.user.role === "teacher") {
+        // Verify teacher owns the class
+        const classData = await ctx.db
+          .select({ teacherId: classes.teacherId })
+          .from(classes)
+          .where(eq(classes.classId, input.classId));
+
+        if (classData.length === 0) {
+          throw new Error("Class not found");
+        }
+
+        if (classData[0]!.teacherId !== ctx.session.user.id) {
+          throw new Error("Access denied - you do not own this class");
+        }
+      } else if (ctx.session.user.role === "manager") {
+        // Verify class belongs to manager's teachers
+        const isAuthorized = await verifyClassBelongsToManager(
+          ctx.db,
+          input.classId,
+          ctx.session.user.id
+        );
+        if (!isAuthorized) {
+          throw new Error(
+            "Access denied - class does not belong to your organization"
+          );
+        }
+      } else {
+        throw new Error(
+          "Access denied - only teachers and managers can view class students"
+        );
+      }
+
       return await ctx.db
         .select({
           userId: user.id,
@@ -249,6 +324,50 @@ export const educationRouter = router({
   getClassAssignments: protectedProcedure
     .input(z.object({ classId: z.string() }))
     .query(async ({ ctx, input }) => {
+      // Authorization check based on role
+      if (ctx.session.user.role === "teacher") {
+        // Verify teacher owns the class
+        const classData = await ctx.db
+          .select({ teacherId: classes.teacherId })
+          .from(classes)
+          .where(eq(classes.classId, input.classId));
+
+        if (classData.length === 0) {
+          throw new Error("Class not found");
+        }
+
+        if (classData[0]!.teacherId !== ctx.session.user.id) {
+          throw new Error("Access denied - you do not own this class");
+        }
+      } else if (ctx.session.user.role === "student") {
+        // Verify student is enrolled
+        const enrollment = await ctx.db
+          .select()
+          .from(enrollments)
+          .where(
+            and(
+              eq(enrollments.classId, input.classId),
+              eq(enrollments.studentId, ctx.session.user.id)
+            )
+          );
+
+        if (enrollment.length === 0) {
+          throw new Error("Access denied - you are not enrolled in this class");
+        }
+      } else if (ctx.session.user.role === "manager") {
+        // Verify class belongs to manager's teachers
+        const isAuthorized = await verifyClassBelongsToManager(
+          ctx.db,
+          input.classId,
+          ctx.session.user.id
+        );
+        if (!isAuthorized) {
+          throw new Error(
+            "Access denied - class does not belong to your organization"
+          );
+        }
+      }
+
       // Get assignments with submission count
       const assignmentsWithCount = await ctx.db
         .select({
@@ -329,6 +448,20 @@ export const educationRouter = router({
 
       if (!isTeacher && !isManager) {
         throw new Error("Access denied");
+      }
+
+      // If manager, verify class belongs to their organization
+      if (isManager) {
+        const isAuthorized = await verifyClassBelongsToManager(
+          ctx.db,
+          input.classId,
+          ctx.session.user.id
+        );
+        if (!isAuthorized) {
+          throw new Error(
+            "Access denied - class does not belong to your organization"
+          );
+        }
       }
 
       const updateData: {
@@ -757,6 +890,39 @@ export const educationRouter = router({
   getClassTeacher: protectedProcedure
     .input(z.object({ classId: z.string() }))
     .query(async ({ ctx, input }) => {
+      // Authorization check based on role
+      if (ctx.session.user.role === "student") {
+        // Verify student is enrolled in the class
+        const enrollment = await ctx.db
+          .select()
+          .from(enrollments)
+          .where(
+            and(
+              eq(enrollments.classId, input.classId),
+              eq(enrollments.studentId, ctx.session.user.id)
+            )
+          );
+
+        if (enrollment.length === 0) {
+          throw new Error("Access denied - you are not enrolled in this class");
+        }
+      } else if (ctx.session.user.role === "manager") {
+        // Verify class belongs to manager's teachers
+        const isAuthorized = await verifyClassBelongsToManager(
+          ctx.db,
+          input.classId,
+          ctx.session.user.id
+        );
+        if (!isAuthorized) {
+          throw new Error(
+            "Access denied - class does not belong to your organization"
+          );
+        }
+      } else if (ctx.session.user.role === "teacher") {
+        // Teachers can view teacher info for any class (for reference)
+        // Or we could restrict to only their own classes - adjust based on requirements
+      }
+
       const teacher = await ctx.db
         .select({
           id: user.id,
@@ -1074,6 +1240,50 @@ export const educationRouter = router({
   getClassLectures: protectedProcedure
     .input(z.object({ classId: z.string() }))
     .query(async ({ ctx, input }) => {
+      // Authorization check based on role
+      if (ctx.session.user.role === "teacher") {
+        // Verify teacher owns the class
+        const classData = await ctx.db
+          .select({ teacherId: classes.teacherId })
+          .from(classes)
+          .where(eq(classes.classId, input.classId));
+
+        if (classData.length === 0) {
+          throw new Error("Class not found");
+        }
+
+        if (classData[0]!.teacherId !== ctx.session.user.id) {
+          throw new Error("Access denied - you do not own this class");
+        }
+      } else if (ctx.session.user.role === "student") {
+        // Verify student is enrolled
+        const enrollment = await ctx.db
+          .select()
+          .from(enrollments)
+          .where(
+            and(
+              eq(enrollments.classId, input.classId),
+              eq(enrollments.studentId, ctx.session.user.id)
+            )
+          );
+
+        if (enrollment.length === 0) {
+          throw new Error("Access denied - you are not enrolled in this class");
+        }
+      } else if (ctx.session.user.role === "manager") {
+        // Verify class belongs to manager's teachers
+        const isAuthorized = await verifyClassBelongsToManager(
+          ctx.db,
+          input.classId,
+          ctx.session.user.id
+        );
+        if (!isAuthorized) {
+          throw new Error(
+            "Access denied - class does not belong to your organization"
+          );
+        }
+      }
+
       return await ctx.db
         .select()
         .from(lectures)
@@ -1237,7 +1447,7 @@ export const educationRouter = router({
   getClassAnnouncements: protectedProcedure
     .input(z.object({ classId: z.string() }))
     .query(async ({ ctx, input }) => {
-      // Check if user is the teacher or enrolled student
+      // Check if user is the teacher or enrolled student or manager
       const classData = await ctx.db
         .select()
         .from(classes)
@@ -1249,19 +1459,36 @@ export const educationRouter = router({
 
       const classInfo = classData[0]!;
 
-      // If user is not the teacher, check if they are enrolled
+      // If user is not the teacher, check additional authorization
       if (classInfo.teacherId !== ctx.session.user.id) {
-        const enrollment = await ctx.db
-          .select()
-          .from(enrollments)
-          .where(
-            and(
-              eq(enrollments.studentId, ctx.session.user.id),
-              eq(enrollments.classId, input.classId)
-            )
-          );
+        if (ctx.session.user.role === "student") {
+          // Check if student is enrolled
+          const enrollment = await ctx.db
+            .select()
+            .from(enrollments)
+            .where(
+              and(
+                eq(enrollments.studentId, ctx.session.user.id),
+                eq(enrollments.classId, input.classId)
+              )
+            );
 
-        if (enrollment.length === 0) {
+          if (enrollment.length === 0) {
+            throw new Error("Access denied");
+          }
+        } else if (ctx.session.user.role === "manager") {
+          // Verify class belongs to manager's teachers
+          const isAuthorized = await verifyClassBelongsToManager(
+            ctx.db,
+            input.classId,
+            ctx.session.user.id
+          );
+          if (!isAuthorized) {
+            throw new Error(
+              "Access denied - class does not belong to your organization"
+            );
+          }
+        } else {
           throw new Error("Access denied");
         }
       }
@@ -1420,7 +1647,7 @@ export const educationRouter = router({
   getClassSchedules: protectedProcedure
     .input(z.object({ classId: z.string() }))
     .query(async ({ ctx, input }) => {
-      // Check if user is the teacher or enrolled student
+      // Check if user is the teacher or enrolled student or manager
       const classData = await ctx.db
         .select()
         .from(classes)
@@ -1432,19 +1659,36 @@ export const educationRouter = router({
 
       const classInfo = classData[0]!;
 
-      // If user is not the teacher, check if they are enrolled
+      // If user is not the teacher, check additional authorization
       if (classInfo.teacherId !== ctx.session.user.id) {
-        const enrollment = await ctx.db
-          .select()
-          .from(enrollments)
-          .where(
-            and(
-              eq(enrollments.studentId, ctx.session.user.id),
-              eq(enrollments.classId, input.classId)
-            )
-          );
+        if (ctx.session.user.role === "student") {
+          // Check if student is enrolled
+          const enrollment = await ctx.db
+            .select()
+            .from(enrollments)
+            .where(
+              and(
+                eq(enrollments.studentId, ctx.session.user.id),
+                eq(enrollments.classId, input.classId)
+              )
+            );
 
-        if (enrollment.length === 0) {
+          if (enrollment.length === 0) {
+            throw new Error("Access denied");
+          }
+        } else if (ctx.session.user.role === "manager") {
+          // Verify class belongs to manager's teachers
+          const isAuthorized = await verifyClassBelongsToManager(
+            ctx.db,
+            input.classId,
+            ctx.session.user.id
+          );
+          if (!isAuthorized) {
+            throw new Error(
+              "Access denied - class does not belong to your organization"
+            );
+          }
+        } else {
           throw new Error("Access denied");
         }
       }
@@ -2644,7 +2888,30 @@ export const educationRouter = router({
         throw new Error("Access denied - manager only");
       }
 
-      // Get all enrollments with class tuition rates
+      // Get manager's class IDs for authorization
+      const managerClassIds = await getManagerClassIds(
+        ctx.db,
+        ctx.session.user.id
+      );
+
+      if (managerClassIds.length === 0) {
+        throw new Error("No classes found");
+      }
+
+      // Determine which classes to bill
+      let targetClassIds = managerClassIds;
+      if (input.classIds && input.classIds.length > 0) {
+        // Verify all requested classIds belong to manager
+        const invalidClassIds = input.classIds.filter(
+          (id) => !managerClassIds.includes(id)
+        );
+        if (invalidClassIds.length > 0) {
+          throw new Error("Some classes do not belong to your organization");
+        }
+        targetClassIds = input.classIds;
+      }
+
+      // Get all enrollments with class tuition rates (scoped to manager)
       let enrollmentQuery = ctx.db
         .select({
           enrollmentId: enrollments.enrollmentId,
@@ -2653,13 +2920,8 @@ export const educationRouter = router({
           tuitionRate: classes.tuitionRate,
         })
         .from(enrollments)
-        .innerJoin(classes, eq(enrollments.classId, classes.classId));
-
-      if (input.classIds && input.classIds.length > 0) {
-        enrollmentQuery = enrollmentQuery.where(
-          inArray(enrollments.classId, input.classIds)
-        ) as typeof enrollmentQuery;
-      }
+        .innerJoin(classes, eq(enrollments.classId, classes.classId))
+        .where(inArray(enrollments.classId, targetClassIds));
 
       const enrollmentData = await enrollmentQuery;
 
@@ -2728,6 +2990,32 @@ export const educationRouter = router({
         throw new Error("Access denied - manager only");
       }
 
+      // Verify billing belongs to manager's students
+      const managerStudentIds = await getManagerStudentIds(
+        ctx.db,
+        ctx.session.user.id
+      );
+
+      if (managerStudentIds.length === 0) {
+        throw new Error("No students found");
+      }
+
+      // Verify ownership before update
+      const existingBilling = await ctx.db
+        .select({ studentId: tuitionBilling.studentId })
+        .from(tuitionBilling)
+        .where(eq(tuitionBilling.billingId, input.billingId));
+
+      if (existingBilling.length === 0) {
+        throw new Error("Billing not found");
+      }
+
+      if (!managerStudentIds.includes(existingBilling[0]!.studentId)) {
+        throw new Error(
+          "Access denied - billing does not belong to your organization"
+        );
+      }
+
       const updateData: {
         status: "pending" | "paid" | "cancelled";
         paidAt?: Date | null;
@@ -2763,6 +3051,16 @@ export const educationRouter = router({
     .query(async ({ ctx, input }) => {
       if (ctx.session.user.role !== "manager") {
         throw new Error("Access denied - manager only");
+      }
+
+      // Get manager's student IDs for authorization
+      const managerStudentIds = await getManagerStudentIds(
+        ctx.db,
+        ctx.session.user.id
+      );
+
+      if (managerStudentIds.length === 0) {
+        throw new Error("No students found");
       }
 
       const billing = await ctx.db
@@ -3481,7 +3779,17 @@ export const educationRouter = router({
         throw new Error("Access denied - manager only");
       }
 
-      // Get all teachers with active rates
+      // Get manager's teacher IDs for scoping
+      const managerTeacherIds = await getManagerTeacherIds(
+        ctx.db,
+        ctx.session.user.id
+      );
+
+      if (managerTeacherIds.length === 0) {
+        throw new Error("No teachers found");
+      }
+
+      // Get all teachers with active rates (scoped to manager's teachers)
       const teachersWithRates = await ctx.db
         .select({
           teacherId: teacherRates.teacherId,
@@ -3490,7 +3798,12 @@ export const educationRouter = router({
           amount: teacherRates.amount,
         })
         .from(teacherRates)
-        .where(eq(teacherRates.isActive, true));
+        .where(
+          and(
+            eq(teacherRates.isActive, true),
+            inArray(teacherRates.teacherId, managerTeacherIds)
+          )
+        );
 
       if (teachersWithRates.length === 0) {
         throw new Error("No teachers with active rates found");
@@ -4078,6 +4391,31 @@ export const educationRouter = router({
         throw new Error("Access denied - manager only");
       }
 
+      // Get manager's student IDs for scoping billing queries
+      const managerStudentIds = await getManagerStudentIds(
+        ctx.db,
+        ctx.session.user.id
+      );
+
+      // Get manager's teacher IDs for scoping payment queries
+      const managerTeacherIds = await getManagerTeacherIds(
+        ctx.db,
+        ctx.session.user.id
+      );
+
+      if (managerStudentIds.length === 0) {
+        // No students means no data
+        return {
+          totalRevenue: 0,
+          outstandingBills: 0,
+          outstandingCount: 0,
+          monthRevenue: 0,
+          pendingTutorPayments: 0,
+          pendingTutorCount: 0,
+          monthlyTrend: [],
+        };
+      }
+
       const currentYear = input.year || new Date().getFullYear();
       const currentMonth = new Date().getMonth() + 1;
       const currentMonthStr = `${currentYear}-${String(currentMonth).padStart(
@@ -4085,24 +4423,34 @@ export const educationRouter = router({
         "0"
       )}`;
 
-      // Total revenue (all paid billings)
+      // Total revenue (all paid billings from manager's students)
       const totalRevenueResult = await ctx.db
         .select({
           total: sql<number>`coalesce(sum(${tuitionBilling.amount}), 0)::int`,
         })
         .from(tuitionBilling)
-        .where(eq(tuitionBilling.status, "paid"));
+        .where(
+          and(
+            eq(tuitionBilling.status, "paid"),
+            inArray(tuitionBilling.studentId, managerStudentIds)
+          )
+        );
 
-      // Outstanding bills (pending)
+      // Outstanding bills (pending from manager's students)
       const outstandingResult = await ctx.db
         .select({
           total: sql<number>`coalesce(sum(${tuitionBilling.amount}), 0)::int`,
           count: sql<number>`count(*)::int`,
         })
         .from(tuitionBilling)
-        .where(sql`${tuitionBilling.status} = 'pending'`);
+        .where(
+          and(
+            eq(tuitionBilling.status, "pending"),
+            inArray(tuitionBilling.studentId, managerStudentIds)
+          )
+        );
 
-      // This month's revenue
+      // This month's revenue (from manager's students)
       const monthRevenueResult = await ctx.db
         .select({
           total: sql<number>`coalesce(sum(${tuitionBilling.amount}), 0)::int`,
@@ -4111,20 +4459,28 @@ export const educationRouter = router({
         .where(
           and(
             eq(tuitionBilling.status, "paid"),
-            eq(tuitionBilling.billingMonth, currentMonthStr)
+            eq(tuitionBilling.billingMonth, currentMonthStr),
+            inArray(tuitionBilling.studentId, managerStudentIds)
           )
         );
 
-      // Pending tutor payments
+      // Pending tutor payments (for manager's teachers only)
       const pendingTutorPaymentsResult = await ctx.db
         .select({
           total: sql<number>`coalesce(sum(${tutorPayments.amount}), 0)::int`,
           count: sql<number>`count(*)::int`,
         })
         .from(tutorPayments)
-        .where(eq(tutorPayments.status, "pending"));
+        .where(
+          and(
+            eq(tutorPayments.status, "pending"),
+            managerTeacherIds.length > 0
+              ? inArray(tutorPayments.teacherId, managerTeacherIds)
+              : sql`1=0`
+          )
+        );
 
-      // Monthly revenue trend (last 12 months)
+      // Monthly revenue trend (last 12 months, scoped to manager)
       const monthlyTrend = await ctx.db
         .select({
           month: tuitionBilling.billingMonth,
@@ -4132,6 +4488,7 @@ export const educationRouter = router({
           outstanding: sql<number>`coalesce(sum(case when ${tuitionBilling.status} = 'pending' then ${tuitionBilling.amount} else 0 end), 0)::int`,
         })
         .from(tuitionBilling)
+        .where(inArray(tuitionBilling.studentId, managerStudentIds))
         .groupBy(tuitionBilling.billingMonth)
         .orderBy(tuitionBilling.billingMonth);
 
@@ -4152,6 +4509,16 @@ export const educationRouter = router({
       throw new Error("Access denied - manager only");
     }
 
+    // Get manager's teacher IDs
+    const managerTeacherIds = await getManagerTeacherIds(
+      ctx.db,
+      ctx.session.user.id
+    );
+
+    if (managerTeacherIds.length === 0) {
+      return [];
+    }
+
     const allClasses = await ctx.db
       .select({
         classId: classes.classId,
@@ -4167,6 +4534,7 @@ export const educationRouter = router({
       .from(classes)
       .leftJoin(user, eq(classes.teacherId, user.id))
       .leftJoin(enrollments, eq(classes.classId, enrollments.classId))
+      .where(inArray(classes.teacherId, managerTeacherIds))
       .groupBy(classes.classId, user.id)
       .orderBy(classes.className);
 
@@ -4184,6 +4552,19 @@ export const educationRouter = router({
     .mutation(async ({ ctx, input }) => {
       if (ctx.session.user.role !== "manager") {
         throw new Error("Access denied - manager only");
+      }
+
+      // Verify class belongs to manager's teachers
+      const isAuthorized = await verifyClassBelongsToManager(
+        ctx.db,
+        input.classId,
+        ctx.session.user.id
+      );
+
+      if (!isAuthorized) {
+        throw new Error(
+          "Access denied - class does not belong to your organization"
+        );
       }
 
       await ctx.db
@@ -7858,6 +8239,20 @@ export const educationRouter = router({
         throw new Error("Unauthorized");
       }
 
+      // Verify class belongs to manager's teachers
+      if (ctx.session.user.role === "manager") {
+        const isAuthorized = await verifyClassBelongsToManager(
+          ctx.db,
+          input.classId,
+          ctx.session.user.id
+        );
+        if (!isAuthorized) {
+          throw new Error(
+            "Access denied - class does not belong to your organization"
+          );
+        }
+      }
+
       const classData = await ctx.db
         .select({
           classId: classes.classId,
@@ -7901,6 +8296,16 @@ export const educationRouter = router({
       throw new Error("Access denied");
     }
 
+    // Get manager's class IDs for scoping
+    const managerClassIds = await getManagerClassIds(
+      ctx.db,
+      ctx.session.user.id
+    );
+
+    if (managerClassIds.length === 0) {
+      return [];
+    }
+
     const reports = await ctx.db
       .select({
         reportId: sessionReports.reportId,
@@ -7923,6 +8328,7 @@ export const educationRouter = router({
       .from(sessionReports)
       .innerJoin(user, eq(sessionReports.teacherId, user.id))
       .innerJoin(classes, eq(sessionReports.classId, classes.classId))
+      .where(inArray(sessionReports.classId, managerClassIds))
       .orderBy(desc(sessionReports.sessionDate));
 
     return reports;
@@ -7933,6 +8339,28 @@ export const educationRouter = router({
     .mutation(async ({ ctx, input }) => {
       if (ctx.session.user.role !== "manager") {
         throw new Error("Access denied");
+      }
+
+      // Verify the report belongs to manager's classes
+      const report = await ctx.db
+        .select({ classId: sessionReports.classId })
+        .from(sessionReports)
+        .where(eq(sessionReports.reportId, input.reportId));
+
+      if (report.length === 0) {
+        throw new Error("Report not found");
+      }
+
+      const isAuthorized = await verifyClassBelongsToManager(
+        ctx.db,
+        report[0]!.classId,
+        ctx.session.user.id
+      );
+
+      if (!isAuthorized) {
+        throw new Error(
+          "Access denied - report does not belong to your organization"
+        );
       }
 
       await ctx.db
