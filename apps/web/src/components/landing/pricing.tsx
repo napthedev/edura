@@ -86,7 +86,7 @@ export default function Pricing() {
           </CardContent>
 
           <CardFooter className="flex flex-col gap-4">
-            <Link href="/contact" className="w-full">
+            <Link href="/signup" className="w-full">
               <Button className="w-full py-6 text-lg font-semibold bg-primary text-white hover:bg-primary/80">
                 <MessageCircle className="w-5 h-5 mr-2" />
                 {t("contactCta")}

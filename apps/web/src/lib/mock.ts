@@ -308,7 +308,7 @@ export const mockData = {
     ],
     support: [
       { name: "Help Center", href: "/help" },
-      { name: "Contact Us", href: "/contact" },
+      { name: "Sign Up", href: "/signup" },
       { name: "Parent Resources", href: "/parents" },
       { name: "Technical Support", href: "/support" },
     ],

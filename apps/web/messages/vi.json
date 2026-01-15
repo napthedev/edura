@@ -11,7 +11,7 @@
     "pricing": "Bảng giá",
     "signin": "Đăng nhập",
     "startFreeTrial": "Bắt đầu dùng thử",
-    "contactUs": "Liên hệ",
+    "signUp": "Đăng ký",
     "home": "Trang chủ",
     "teachers": "Giáo viên",
     "about": "Giới thiệu"
@@ -20,7 +20,7 @@
     "title": "Nền tảng quản lý toàn diện cho trung tâm",
     "subtitle": "Tinh gọn hoạt động, quản lý tài chính, theo dõi KPI và kết nối phụ huynh — mọi thứ bạn cần để vận hành trung tâm thành công",
     "ctaText": "Bắt đầu dùng thử",
-    "contactUs": "Liên hệ",
+    "signUp": "Đăng ký",
     "watchDemo": "Xem demo",
     "trustedBadge": "Được hơn 500 trung tâm trên toàn thế giới tin dùng",
     "trustedBy": "Được các trung tâm hàng đầu tin dùng:",
@@ -98,7 +98,7 @@
       "Quản lý giáo viên",
       "Xử lý thanh toán"
     ],
-    "contactCta": "Liên hệ để bắt đầu",
+    "contactCta": "Đăng ký để bắt đầu",
     "contactNote": "Đội ngũ chúng tôi sẽ thiết lập tài khoản và hỗ trợ bạn bắt đầu",
     "guarantee": {
       "title": "Bảo đảm hài lòng trong 30 ngày",
@@ -166,7 +166,7 @@
       "support": {
         "title": "Hỗ trợ",
         "helpCenter": "Trung tâm trợ giúp",
-        "contactUs": "Liên hệ",
+        "signUp": "Đăng ký",
         "parentResources": "Tài nguyên cho phụ huynh",
         "technicalSupport": "Hỗ trợ kỹ thuật"
       },
@@ -215,9 +215,9 @@
     "noAccount": "Chưa có tài khoản?",
     "contactAdmin": "Liên hệ quản trị viên"
   },
-  "Contact": {
+  "SignUp": {
     "title": "Bắt đầu với Edura",
-    "subtitle": "Liên hệ để thiết lập tài khoản trung tâm. Đội ngũ chúng tôi sẽ hỗ trợ bạn nhanh chóng.",
+    "subtitle": "Đăng ký tài khoản trung tâm. Đội ngũ chúng tôi sẽ hỗ trợ bạn nhanh chóng.",
     "signIn": "Đăng nhập",
     "form": {
       "title": "Yêu cầu thiết lập tài khoản",

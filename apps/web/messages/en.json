@@ -11,7 +11,7 @@
     "pricing": "Pricing",
     "signin": "Sign In",
     "startFreeTrial": "Start Free Trial",
-    "contactUs": "Contact Us",
+    "signUp": "Sign Up",
     "home": "Home",
     "teachers": "Teachers",
     "about": "About"
@@ -20,7 +20,7 @@
     "title": "A complete management platform for tutoring centre",
     "subtitle": "Streamline operations, manage finances, track KPIs, and engage parents—everything you need to run a successful tutoring centre",
     "ctaText": "Start Free Trial",
-    "contactUs": "Contact Us",
+    "signUp": "Sign Up",
     "watchDemo": "Watch Demo",
     "trustedBadge": "Trusted by 500+ tutoring centres worldwide",
     "trustedBy": "Trusted by leading tutoring centres:",
@@ -98,7 +98,7 @@
       "Teacher management",
       "Payment processing"
     ],
-    "contactCta": "Contact Us to Get Started",
+    "contactCta": "Sign Up to Get Started",
     "contactNote": "Our team will set up your account and help you get started",
     "guarantee": {
       "title": "30-Day Satisfaction Guarantee",
@@ -166,7 +166,7 @@
       "support": {
         "title": "Support",
         "helpCenter": "Help Center",
-        "contactUs": "Contact Us",
+        "signUp": "Sign Up",
         "parentResources": "Parent Resources",
         "technicalSupport": "Technical Support"
       },
@@ -215,9 +215,9 @@
     "noAccount": "Don't have an account?",
     "contactAdmin": "Contact your administrator"
   },
-  "Contact": {
+  "SignUp": {
     "title": "Get Started with Edura",
-    "subtitle": "Contact us to set up your tutoring centre account. Our team will help you get started quickly.",
+    "subtitle": "Sign up for your tutoring centre account. Our team will help you get started quickly.",
     "signIn": "Sign In",
     "form": {
       "title": "Request Account Setup",

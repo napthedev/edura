@@ -28,7 +28,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 
 export default function ContactPage() {
-  const t = useTranslations("Contact");
+  const t = useTranslations("SignUp");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);

@@ -137,7 +137,7 @@ export default function SignInForm() {
               <p className="text-sm text-gray-600">
                 {t("noAccount")}{" "}
                 <Link
-                  href="/contact"
+                  href="/signup"
                   className="text-black font-medium hover:underline"
                 >
                   {t("contactAdmin")}

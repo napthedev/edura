@@ -30,7 +30,7 @@ export default function Footer() {
     ],
     support: [
       { name: t("links.support.helpCenter"), href: "/help" },
-      { name: t("links.support.contactUs"), href: "/contact" },
+      { name: t("links.support.signUp"), href: "/signup" },
       { name: t("links.support.parentResources"), href: "/parents" },
       { name: t("links.support.technicalSupport"), href: "/support" },
     ],

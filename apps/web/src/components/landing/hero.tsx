@@ -54,12 +54,12 @@ const Hero = () => {
 
             {/* CTA Buttons */}
             <div className="flex flex-col gap-4 sm:flex-row">
-              <Link href="/contact">
+              <Link href="/signup">
                 <Button
                   className="transform bg-primary px-8 py-4 font-semibold text-lg text-white transition-all duration-200 hover:scale-105 hover:bg-primary/80"
                   size="lg"
                 >
-                  {t("contactUs")}
+                  {t("signUp")}
                 </Button>
               </Link>
               <Button
