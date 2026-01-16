@@ -16,8 +16,15 @@ import {
   FolderOpen,
   GraduationCap,
   Calendar,
+  TrendingUp,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { mockData } from "@/lib/mock";
+import {
+  GradeTrendChart,
+  AssignmentCompletionChart,
+  GradeDistributionChart,
+} from "@/components/dashboard/student";
 
 export default function StudentDashboardPage() {
   const t = useTranslations("StudentDashboard");
@@ -53,6 +60,17 @@ export default function StudentDashboardPage() {
         <LayoutDashboard className="h-6 w-6" />
         {t("title")}
       </h1>
+
+      {/* Performance Analytics Section */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <GradeTrendChart data={mockData.studentAnalytics.gradeHistory} />
+        <AssignmentCompletionChart
+          data={mockData.studentAnalytics.assignmentsByClass}
+        />
+        <GradeDistributionChart
+          data={mockData.studentAnalytics.gradeDistribution}
+        />
+      </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Stats Cards - Inspiration from design */}

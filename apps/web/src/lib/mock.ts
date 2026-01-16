@@ -319,4 +319,42 @@ export const mockData = {
       { name: "Safety Guidelines", href: "/safety" },
     ],
   },
+
+  // Student analytics mock data for dashboard charts
+  studentAnalytics: {
+    // Grade trend over the past 6 months
+    gradeHistory: [
+      { month: "Aug 2025", avgScore: 72 },
+      { month: "Sep 2025", avgScore: 75 },
+      { month: "Oct 2025", avgScore: 78 },
+      { month: "Nov 2025", avgScore: 82 },
+      { month: "Dec 2025", avgScore: 79 },
+      { month: "Jan 2026", avgScore: 85 },
+    ],
+    // Assignment completion by class
+    assignmentsByClass: [
+      { className: "Mathematics", completed: 12, pending: 2 },
+      { className: "English", completed: 8, pending: 1 },
+      { className: "Science", completed: 10, pending: 3 },
+      { className: "History", completed: 6, pending: 0 },
+    ],
+    // Grade distribution (A/B/C/D/F ranges)
+    gradeDistribution: [
+      { grade: "A", range: "90-100", count: 8, color: "hsl(142, 76%, 36%)" },
+      { grade: "B", range: "80-89", count: 12, color: "hsl(199, 89%, 48%)" },
+      { grade: "C", range: "70-79", count: 6, color: "hsl(45, 93%, 47%)" },
+      { grade: "D", range: "60-69", count: 3, color: "hsl(25, 95%, 53%)" },
+      { grade: "F", range: "0-59", count: 1, color: "hsl(0, 84%, 60%)" },
+    ],
+    // Weekly study hours
+    weeklyActivity: [
+      { day: "Mon", hours: 2.5 },
+      { day: "Tue", hours: 1.8 },
+      { day: "Wed", hours: 3.2 },
+      { day: "Thu", hours: 2.0 },
+      { day: "Fri", hours: 1.5 },
+      { day: "Sat", hours: 4.0 },
+      { day: "Sun", hours: 2.8 },
+    ],
+  },
 };
