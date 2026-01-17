@@ -398,7 +398,8 @@
     "viewStatement": "View Statement",
     "assignmentDeletedSuccess": "Assignment deleted successfully",
     "assignmentUrlCopied": "Assignment URL copied to clipboard",
-    "failedToDeleteAssignment": "Failed to delete assignment"
+    "failedToDeleteAssignment": "Failed to delete assignment",
+    "actions": "Actions"
   },
   "CreateAssignment": {
     "title": "Create Assignment",
