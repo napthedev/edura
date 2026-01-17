@@ -29,6 +29,13 @@
       "when": 1767694419134,
       "tag": "0003_glorious_ender_wiggin",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1768628604451,
+      "tag": "0004_lumpy_rage",
+      "breakpoints": true
     }
   ]
 }

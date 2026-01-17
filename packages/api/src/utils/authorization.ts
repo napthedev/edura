@@ -143,3 +143,53 @@ export async function verifyClassBelongsToManager(
 
   return verifyTeacherBelongsToManager(db, classData[0]!.teacherId, managerId);
 }
+
+/**
+ * Verify if a student can join a class (same manager scope)
+ * Students can only join classes taught by teachers belonging to the same manager
+ * @param db Database instance
+ * @param studentId Student's user ID
+ * @param classId Class ID
+ * @returns Object with canJoin boolean and error message if not allowed
+ */
+export async function verifyStudentCanJoinClass(
+  db: typeof dbType,
+  studentId: string,
+  classId: string
+): Promise<{ canJoin: boolean; error?: string }> {
+  // Get student's managerId
+  const studentData = await db
+    .select({ managerId: user.managerId })
+    .from(user)
+    .where(eq(user.id, studentId));
+
+  if (studentData.length === 0) {
+    return { canJoin: false, error: "Student not found" };
+  }
+
+  const studentManagerId = studentData[0]!.managerId;
+
+  // Defensive check: students must always have a manager
+  if (!studentManagerId) {
+    return {
+      canJoin: false,
+      error: "Invalid student account - no learning center assigned",
+    };
+  }
+
+  // Check if class belongs to the student's manager
+  const belongsToManager = await verifyClassBelongsToManager(
+    db,
+    classId,
+    studentManagerId
+  );
+
+  if (!belongsToManager) {
+    return {
+      canJoin: false,
+      error: "You can only join classes within your learning center",
+    };
+  }
+
+  return { canJoin: true };
+}

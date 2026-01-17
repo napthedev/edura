@@ -39,6 +39,7 @@ import {
   getManagerStudentIds,
   getManagerClassIds,
   verifyClassBelongsToManager,
+  verifyStudentCanJoinClass,
 } from "../utils/authorization";
 
 // Schedule color type
@@ -540,6 +541,16 @@ export const educationRouter = router({
 
       const classData = classToJoin[0]!;
 
+      // Verify student can join this class (same manager scope)
+      const { canJoin, error: joinError } = await verifyStudentCanJoinClass(
+        ctx.db,
+        ctx.session.user.id,
+        classData.classId
+      );
+      if (!canJoin) {
+        throw new Error(joinError);
+      }
+
       // Check if student is already enrolled
       const existingEnrollment = await ctx.db
         .select()
@@ -586,6 +597,16 @@ export const educationRouter = router({
       }
 
       const classData = classToJoin[0]!;
+
+      // Verify student can join this class (same manager scope)
+      const { canJoin, error: joinError } = await verifyStudentCanJoinClass(
+        ctx.db,
+        ctx.session.user.id,
+        classData.classId
+      );
+      if (!canJoin) {
+        throw new Error(joinError);
+      }
 
       // Check if student is already enrolled
       const existingEnrollment = await ctx.db

@@ -809,7 +809,9 @@
     "joining": "Joining...",
     "joinClass": "Join Class",
     "requestJoin": "Request to Join",
-    "classCodeLength": "Class code must be exactly 5 characters"
+    "classCodeLength": "Class code must be exactly 5 characters",
+    "managerScopeError": "You can only join classes within your learning center",
+    "invalidStudentAccount": "Invalid student account - no learning center assigned"
   },
   "UserMenu": {
     "signIn": "Sign In",

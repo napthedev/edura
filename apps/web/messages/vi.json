@@ -809,7 +809,9 @@
     "joining": "Đang tham gia...",
     "joinClass": "Tham gia lớp",
     "requestJoin": "Yêu cầu tham gia",
-    "classCodeLength": "Mã lớp phải đúng 5 ký tự"
+    "classCodeLength": "Mã lớp phải đúng 5 ký tự",
+    "managerScopeError": "Bạn chỉ có thể tham gia các lớp trong trung tâm của mình",
+    "invalidStudentAccount": "Tài khoản học sinh không hợp lệ - chưa được gán trung tâm"
   },
   "UserMenu": {
     "signIn": "Đăng nhập",
