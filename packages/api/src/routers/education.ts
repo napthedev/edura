@@ -5468,6 +5468,9 @@ export const educationRouter = router({
         .limit(1);
 
       if (existingUser.length > 0) {
+        if (existingUser[0].role !== "teacher") {
+          throw new Error(`Email already exists as a ${existingUser[0].role}`);
+        }
         throw new Error("Email already exists");
       }
 
@@ -5550,6 +5553,11 @@ export const educationRouter = router({
           .limit(1);
 
         if (existingUser.length > 0) {
+          if (existingUser[0].role !== "student") {
+            throw new Error(
+              `Email already exists as a ${existingUser[0].role}`
+            );
+          }
           throw new Error("Email already exists");
         }
       }
@@ -5651,9 +5659,13 @@ export const educationRouter = router({
             .limit(1);
 
           if (existingUser.length > 0) {
+            const reason =
+              existingUser[0].role !== "teacher"
+                ? `Email already exists as a ${existingUser[0].role}`
+                : "Email already exists";
             results.failed.push({
               email: teacher.email,
-              reason: "Email already exists",
+              reason,
             });
             continue;
           }
@@ -5761,10 +5773,14 @@ export const educationRouter = router({
               .limit(1);
 
             if (existingUser.length > 0) {
+              const reason =
+                existingUser[0].role !== "student"
+                  ? `Email already exists as a ${existingUser[0].role}`
+                  : "Email already exists";
               results.failed.push({
                 name: student.name,
                 email: student.email,
-                reason: "Email already exists",
+                reason,
               });
               continue;
             }
